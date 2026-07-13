@@ -1,12 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supermarket/core/services/asset_service.dart';
-<<<<<<< HEAD
 import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:drift/drift.dart' show Insertable;
-=======
-import 'package:drift/drift.dart' show Insertable;
-import 'package:supermarket/data/datasources/local/app_database.dart';
->>>>>>> 2d430f8439a4d864f3ca3b6e9d35a290d925fd86
 
 class AssetProvider with ChangeNotifier {
   final AssetService _service;

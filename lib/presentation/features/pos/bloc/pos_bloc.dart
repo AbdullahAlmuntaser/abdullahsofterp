@@ -556,12 +556,8 @@ class PosBloc extends Bloc<PosEvent, PosState> {
       orElse: () => currentState.cart.first,
     );
 
-<<<<<<< HEAD
     if (!item.product.isService &&
         (event.quantity * item.unitFactor) > item.product.stock) {
-=======
-    if (!item.product.isService && event.quantity > item.product.stock) {
->>>>>>> 2d430f8439a4d864f3ca3b6e9d35a290d925fd86
       emit(PosError(
           "الكمية المطلوبة (${event.quantity}) تتجاوز المخزون المتاح (${item.product.stock})"));
       return;
@@ -597,14 +593,9 @@ class PosBloc extends Bloc<PosEvent, PosState> {
         }
 
         final unitName = event.unitName;
-<<<<<<< HEAD
         final factor = selectedUnit != null && selectedUnit.unitFactor > Decimal.one
             ? selectedUnit.unitFactor
             : Decimal.one;
-=======
-        final factor =
-            selectedUnit != null ? selectedUnit.unitFactor : Decimal.one;
->>>>>>> 2d430f8439a4d864f3ca3b6e9d35a290d925fd86
 
         Decimal finalPrice = await pricingService.calculatePrice(
           productId: item.product.id,
@@ -645,7 +636,6 @@ class PosBloc extends Bloc<PosEvent, PosState> {
     if (state is! PosLoaded) return;
     final currentState = state as PosLoaded;
 
-<<<<<<< HEAD
     final newCart = await Future.wait(
       currentState.cart.map((item) async {
         Decimal newPrice = await pricingService.calculatePrice(
@@ -673,25 +663,6 @@ class PosBloc extends Bloc<PosEvent, PosState> {
             isWholesale: event.isWholesale, unitPrice: newPrice);
       }),
     ).then((list) => list.toList());
-=======
-    final newCart = currentState.cart.map((item) {
-      Decimal newPrice;
-      if (event.isWholesale) {
-        newPrice = Decimal.parse(item.product.wholesalePrice.toString()) *
-            item.unitFactor;
-      } else {
-        final unitInfo = item.availableUnits.cast<ProductUnit?>().firstWhere(
-              (u) => u?.unitName == item.unitName,
-              orElse: () => null,
-            );
-        newPrice = (unitInfo?.sellPrice != null)
-            ? unitInfo!.sellPrice!
-            : Decimal.parse(item.product.sellPrice.toString()) *
-                item.unitFactor;
-      }
-      return item.copyWith(isWholesale: event.isWholesale, unitPrice: newPrice);
-    }).toList();
->>>>>>> 2d430f8439a4d864f3ca3b6e9d35a290d925fd86
 
     emit(
       currentState.copyWith(cart: newCart, isWholesaleMode: event.isWholesale),
@@ -790,7 +761,6 @@ class PosBloc extends Bloc<PosEvent, PosState> {
         userId: event.userId,
       );
 
-<<<<<<< HEAD
       // جمع الأرقام التسلسلية من عناصر السلة
       final serialNumbersByProduct = <String, List<String>>{};
       for (final item in currentState.cart) {
@@ -811,12 +781,6 @@ class PosBloc extends Bloc<PosEvent, PosState> {
             serialNumbersByProduct: serialNumbersByProduct.isEmpty
                 ? null
                 : serialNumbersByProduct);
-=======
-      developer.log('Posting POS sale draft: saleId=$saleId',
-          name: 'pos.lifecycle');
-      try {
-        await transactionEngine.postSale(saleId, userId: event.userId);
->>>>>>> 2d430f8439a4d864f3ca3b6e9d35a290d925fd86
       } catch (postError) {
         // Clean up orphaned draft on posting failure
         await (db.delete(db.sales)..where((s) => s.id.equals(saleId))).go();

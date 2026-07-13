@@ -94,11 +94,7 @@ class SaleDetailsBottomSheet extends StatelessWidget {
                                     _confirmDelete(context, db, sale),
                               ),
                             ],
-<<<<<<< HEAD
                             if (sale.status == DocumentStatus.posted) ...[
-=======
-                            if (sale.status == DocumentStatus.posted)
->>>>>>> 2d430f8439a4d864f3ca3b6e9d35a290d925fd86
                               IconButton(
                                 icon: const Icon(
                                   Icons.assignment_return,

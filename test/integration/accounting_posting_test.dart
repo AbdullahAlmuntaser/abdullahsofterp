@@ -374,7 +374,6 @@ void main() {
         unitFactor: Value(Decimal.one),
       ));
 
-<<<<<<< HEAD
       // Create and post GRN before posting purchase
       final grnId = const Uuid().v4();
       await db.into(db.goodReceivedNotes).insert(GoodReceivedNotesCompanion.insert(
@@ -389,8 +388,6 @@ void main() {
         productId: 'prod1',
         quantity: Value(Decimal.parse('20')),
       ));
-=======
->>>>>>> 2d430f8439a4d864f3ca3b6e9d35a290d925fd86
       await engine.postPurchase(purchaseId, userId: 'test-user');
 
       final product = await (db.select(db.products)..where((p) => p.id.equals('prod1'))).getSingle();

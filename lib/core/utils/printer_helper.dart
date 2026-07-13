@@ -4,10 +4,6 @@ import 'package:intl/intl.dart';
 import 'package:printing/printing.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-<<<<<<< HEAD
-=======
-import 'package:supermarket/data/datasources/local/app_database.dart';
->>>>>>> 2d430f8439a4d864f3ca3b6e9d35a290d925fd86
 
 class PrinterHelper {
   // Mocking bluetooth for now since the library is problematic

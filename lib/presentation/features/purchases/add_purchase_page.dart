@@ -9,10 +9,7 @@ import 'package:supermarket/core/constants/app_enums.dart';
 import 'package:supermarket/core/services/purchase_service.dart';
 import 'package:supermarket/core/services/audit_service.dart';
 import 'package:supermarket/core/services/permission_service.dart';
-<<<<<<< HEAD
 import 'package:supermarket/core/services/serial_number_service.dart';
-=======
->>>>>>> 2d430f8439a4d864f3ca3b6e9d35a290d925fd86
 import 'package:supermarket/injection_container.dart';
 import 'package:uuid/uuid.dart';
 import 'purchase_provider.dart';

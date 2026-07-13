@@ -220,7 +220,6 @@ class CartWidget extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-<<<<<<< HEAD
                       Row(
                         children: [
                           _qtyBtn(Icons.remove, () {
@@ -282,48 +281,6 @@ class CartWidget extends StatelessWidget {
                           );
                     },
                   ),
-=======
-                      _qtyBtn(Icons.remove, () {
-                        if (item.quantity > Decimal.one) {
-                          context.read<PosBloc>().add(
-                                UpdateCartItemQuantity(
-                                  item.product.id,
-                                  item.quantity - Decimal.one,
-                                ),
-                              );
-                        }
-                      }),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        child: Text(
-                          item.quantity.toString(),
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      _qtyBtn(Icons.add, () {
-                        context.read<PosBloc>().add(
-                              UpdateCartItemQuantity(
-                                item.product.id,
-                                item.quantity + Decimal.one,
-                              ),
-                            );
-                      }),
-                    ],
-                  ),
-                  if (!isCompact)
-                    Text(
-                      '${item.unitPrice.toStringAsFixed(2)} / وحدة',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: Theme.of(context).colorScheme.outline,
-                      ),
-                    ),
-                ],
-              ),
->>>>>>> 2d430f8439a4d864f3ca3b6e9d35a290d925fd86
             ],
           ),
         ),
@@ -486,7 +443,6 @@ class CartWidget extends StatelessWidget {
               Navigator.pop(ctx);
             },
           ),
-<<<<<<< HEAD
           // Other Units (only those with factor > 1 and different name)
           if (filteredUnits.isNotEmpty) ...[
             const Divider(),
@@ -499,22 +455,6 @@ class CartWidget extends StatelessWidget {
                   color: Theme.of(context).colorScheme.outline,
                 ),
               ),
-=======
-          // Other Units
-          ...item.availableUnits.map(
-            (u) => ListTile(
-              title: Text(u.unitName),
-              subtitle: Text('المعامل: ${u.unitFactor}'),
-              trailing: item.unitName == u.unitName
-                  ? const Icon(Icons.check, color: Colors.green)
-                  : null,
-              onTap: () {
-                context.read<PosBloc>().add(
-                      UpdateCartItemUnit(item.product.id, u.unitName),
-                    );
-                Navigator.pop(ctx);
-              },
->>>>>>> 2d430f8439a4d864f3ca3b6e9d35a290d925fd86
             ),
             ...filteredUnits.map(
               (u) => ListTile(
@@ -551,7 +491,6 @@ class CartWidget extends StatelessWidget {
     );
 
     if (result != null) {
-<<<<<<< HEAD
       final unitName = result['unitName'] as String;
       final factor = Decimal.parse(result['factor'].toString());
 
@@ -607,14 +546,6 @@ class CartWidget extends StatelessWidget {
               productId: item.product.id,
               unitName: unitName,
               unitFactor: drift.Value(factor),
-=======
-      await database.into(database.productUnits).insert(
-            ProductUnitsCompanion.insert(
-              productId: item.product.id,
-              unitName: result['unitName'] as String,
-              unitFactor:
-                  drift.Value(Decimal.parse(result['factor'].toString())),
->>>>>>> 2d430f8439a4d864f3ca3b6e9d35a290d925fd86
               barcode: drift.Value(result['barcode'] as String?),
               sellPrice: drift.Value(
                 result['sellPrice'] != null
@@ -627,12 +558,7 @@ class CartWidget extends StatelessWidget {
           );
 
       // Reload units in Bloc
-<<<<<<< HEAD
       posBloc.add(UpdateCartItemUnit(item.product.id, unitName));
-=======
-      posBloc.add(
-          UpdateCartItemUnit(item.product.id, result['unitName'] as String));
->>>>>>> 2d430f8439a4d864f3ca3b6e9d35a290d925fd86
     }
   }
 

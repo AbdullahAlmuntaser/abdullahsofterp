@@ -1,11 +1,7 @@
 import 'package:drift/drift.dart';
 import '../app_database.dart';
 import 'package:supermarket/core/constants/app_enums.dart';
-<<<<<<< HEAD
 import 'package:uuid/uuid.dart';
-=======
-import '../mixins/sync_log_mixin.dart';
->>>>>>> 2d430f8439a4d864f3ca3b6e9d35a290d925fd86
 
 part 'purchases_dao.g.dart';
 
@@ -321,7 +317,6 @@ class PurchasesDao extends DatabaseAccessor<AppDatabase>
       );
     });
   }
-<<<<<<< HEAD
 
   // ==================== Purchase Payment Links ====================
 
@@ -359,6 +354,4 @@ class PurchasesDao extends DatabaseAccessor<AppDatabase>
       (sum, link) => sum + link.amount,
     );
   }
-=======
->>>>>>> 2d430f8439a4d864f3ca3b6e9d35a290d925fd86
 }

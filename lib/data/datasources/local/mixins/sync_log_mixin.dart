@@ -1,10 +1,4 @@
-<<<<<<< HEAD
 part of 'package:supermarket/data/datasources/local/app_database.dart';
-=======
-import 'package:drift/drift.dart';
-import 'package:supermarket/data/datasources/local/app_database.dart';
-import 'dart:convert';
->>>>>>> 2d430f8439a4d864f3ca3b6e9d35a290d925fd86
 
 mixin SyncLogMixin on DatabaseAccessor<AppDatabase> {
   Future<void> logSyncOperation({

@@ -1,13 +1,8 @@
 import 'package:drift/drift.dart';
 import 'package:supermarket/core/constants/app_enums.dart' as enums;
 import 'package:supermarket/core/models/accounting/account_tree_node.dart';
-<<<<<<< HEAD
 import 'package:supermarket/core/constants/account_types.dart';
-=======
->>>>>>> 2d430f8439a4d864f3ca3b6e9d35a290d925fd86
 import 'package:supermarket/data/datasources/local/app_database.dart';
-import 'package:supermarket/core/constants/account_types.dart';
-import '../mixins/sync_log_mixin.dart';
 
 part 'accounting_dao.g.dart';
 

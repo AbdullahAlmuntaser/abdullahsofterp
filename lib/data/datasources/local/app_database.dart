@@ -33,11 +33,7 @@ import 'converters/decimal_converter.dart';
 export 'package:decimal/decimal.dart';
 export 'converters/decimal_converter.dart';
 
-<<<<<<< HEAD
 part 'mixins/sync_log_mixin.dart';
-
-=======
->>>>>>> 2d430f8439a4d864f3ca3b6e9d35a290d925fd86
 // Table definitions provided as part files
 part 'tables/app_config_table.dart';
 part 'tables/payroll_tables.dart';
@@ -1272,8 +1268,6 @@ class CustomerPaymentLinks extends Table with SyncableTable {
     ReconciliationDetails,
     UserSessions,
     LoginAttempts,
-<<<<<<< HEAD
-=======
   ],
   daos: [
     ProductsDao,
@@ -1292,7 +1286,6 @@ class CustomerPaymentLinks extends Table with SyncableTable {
     CashboxDao,
     TransfersDao,
     RecurringEntryDao,
->>>>>>> 2d430f8439a4d864f3ca3b6e9d35a290d925fd86
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -1302,11 +1295,7 @@ class AppDatabase extends _$AppDatabase {
   static String? encryptionKey;
 
   @override
-<<<<<<< HEAD
   int get schemaVersion => 52;
-=======
-  int get schemaVersion => 51;
->>>>>>> 2d430f8439a4d864f3ca3b6e9d35a290d925fd86
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -1544,7 +1533,6 @@ class AppDatabase extends _$AppDatabase {
             } catch (e) {
               debugPrint('DB Migration v51: account_transactions_reconciled_idx: $e');
             }
-<<<<<<< HEAD
           }
           if (from < 52) {
             // Version 52: Add missing columns to ItemVariants, CustomerPayments, SupplierPayments
@@ -1621,8 +1609,6 @@ class AppDatabase extends _$AppDatabase {
             } catch (e) {
               debugPrint('DB Migration v52: supplier_payments.account_id: $e');
             }
-=======
->>>>>>> 2d430f8439a4d864f3ca3b6e9d35a290d925fd86
           }
         },
         beforeOpen: (details) async {
@@ -1796,7 +1782,6 @@ class AppDatabase extends _$AppDatabase {
       } catch (e) {
         // Index might already exist or table might not exist yet - safe to ignore
       }
-<<<<<<< HEAD
     }
   }
 
@@ -2233,462 +2218,6 @@ class AppDatabase extends _$AppDatabase {
       return 0.0;
     }
   }
-
-=======
-    }
-  }
-
-  Future<void> _recoverMissingTables(Migrator m) async {
-    // Single query to get all existing table names (instead of 105 individual queries)
-    final existingRows = await customSelect(
-      "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'",
-    ).get();
-    final existingNames = existingRows.map((r) => r.data['name'] as String).toSet();
-
-    var recoveredCount = 0;
-    for (final table in allTables) {
-      if (!existingNames.contains(table.actualTableName)) {
-        try {
-          debugPrint('DB Forensic: Recovering missing table: ${table.actualTableName}');
-          await m.createTable(table);
-          recoveredCount++;
-        } catch (e) {
-          debugPrint('DB Forensic: Failed to recover table ${table.actualTableName}: $e');
-        }
-      }
-    }
-    if (recoveredCount > 0) {
-      debugPrint('DB Forensic: Recovered $recoveredCount missing tables');
-    }
-  }
-
-  // ==================== STARTUP OPTIMIZATION FLAGS ====================
-  // These flags are stored in app_config_table to skip expensive checks
-  // on subsequent opens. They are idempotent and self-healing.
-
-  static const _kRecoveryVerifiedKey = '_db_recovery_verified';
-  static const _kCoreDataSeededKey = '_db_core_data_seeded';
-
-  Future<bool> _isRecoveryVerified() async {
-    try {
-      final result = await customSelect(
-        "SELECT value FROM app_config_table WHERE key = ?",
-        variables: [const Variable(_kRecoveryVerifiedKey)],
-      ).getSingleOrNull();
-      return result?.data['value'] == 'true';
-    } catch (_) {
-      return false;
-    }
-  }
-
-  Future<void> _markRecoveryVerified() async {
-    try {
-      await customStatement(
-        "INSERT OR REPLACE INTO app_config_table (key, value) VALUES (?, 'true')",
-        [const Variable(_kRecoveryVerifiedKey)],
-      );
-    } catch (_) {}
-  }
-
-  Future<bool> _isCoreDataSeeded() async {
-    try {
-      final result = await customSelect(
-        "SELECT value FROM app_config_table WHERE key = ?",
-        variables: [const Variable(_kCoreDataSeededKey)],
-      ).getSingleOrNull();
-      return result?.data['value'] == 'true';
-    } catch (_) {
-      return false;
-    }
-  }
-
-  Future<void> _markCoreDataSeeded() async {
-    try {
-      await customStatement(
-        "INSERT OR REPLACE INTO app_config_table (key, value) VALUES (?, 'true')",
-        [const Variable(_kCoreDataSeededKey)],
-      );
-    } catch (_) {}
-  }
-
-  // DAO getters
-  @override
-  AccountingDao get accountingDao => AccountingDao(this);
-  @override
-  CustomersDao get customersDao => CustomersDao(this);
-  @override
-  ProductsDao get productsDao => ProductsDao(this);
-  @override
-  SalesDao get salesDao => SalesDao(this);
-  @override
-  PurchasesDao get purchasesDao => PurchasesDao(this);
-  @override
-  SuppliersDao get suppliersDao => SuppliersDao(this);
-  @override
-  UsersDao get usersDao => UsersDao(this);
-  @override
-  WarehousesDao get warehousesDao => WarehousesDao(this);
-  @override
-  GlobalUnitsDao get globalUnitsDao => GlobalUnitsDao(this);
-  @override
-  ProductUnitsDao get productUnitsDao => ProductUnitsDao(this);
-  @override
-  BomDao get bomDao => BomDao(this);
-  @override
-  AuditDao get auditDao => AuditDao(this);
-  @override
-  StockMovementDao get stockMovementDao => StockMovementDao(this);
-  @override
-  CashboxDao get cashboxDao => CashboxDao(this);
-  @override
-  TransfersDao get transfersDao => TransfersDao(this);
-  @override
-  RecurringEntryDao get recurringEntryDao => RecurringEntryDao(this);
-
-  // --- Missing Methods Recovery ---
-
-  Future<void> seedData() async {
-    await ensureCoreReferenceData();
-    await seedSecurityData();
-    await seedDefaultGLAccounts();
-    await seedDefaultPostingProfiles();
-  }
-
-  Future<void> ensureCoreReferenceData() async {
-    await ensureDefaultBranch();
-    await ensureDefaultCurrencies();
-  }
-
-  static const Map<String, String> _seedPermissions = {
-    'POST_SALE': 'تسجيل المبيعات',
-    'POST_PURCHASE': 'تسجيل المشتريات',
-    'POST_SALE_RETURN': 'تسجيل مردودات المبيعات',
-    'POST_PURCHASE_RETURN': 'تسجيل مردودات المشتريات',
-    'DELETE_INVOICE': 'حذف الفواتير',
-    'VOID_TRANSACTION': 'إلغاء الحركات',
-    'MANAGE_USERS': 'إدارة المستخدمين',
-    'VIEW_REPORTS': 'عرض التقارير',
-    'MANAGE_SETTINGS': 'إدارة الإعدادات',
-    'MANAGE_INVENTORY': 'إدارة المخزون',
-    'APPROVE_DISCOUNT': 'الموافقة على الخصومات',
-    'EDIT_TAX': 'تعديل الضريبة',
-    'CREATE_SALES_ORDER': 'إنشاء طلبيات مبيعات',
-    'EDIT_SALES_ORDER': 'تعديل طلبيات المبيعات',
-    'DELETE_SALES_ORDER': 'حذف طلبيات المبيعات',
-    'APPROVE_SALES_ORDER': 'الموافقة على طلبيات المبيعات',
-    'PRINT_BARCODE': 'طباعة الباركود',
-    'EXPORT_DATA': 'تصدير البيانات',
-    'VIEW_CUSTOMER_REPORT': 'تقرير العملاء',
-    'VIEW_SUPPLIER_REPORT': 'تقرير الموردين',
-    'VIEW_PURCHASE_REPORT': 'تقرير المشتريات',
-    'VIEW_CASHBOX_REPORT': 'تقرير الصناديق',
-    'VIEW_INVENTORY_REPORT': 'تقرير المخزون',
-    'VIEW_PROFIT_REPORT': 'تقرير الأرباح',
-    'VIEW_PRODUCTS': 'عرض المنتجات',
-    'CREATE_PRODUCT': 'إضافة منتج',
-    'EDIT_PRODUCT': 'تعديل منتج',
-    'DELETE_PRODUCT': 'حذف منتج',
-    'VIEW_CUSTOMERS': 'عرض العملاء',
-    'CREATE_CUSTOMER': 'إضافة عميل',
-    'EDIT_CUSTOMER': 'تعديل عميل',
-    'DELETE_CUSTOMER': 'حذف عميل',
-    'VIEW_SUPPLIERS': 'عرض الموردين',
-    'CREATE_SUPPLIER': 'إضافة مورد',
-    'EDIT_SUPPLIER': 'تعديل مورد',
-    'DELETE_SUPPLIER': 'حذف مورد',
-    'VIEW_SALES': 'عرض المبيعات',
-    'CREATE_SALE': 'إنشاء فاتورة مبيعات',
-    'EDIT_SALE': 'تعديل فاتورة مبيعات',
-    'VIEW_PURCHASES': 'عرض المشتريات',
-    'CREATE_PURCHASE': 'إنشاء فاتورة مشتريات',
-    'EDIT_PURCHASE': 'تعديل فاتورة مشتريات',
-    'VIEW_MANUFACTURING': 'عرض التصنيع',
-    'CREATE_MANUFACTURING': 'إنشاء أمر تصنيع',
-    'VIEW_HR': 'عرض الموارد البشرية',
-    'MANAGE_HR': 'إدارة الموارد البشرية',
-    'VIEW_ACCOUNTING': 'عرض المحاسبة',
-    'MANAGE_ACCOUNTING': 'إدارة المحاسبة',
-    'VIEW_SALES_REPORT': 'تقرير المبيعات',
-    'VIEW_ADVANCED_PROFIT_REPORT': 'تقرير الأرباح المتقدم',
-    'VIEW_TOP_SELLING_REPORT': 'تقرير الأكثر مبيعاً',
-    'VIEW_SLOW_MOVING_REPORT': 'تقرير المنتجات الراكدة',
-    'VIEW_STOCK_MOVEMENT_REPORT': 'تقرير حركة المخزون',
-    'VIEW_ITEM_MOVEMENT_REPORT': 'تقرير حركة الصنف',
-    'VIEW_VAT_REPORT': 'تقرير ضريبة القيمة المضافة',
-    'VIEW_AGING_REPORT': 'تقرير أعمار الديون',
-    'VIEW_CASH_FLOW_REPORT': 'تقرير التدفق النقدي',
-    'VIEW_AUDIT_REPORT': 'تقرير سجل التدقيق',
-    'VIEW_EXPENSES_REPORT': 'تقرير المصروفات',
-    'VIEW_INCOME_EXPENSE_REPORT': 'تقرير الإيرادات والمصروفات',
-    'CREATE_JOURNAL_ENTRY': 'إنشاء قيد يومية',
-    'APPROVE_JOURNAL_ENTRY': 'الموافقة على قيد يومية',
-    'MANAGE_CASHBOX': 'إدارة الصناديق',
-    'MANAGE_TRANSFERS': 'إدارة التحويلات',
-    'MANAGE_CHECKS': 'إدارة الشيكات',
-    'MANAGE_FIXED_ASSETS': 'إدارة الأصول الثابتة',
-    'MANAGE_BUDGETS': 'إدارة الميزانيات',
-    'CLOSE_PERIOD': 'إغلاق الفترة المحاسبية',
-    'MANAGE_RECONCILIATION': 'إدارة التسوية البنكية',
-  };
-
-  Future<void> seedSecurityData() async {
-    for (final entry in _seedPermissions.entries) {
-      await into(permissions).insert(
-        PermissionsCompanion.insert(
-          code: entry.key,
-          description: Value(entry.value),
-        ),
-        onConflict: DoUpdate(
-          (_) => PermissionsCompanion(
-            description: Value(entry.value),
-          ),
-          target: [permissions.code],
-        ),
-      );
-    }
-
-    const roles = ['admin', 'manager', 'cashier'];
-    for (final role in roles) {
-      final existingCount = await (select(rolePermissions)
-            ..where((rp) => rp.role.equals(role)))
-          .get()
-          .then((list) => list.length);
-      if (existingCount > 0) continue;
-
-      final pCodes = _seedPermissions.keys.toList();
-      for (final pCode in pCodes) {
-        if (role == 'admin' ||
-            (role == 'manager' && pCode != 'MANAGE_USERS') ||
-            (role == 'cashier' && pCode == 'POST_SALE')) {
-          await into(rolePermissions).insert(RolePermissionsCompanion.insert(
-            role: role,
-            permissionCode: pCode,
-          ));
-        }
-      }
-    }
-  }
-
-  /// Seeds the default GL accounts required for the posting engine.
-  /// Called automatically on first database creation.
-  Future<void> seedDefaultGLAccounts() async {
-    final existingAccounts = await select(gLAccounts).get();
-    if (existingAccounts.isNotEmpty) return;
-
-    final accounts = {
-      '1010': GLAccountsCompanion.insert(code: '1010', name: 'الصندوق', accountType: AccountType.asset),
-      '1020': GLAccountsCompanion.insert(code: '1020', name: 'البنك', accountType: AccountType.asset),
-      '1030': GLAccountsCompanion.insert(code: '1030', name: 'الذمم المدينة', accountType: AccountType.asset),
-      '1040': GLAccountsCompanion.insert(code: '1040', name: 'المخزون', accountType: AccountType.asset),
-      '1050': GLAccountsCompanion.insert(code: '1050', name: 'ضريبة المدخلات', accountType: AccountType.asset),
-      '1200': GLAccountsCompanion.insert(code: '1200', name: 'الأصول الثابتة', accountType: AccountType.asset),
-      '1201': GLAccountsCompanion.insert(code: '1201', name: 'مجمع الإهلاك', accountType: AccountType.asset),
-      '2010': GLAccountsCompanion.insert(code: '2010', name: 'الذمم الدائنة', accountType: AccountType.liability),
-      '2020': GLAccountsCompanion.insert(code: '2020', name: 'ضريبة المخرجات', accountType: AccountType.liability),
-      '2500': GLAccountsCompanion.insert(code: '2500', name: 'القروض', accountType: AccountType.liability),
-      '3000': GLAccountsCompanion.insert(code: '3000', name: 'رأس المال', accountType: AccountType.equity),
-      '3010': GLAccountsCompanion.insert(code: '3010', name: 'الأرباح المحتجزة', accountType: AccountType.equity),
-      '4010': GLAccountsCompanion.insert(code: '4010', name: 'إيرادات المبيعات', accountType: AccountType.revenue),
-      '4020': GLAccountsCompanion.insert(code: '4020', name: 'مردودات المبيعات', accountType: AccountType.revenue),
-      '5010': GLAccountsCompanion.insert(code: '5010', name: 'تكلفة البضاعة المباعة', accountType: AccountType.expense),
-      '5011': GLAccountsCompanion.insert(code: '5011', name: 'مردودات المشتريات', accountType: AccountType.expense),
-      '5020': GLAccountsCompanion.insert(code: '5020', name: 'العجز والزيادة في الصندوق', accountType: AccountType.expense),
-      '6000': GLAccountsCompanion.insert(code: '6000', name: 'المصروفات التشغيلية', accountType: AccountType.expense),
-      '6001': GLAccountsCompanion.insert(code: '6001', name: 'مصروف الإهلاك', accountType: AccountType.expense),
-    };
-
-    for (final acc in accounts.values) {
-      await into(gLAccounts).insert(acc);
-    }
-  }
-
-  /// Seeds default posting profiles so the posting engine can resolve accounts.
-  /// Called automatically on first database creation.
-  Future<void> seedDefaultPostingProfiles() async {
-    final existing = await select(postingProfiles).get();
-    if (existing.isNotEmpty) return;
-
-    // Map of (operationType, accountType) -> (accountCode, side)
-    const profileDefs = [
-      // SALE profiles
-      ('SALE', 'RECEIVABLE', '1030', 'DEBIT'),
-      ('SALE', 'REVENUE', '4010', 'CREDIT'),
-      ('SALE', 'OUTPUT_VAT', '2020', 'CREDIT'),
-      ('SALE', 'COGS', '5010', 'DEBIT'),
-      ('SALE', 'INVENTORY', '1040', 'CREDIT'),
-      // PURCHASE profiles
-      ('PURCHASE', 'INVENTORY', '1040', 'DEBIT'),
-      ('PURCHASE', 'INPUT_VAT', '1050', 'DEBIT'),
-      ('PURCHASE', 'PAYABLE', '2010', 'CREDIT'),
-      // SALE_RETURN profiles
-      ('SALE_RETURN', 'RECEIVABLE', '1030', 'CREDIT'),
-      ('SALE_RETURN', 'RETURN', '4020', 'DEBIT'),
-      // PURCHASE_RETURN profiles
-      ('PURCHASE_RETURN', 'PAYABLE', '2010', 'DEBIT'),
-      ('PURCHASE_RETURN', 'RETURN', '5011', 'CREDIT'),
-      // CUSTOMER_PAYMENT profiles
-      ('CUSTOMER_PAYMENT', 'CASH', '1010', 'DEBIT'),
-      ('CUSTOMER_PAYMENT', 'RECEIVABLE', '1030', 'CREDIT'),
-      // SUPPLIER_PAYMENT profiles
-      ('SUPPLIER_PAYMENT', 'PAYABLE', '2010', 'DEBIT'),
-      ('SUPPLIER_PAYMENT', 'CASH', '1010', 'CREDIT'),
-      // CASH_TRANSACTION profiles
-      ('CASH_TRANSACTION', 'CASH', '1010', 'DEBIT'),
-    ];
-
-    for (final def in profileDefs) {
-      final (operationType, accountType, accountCode, side) = def;
-      // Find the GL account by code
-      final account = await (select(gLAccounts)
-            ..where((a) => a.code.equals(accountCode)))
-          .getSingleOrNull();
-      await into(postingProfiles).insert(
-        PostingProfilesCompanion.insert(
-          operationType: operationType,
-          accountType: accountType,
-          accountId: Value(account?.id),
-          accountCode: Value(accountCode),
-          side: side,
-        ),
-      );
-    }
-  }
-
-  Future<String> ensureDefaultBranch() async {
-    try {
-      final existing = await select(branches).get();
-      if (existing.isEmpty) {
-        final row =
-            await into(branches).insertReturning(BranchesCompanion.insert(
-          name: 'الفرع الرئيسي',
-          code: 'MAIN',
-          isActive: const Value(true),
-        ));
-        return row.id;
-      }
-      return existing.first.id;
-    } catch (e) {
-      debugPrint('Error seeding default branch: $e');
-      return '';
-    }
-  }
-
-  Future<void> ensureDefaultCurrencies() async {
-    try {
-      final existing = await select(currencies).get();
-      if (existing.isEmpty) {
-        await into(currencies).insert(CurrenciesCompanion.insert(
-          id: const Value('SAR'),
-          code: 'SAR',
-          name: 'ريال سعودي',
-          exchangeRate: Value(Decimal.one),
-          isBase: const Value(true),
-        ));
-      }
-    } catch (e) {
-      debugPrint('Error seeding default currencies: $e');
-    }
-  }
-
-  Future<void> _migrateToV40(Migrator m) async {
-    // Migration logic from Section C of implementation guide
-    try {
-      await m.createTable(currencies);
-      await m.createTable(exchangeRates);
-
-      // Seed initial currency if table was just created
-      await ensureDefaultCurrencies();
-    } catch (e) {
-      debugPrint('Migration to V40 failed: $e');
-    }
-  }
-
-  Future<void> _migrateToV41(Migrator m) async {
-    try {
-      await m.createTable(appConfigTable);
-    } catch (e) {
-      debugPrint('Migration to V41 failed: $e');
-    }
-  }
-
-  static final List<String> _migrateToV49Statements = [
-    // APInvoices: REAL → cents
-    'UPDATE ap_invoices SET total_amount = CAST(ROUND(total_amount * 100) AS INTEGER)',
-    // ARInvoices: REAL → cents
-    'UPDATE ar_invoices SET total_amount = CAST(ROUND(total_amount * 100) AS INTEGER)',
-    // HREmployees: REAL → cents
-    'UPDATE hr_employees SET basic_salary = CAST(ROUND(basic_salary * 100) AS INTEGER), housing_allowance = CAST(ROUND(housing_allowance * 100) AS INTEGER), transport_allowance = CAST(ROUND(transport_allowance * 100) AS INTEGER), other_allowances = CAST(ROUND(other_allowances * 100) AS INTEGER), total_deductions = CAST(ROUND(total_deductions * 100) AS INTEGER)',
-    // HRPayrollRuns: REAL → cents
-    'UPDATE hr_payroll_runs SET total_salaries = CAST(ROUND(total_salaries * 100) AS INTEGER), total_allowances = CAST(ROUND(total_allowances * 100) AS INTEGER), total_deductions = CAST(ROUND(total_deductions * 100) AS INTEGER), net_payable = CAST(ROUND(net_payable * 100) AS INTEGER)',
-    // HRPayrollDetails: REAL → cents
-    'UPDATE hr_payroll_details SET basic_salary = CAST(ROUND(basic_salary * 100) AS INTEGER), housing_allowance = CAST(ROUND(housing_allowance * 100) AS INTEGER), transport_allowance = CAST(ROUND(transport_allowance * 100) AS INTEGER), other_allowances = CAST(ROUND(other_allowances * 100) AS INTEGER), gross_salary = CAST(ROUND(gross_salary * 100) AS INTEGER), deductions = CAST(ROUND(deductions * 100) AS INTEGER), net_salary = CAST(ROUND(net_salary * 100) AS INTEGER)',
-    // HRAdditionalDeductions: REAL → cents
-    'UPDATE hr_additional_deductions SET amount = CAST(ROUND(amount * 100) AS INTEGER)',
-  ];
-
-  Future<void> _migrateToV42(Migrator m) async {
-    // Re-create tables with new types (Decimal instead of Real)
-    // We use individual try-catches to ensure one missing table doesn't stop the whole migration
-    final tablesToRecreate = [
-      (stockTakeItems, 'stock_take_items'),
-      (goodReceivedNoteItems, 'good_received_note_items'),
-      (deliveryNoteItems, 'delivery_note_items'),
-      (checks, 'checks'),
-      (purchaseOrders, 'purchase_orders'),
-      (purchaseOrderItems, 'purchase_order_items'),
-      (salesOrders, 'sales_orders'),
-      (salesOrderItems, 'sales_order_items'),
-      (customerPaymentLinks, 'customer_payment_links'),
-    ];
-
-    for (final entry in tablesToRecreate) {
-      final table = entry.$1 as TableInfo;
-      final name = entry.$2;
-      try {
-        await m.deleteTable(name);
-        await m.createTable(table);
-      } catch (e) {
-        debugPrint('Migration to V42: Failed to recreate $name (might not exist): $e');
-        try {
-          await m.createTable(table);
-        } catch (_) {} // If delete failed because it didn't exist, try creating anyway
-      }
-    }
-
-    try {
-      // Currency Unification: Copy AccCurrencies to Currencies
-      final accCurrenciesExists = await customSelect(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name='acc_currencies'",
-      ).getSingleOrNull();
-
-      if (accCurrenciesExists != null) {
-        await customStatement(
-            "INSERT OR IGNORE INTO currencies (id, code, name, exchange_rate, is_base) "
-            "SELECT CAST(id AS TEXT), code, name, exchange_rate, is_base FROM acc_currencies");
-
-        await m.deleteTable('acc_currencies');
-        await m.deleteTable('acc_exchange_rates');
-      }
-    } catch (e) {
-      debugPrint('Migration to V42 (Currency Copy) failed: $e');
-    }
-  }
-
-  Future<double> calculateTotalInventoryValue() async {
-    try {
-      final rows = await select(productBatches).get();
-      Decimal total = Decimal.zero;
-      for (final row in rows) {
-        total += row.quantity * row.costPrice;
-      }
-      return total.toDouble();
-    } catch (e) {
-      debugPrint('Error calculating inventory value: $e');
-      return 0.0;
-    }
-  }
-
->>>>>>> 2d430f8439a4d864f3ca3b6e9d35a290d925fd86
   Stream<List<Product>> watchLowStockProducts() {
     return productsDao.watchLowStockProducts();
   }

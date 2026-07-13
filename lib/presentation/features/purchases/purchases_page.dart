@@ -203,11 +203,7 @@ class _PurchasesPageState extends State<PurchasesPage> {
                         onTap: () =>
                             context.push('/purchases/details/${purchase.id}'),
                         onLongPress: () =>
-<<<<<<< HEAD
                             _showPurchaseActions(context, db, purchase),
-=======
-                            _showPurchaseActions(context, purchase),
->>>>>>> 2d430f8439a4d864f3ca3b6e9d35a290d925fd86
                       ),
                     );
                   },

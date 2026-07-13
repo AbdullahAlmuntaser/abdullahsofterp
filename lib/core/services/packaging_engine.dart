@@ -186,7 +186,6 @@ class PackagingEngine {
       final hierarchy = await getPackagingHierarchy(productId);
       if (hierarchy.isEmpty) return '${totalQtyInBase.toStringAsFixed(0)} حبة';
 
-<<<<<<< HEAD
       // Filter out non-packaging units (base unit synonyms like 'حبة', 'قطعة', etc.)
       const baseUnitSynonyms = {'حبة', 'قطعة', 'pcs', 'piece', 'each', 'unit', 'واحد', 'فردي'};
       final packagingUnits = hierarchy.where((u) =>
@@ -197,10 +196,6 @@ class PackagingEngine {
 
       final sortedHierarchy = packagingUnits.toList()
         ..sort((a, b) => b.unitFactor.compareTo(a.unitFactor));
-
-=======
-      final sortedHierarchy = hierarchy.reversed.toList();
->>>>>>> 2d430f8439a4d864f3ca3b6e9d35a290d925fd86
       List<String> parts = [];
       Decimal remaining = totalQtyInBase;
 

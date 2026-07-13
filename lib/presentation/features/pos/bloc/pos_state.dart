@@ -9,13 +9,8 @@ class CartItem extends Equatable {
   final Decimal unitFactor;
   final Decimal unitPrice;
   final Decimal? discount;
-<<<<<<< HEAD
   final List<ProductUnit> availableUnits;
   final String? serialNumbers;
-=======
-  final List<ProductUnit>
-      availableUnits; // قائمة بكل الوحدات المتاحة لهذا المنتج
->>>>>>> 2d430f8439a4d864f3ca3b6e9d35a290d925fd86
 
   const CartItem({
     required this.product,
@@ -39,10 +34,7 @@ class CartItem extends Equatable {
     Decimal? unitPrice,
     Decimal? discount,
     List<ProductUnit>? availableUnits,
-<<<<<<< HEAD
     String? serialNumbers,
-=======
->>>>>>> 2d430f8439a4d864f3ca3b6e9d35a290d925fd86
   }) {
     return CartItem(
       product: product,

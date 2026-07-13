@@ -55,8 +55,6 @@ dependencies:
   excel: ^4.0.6
   # sqlite3_flutter_libs removed to avoid conflict with sqlcipher_flutter_libs
 
-
-
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -1,12 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:drift/drift.dart' as drift;
-<<<<<<< HEAD
 import 'package:supermarket/l10n/app_localizations.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
-=======
-import 'package:supermarket/data/datasources/local/app_database.dart';
-import 'package:supermarket/l10n/app_localizations.dart';
->>>>>>> 2d430f8439a4d864f3ca3b6e9d35a290d925fd86
 
 class AddEditSupplierDialog extends StatefulWidget {
   final Supplier? supplier;

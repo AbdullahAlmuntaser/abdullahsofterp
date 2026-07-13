@@ -150,10 +150,7 @@ Future<void> initServices() async {
     registerCoreModule(sl);
     registerAccountingModule(sl);
     registerInventoryModule(sl);
-<<<<<<< HEAD
     sl<TransactionEngine>().setSerialNumberService(sl<SerialNumberService>());
-=======
->>>>>>> 2d430f8439a4d864f3ca3b6e9d35a290d925fd86
     registerPurchaseModule(sl);
     registerSalesModule(sl);
     registerHRModule(sl);

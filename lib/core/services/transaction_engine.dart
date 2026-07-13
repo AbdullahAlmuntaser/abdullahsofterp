@@ -11,10 +11,7 @@ import 'package:supermarket/core/constants/app_enums.dart';
 import 'package:supermarket/core/services/posting_engine.dart';
 import 'package:supermarket/core/services/budget_service.dart';
 import 'package:supermarket/core/services/approval_workflow_service.dart';
-<<<<<<< HEAD
 import 'package:supermarket/core/services/serial_number_service.dart';
-=======
->>>>>>> 2d430f8439a4d864f3ca3b6e9d35a290d925fd86
 import 'package:uuid/uuid.dart';
 
 /// Single source of truth for all business transactions.
@@ -53,14 +50,10 @@ class TransactionEngine {
     _approvalService = approvalService;
   }
 
-<<<<<<< HEAD
   /// Wire serial number service
   void setSerialNumberService(SerialNumberService serialNumberService) {
     _serialNumberService = serialNumberService;
   }
-
-=======
->>>>>>> 2d430f8439a4d864f3ca3b6e9d35a290d925fd86
   Future<void> _checkAccountingPeriodOpen() async {
     final now = DateTime.now();
     final openPeriod = await (db.select(db.accountingPeriods)
@@ -93,7 +86,6 @@ class TransactionEngine {
       if (purchase.isCredit && purchase.supplierId == null) {
         throw Exception('يجب اختيار مورد لفاتورة الشراء الآجل.');
       }
-<<<<<<< HEAD
       if (purchase.status == DocumentStatus.posted) {
         throw Exception('هذه الفاتورة تم ترحيلها بالفعل.');
       }
@@ -105,10 +97,6 @@ class TransactionEngine {
           .getSingleOrNull();
       if (grn == null) {
         throw Exception('لا يمكن ترحيل الفاتورة قبل استلام البضاعة (GRN غير موجود أو غير مرحل).');
-=======
-      if (purchase.status == DocumentStatus.received) {
-        throw Exception('هذه الفاتورة تم استلامها بالفعل.');
->>>>>>> 2d430f8439a4d864f3ca3b6e9d35a290d925fd86
       }
 
       // Check if purchase requires approval (amount > 10,000)
@@ -217,11 +205,7 @@ class TransactionEngine {
       // Update purchase status
       await (db.update(db.purchases)..where((p) => p.id.equals(purchaseId)))
           .write(
-<<<<<<< HEAD
               const PurchasesCompanion(status: Value(DocumentStatus.posted)));
-=======
-              const PurchasesCompanion(status: Value(DocumentStatus.received)));
->>>>>>> 2d430f8439a4d864f3ca3b6e9d35a290d925fd86
 
       // Update supplier balance for credit purchases
       if (purchase.isCredit && purchase.supplierId != null) {
@@ -268,11 +252,7 @@ class TransactionEngine {
 
   /// ==================== POST SALE ====================
   /// Creates: Sale Status + Stock Deduction + Batch Deduction + GL Entry + Customer Balance
-<<<<<<< HEAD
   Future<void> postSale(String saleId, {String? userId, Map<String, List<String>>? serialNumbersByProduct}) async {
-=======
-  Future<void> postSale(String saleId, {String? userId}) async {
->>>>>>> 2d430f8439a4d864f3ca3b6e9d35a290d925fd86
     await _checkAccountingPeriodOpen();
 
     final saleCheck = await (db.select(db.sales)
@@ -451,7 +431,6 @@ class TransactionEngine {
         }
       }
 
-<<<<<<< HEAD
       // Mark serial numbers as sold
       if (_serialNumberService != null && serialNumbersByProduct != null) {
         for (final entry in serialNumbersByProduct.entries) {
@@ -467,9 +446,6 @@ class TransactionEngine {
           }
         }
       }
-
-=======
->>>>>>> 2d430f8439a4d864f3ca3b6e9d35a290d925fd86
       // Mark sale as posted
       await (db.update(db.sales)..where((s) => s.id.equals(saleId))).write(
         const SalesCompanion(status: Value(DocumentStatus.posted)),

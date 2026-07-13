@@ -1,13 +1,7 @@
 import 'package:drift/drift.dart';
-<<<<<<< HEAD
 import 'package:supermarket/core/constants/app_enums.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:uuid/uuid.dart';
-=======
-import 'package:supermarket/data/datasources/local/app_database.dart';
-import 'package:supermarket/core/constants/app_enums.dart';
-import '../mixins/sync_log_mixin.dart';
->>>>>>> 2d430f8439a4d864f3ca3b6e9d35a290d925fd86
 
 part 'sales_dao.g.dart';
 
@@ -422,7 +416,6 @@ class SalesDao extends DatabaseAccessor<AppDatabase>
 
   Future<List<SalesOrder>> getSalesOrdersByStatus(String status) async {
     return (select(salesOrders)..where((o) => o.status.equals(status))).get();
-<<<<<<< HEAD
   }
 
   // ==================== Customer Payment Links ====================
@@ -460,8 +453,6 @@ class SalesDao extends DatabaseAccessor<AppDatabase>
       Decimal.zero,
       (sum, link) => sum + link.amount,
     );
-=======
->>>>>>> 2d430f8439a4d864f3ca3b6e9d35a290d925fd86
   }
 }
 

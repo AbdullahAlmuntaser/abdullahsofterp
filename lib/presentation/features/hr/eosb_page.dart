@@ -1,15 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-<<<<<<< HEAD
 import 'package:supermarket/presentation/features/hr/eosb_provider.dart';
 import 'package:supermarket/presentation/widgets/app_snack_bar.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
-=======
-import 'package:supermarket/data/datasources/local/app_database.dart';
-import 'package:supermarket/presentation/features/hr/eosb_provider.dart';
-import 'package:supermarket/presentation/widgets/app_snack_bar.dart';
->>>>>>> 2d430f8439a4d864f3ca3b6e9d35a290d925fd86
 
 class EOSBPage extends StatefulWidget {
   const EOSBPage({super.key});

@@ -374,27 +374,11 @@ class PostingEngine {
       }
     }
 
-<<<<<<< HEAD
     // حساب فروقات العملة
     final exchangeRate = context['exchangeRate'] as Decimal?;
     final currencyId = context['currencyId'] as String?;
 
     final lines = <GLLinesCompanion>[
-=======
-    final entry = GLEntriesCompanion.insert(
-      id: Value(entryId),
-      description: context['description'] ??
-          'Customer Payment #${_truncateRef(referenceId)}',
-      date: Value(date),
-      referenceType: const Value('RECEIPT'),
-      referenceId: Value(referenceId),
-      status: const Value('POSTED'),
-      postedAt: Value(DateTime.now()),
-      branchId: Value(branchId),
-    );
-
-    final lines = [
->>>>>>> 2d430f8439a4d864f3ca3b6e9d35a290d925fd86
       GLLinesCompanion.insert(
         entryId: entryId,
         accountId: cashAccount,
@@ -410,7 +394,6 @@ class PostingEngine {
         branchId: Value(branchId),
       ),
     ];
-<<<<<<< HEAD
 
     // معالجة فروقات العملة إذا كان هناك سعر صرف مختلف عن الفاتورة الأصلية
     if (exchangeRate != null && currencyId != null && customerId != null) {
@@ -439,9 +422,6 @@ class PostingEngine {
       postedAt: Value(DateTime.now()),
       branchId: Value(branchId),
     );
-
-=======
->>>>>>> 2d430f8439a4d864f3ca3b6e9d35a290d925fd86
     validatePostingLinesRaw(lines);
     await dao.createEntry(entry, lines);
   }
@@ -470,27 +450,11 @@ class PostingEngine {
       }
     }
 
-<<<<<<< HEAD
     // حساب فروقات العملة
     final exchangeRate = context['exchangeRate'] as Decimal?;
     final currencyId = context['currencyId'] as String?;
 
     final lines = <GLLinesCompanion>[
-=======
-    final entry = GLEntriesCompanion.insert(
-      id: Value(entryId),
-      description: context['description'] ??
-          'Supplier Payment #${_truncateRef(referenceId)}',
-      date: Value(date),
-      referenceType: const Value('PAYMENT'),
-      referenceId: Value(referenceId),
-      status: const Value('POSTED'),
-      postedAt: Value(DateTime.now()),
-      branchId: Value(branchId),
-    );
-
-    final lines = [
->>>>>>> 2d430f8439a4d864f3ca3b6e9d35a290d925fd86
       GLLinesCompanion.insert(
         entryId: entryId,
         accountId: supplierAccountId,
@@ -506,7 +470,6 @@ class PostingEngine {
         branchId: Value(branchId),
       ),
     ];
-<<<<<<< HEAD
 
     // معالجة فروقات العملة
     if (exchangeRate != null && currencyId != null && supplierId != null) {
@@ -535,14 +498,10 @@ class PostingEngine {
       postedAt: Value(DateTime.now()),
       branchId: Value(branchId),
     );
-
-=======
->>>>>>> 2d430f8439a4d864f3ca3b6e9d35a290d925fd86
     validatePostingLinesRaw(lines);
     await dao.createEntry(entry, lines);
   }
 
-<<<<<<< HEAD
   /// حساب وترحيل فروقات العملة بين سعر صرف الفاتورة وسعر صرف الدفع
   Future<List<GLLinesCompanion>> _calculateExchangeDifference({
     required String referenceId,
@@ -645,9 +604,6 @@ class PostingEngine {
 
     return lines;
   }
-
-=======
->>>>>>> 2d430f8439a4d864f3ca3b6e9d35a290d925fd86
   Future<void> _postCashTransaction(
       String referenceId, Map<String, dynamic> context) async {
     final dao = db.accountingDao;
