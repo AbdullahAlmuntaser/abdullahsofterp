@@ -1859,21 +1859,37 @@ class AppDatabase extends _$AppDatabase {
   }
 
   // DAO getters
+  @override
   AccountingDao get accountingDao => AccountingDao(this);
+  @override
   CustomersDao get customersDao => CustomersDao(this);
+  @override
   ProductsDao get productsDao => ProductsDao(this);
+  @override
   SalesDao get salesDao => SalesDao(this);
+  @override
   PurchasesDao get purchasesDao => PurchasesDao(this);
+  @override
   SuppliersDao get suppliersDao => SuppliersDao(this);
+  @override
   UsersDao get usersDao => UsersDao(this);
+  @override
   WarehousesDao get warehousesDao => WarehousesDao(this);
+  @override
   GlobalUnitsDao get globalUnitsDao => GlobalUnitsDao(this);
+  @override
   ProductUnitsDao get productUnitsDao => ProductUnitsDao(this);
+  @override
   BomDao get bomDao => BomDao(this);
+  @override
   AuditDao get auditDao => AuditDao(this);
+  @override
   StockMovementDao get stockMovementDao => StockMovementDao(this);
+  @override
   CashboxDao get cashboxDao => CashboxDao(this);
+  @override
   TransfersDao get transfersDao => TransfersDao(this);
+  @override
   RecurringEntryDao get recurringEntryDao => RecurringEntryDao(this);
 
   // --- Missing Methods Recovery ---
