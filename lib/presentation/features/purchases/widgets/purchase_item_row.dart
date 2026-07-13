@@ -1,0 +1,261 @@
+import 'package:flutter/material.dart';
+import 'package:supermarket/data/datasources/local/app_database.dart';
+import 'package:supermarket/presentation/features/purchases/purchase_provider.dart';
+import 'package:provider/provider.dart';
+import 'package:supermarket/presentation/widgets/money_form_field.dart';
+
+class PurchaseItemRow extends StatefulWidget {
+  final int index;
+  final PurchaseItemData item;
+  final List<Product> products;
+  final VoidCallback onDelete;
+  final VoidCallback onChanged;
+
+  const PurchaseItemRow({
+    super.key,
+    required this.index,
+    required this.item,
+    required this.products,
+    required this.onDelete,
+    required this.onChanged,
+  });
+
+  @override
+  State<PurchaseItemRow> createState() => _PurchaseItemRowState();
+}
+
+class _PurchaseItemRowState extends State<PurchaseItemRow> {
+  final _expiryController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.item.expiryDate != null) {
+      _expiryController.text = widget.item.expiryDate!.toString().split(' ')[0];
+    }
+  }
+
+  @override
+  void dispose() {
+    _expiryController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final db = context.watch<AppDatabase>();
+
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+      elevation: 2,
+      child: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    widget.item.product.name,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete, color: Colors.red),
+                  onPressed: widget.onDelete,
+                ),
+              ],
+            ),
+            const Divider(),
+            Row(
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: QuantityFormField(
+                    initialValue: widget.item.quantity.toString(),
+                    label: 'الكمية',
+                    onValidChanged: (value) {
+                      widget.item.quantity = value;
+                      widget.onChanged();
+                    },
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(flex: 3, child: _buildUnitSelector(db)),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: MoneyFormField(
+                    initialValue: widget.item.unitPrice.toString(),
+                    label: 'سعر الشراء',
+                    required: true,
+                    onValidChanged: (value) {
+                      widget.item.unitPrice = value;
+                      widget.onChanged();
+                    },
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'الإجمالي: ${(widget.item.quantity * widget.item.unitPrice).toStringAsFixed(2)}',
+                    textAlign: TextAlign.end,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: MoneyFormField(
+                    initialValue: widget.item.retailPrice.toString(),
+                    label: 'سعر التجزئة',
+                    onValidChanged: (value) {
+                      widget.item.retailPrice = value;
+                      widget.onChanged();
+                    },
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: MoneyFormField(
+                    initialValue: widget.item.wholesalePrice.toString(),
+                    label: 'سعر الجملة',
+                    onValidChanged: (value) {
+                      widget.item.wholesalePrice = value;
+                      widget.onChanged();
+                    },
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: TextFormField(
+                    initialValue: widget.item.batchNumber,
+                    decoration: const InputDecoration(
+                      labelText: 'رقم الباتش',
+                      border: OutlineInputBorder(),
+                    ),
+                    onChanged: (v) {
+                      widget.item.batchNumber = v;
+                    },
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: TextFormField(
+                    initialValue: widget.item.serialNumbers,
+                    decoration: const InputDecoration(
+                      labelText: 'الأرقام التسلسلية',
+                      hintText: 'مفصولة بفواصل',
+                      border: OutlineInputBorder(),
+                    ),
+                    onChanged: (v) {
+                      widget.item.serialNumbers = v;
+                    },
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: TextFormField(
+                    controller: _expiryController,
+                    readOnly: true,
+                    decoration: const InputDecoration(
+                      labelText: 'تاريخ الانتهاء',
+                      border: OutlineInputBorder(),
+                      suffixIcon: Icon(Icons.calendar_today),
+                    ),
+                    onTap: () async {
+                      final date = await showDatePicker(
+                        context: context,
+                        initialDate: DateTime.now().add(
+                          const Duration(days: 365),
+                        ),
+                        firstDate: DateTime.now(),
+                        lastDate: DateTime(2040),
+                      );
+                      if (date != null) {
+                        setState(() {
+                          widget.item.expiryDate = date;
+                          _expiryController.text = date.toString().split(
+                                ' ',
+                              )[0];
+                        });
+                      }
+                    },
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Container(),
+                ),
+              ],
+            ),
+            if (widget.item.selectedUnit != null &&
+                widget.item.selectedUnit!.factor > Decimal.one)
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0),
+                child: Text(
+                  'إجمالي الكمية بالوحدة الأساسية: ${(widget.item.quantity * widget.item.selectedUnit!.factor.toDouble()).toStringAsFixed(2)} ${widget.item.product.unit}',
+                  style: const TextStyle(
+                    color: Colors.blue,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildUnitSelector(AppDatabase db) {
+    return StreamBuilder<List<UnitConversion>>(
+      stream: (db.select(
+        db.unitConversions,
+      )..where((t) => t.productId.equals(widget.item.product.id)))
+          .watch(),
+      builder: (context, snapshot) {
+        final conversions = snapshot.data ?? [];
+        return DropdownButtonFormField<UnitConversion?>(
+          value: widget.item.selectedUnit,
+          decoration: const InputDecoration(labelText: 'الوحدة', isDense: true),
+          items: [
+            DropdownMenuItem(
+              value: null,
+              child: Text(widget.item.product.unit),
+            ),
+            ...conversions.map(
+              (u) => DropdownMenuItem(value: u, child: Text(u.unitName)),
+            ),
+          ],
+          onChanged: (value) {
+            setState(() {
+              final newFactor = value?.factor.toDouble() ?? 1.0;
+
+              // تحديث السعر بناءً على الوحدة الجديدة (السعر = السعر الأساسي * عامل التحويل)
+              // يفترض أن السعر الأساسي (buyPrice) هو للوحدة الأساسية
+              widget.item.unitPrice =
+                  widget.item.product.buyPrice.toDouble() * newFactor;
+              widget.item.selectedUnit = value;
+            });
+            widget.onChanged();
+          },
+        );
+      },
+    );
+  }
+}

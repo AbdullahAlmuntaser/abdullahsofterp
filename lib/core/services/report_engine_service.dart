@@ -1,0 +1,278 @@
+import 'dart:convert';
+import 'package:drift/drift.dart';
+import 'package:intl/intl.dart';
+import '../../data/datasources/local/app_database.dart';
+import '../constants/app_enums.dart';
+
+/// محرك تقارير متقدم لتوليد التقارير المالية والمخزنية
+class ReportEngineService {
+  final AppDatabase _db;
+
+  ReportEngineService(this._db);
+
+  /// تقرير الأصناف الأكثر مبيعاً
+  Future<List<Map<String, dynamic>>> getTopSellingProducts({
+    DateTime? startDate,
+    DateTime? endDate,
+    int limit = 10,
+  }) async {
+    final query = _db.select(_db.saleItems).join([
+      leftOuterJoin(
+        _db.products,
+        _db.products.id.equalsExp(_db.saleItems.productId),
+      ),
+      leftOuterJoin(
+        _db.sales,
+        _db.sales.id.equalsExp(_db.saleItems.saleId),
+      ),
+    ]);
+
+    if (startDate != null) {
+      query.where(_db.sales.createdAt.isBiggerOrEqualValue(startDate));
+    }
+    if (endDate != null) {
+      query.where(_db.sales.createdAt.isSmallerOrEqualValue(endDate));
+    }
+
+    final results = await query.get();
+
+    // تجميع البيانات حسب المنتج
+    final Map<String, Map<String, dynamic>> productStats = {};
+
+    for (final row in results) {
+      final productId = row.readTable(_db.saleItems).productId;
+      final productName = row.readTableOrNull(_db.products)?.name ?? 'Unknown';
+      final quantity = row.readTable(_db.saleItems).quantity;
+      final price = row.readTable(_db.saleItems).price;
+
+      if (!productStats.containsKey(productId)) {
+        productStats[productId] = {
+          'productId': productId,
+          'productName': productName,
+          'totalQuantity': 0.0,
+          'totalRevenue': 0.0,
+        };
+      }
+
+      productStats[productId]!['totalQuantity'] =
+          (productStats[productId]!['totalQuantity'] as double) +
+              quantity.toDouble();
+      productStats[productId]!['totalRevenue'] =
+          (productStats[productId]!['totalRevenue'] as double) +
+              (quantity * price).toDouble();
+    }
+
+    final report = productStats.values.toList()
+      ..sort((a, b) => (b['totalQuantity'] as double)
+          .compareTo(a['totalQuantity'] as double));
+
+    return report.take(limit).toList();
+  }
+
+  /// تقرير هامش الربح
+  Future<List<Map<String, dynamic>>> getProfitMarginReport({
+    DateTime? startDate,
+    DateTime? endDate,
+  }) async {
+    final report = <Map<String, dynamic>>[];
+
+    var query = _db.select(_db.sales);
+    if (startDate != null) {
+      query = query..where((s) => s.createdAt.isBiggerOrEqualValue(startDate));
+    }
+    if (endDate != null) {
+      query = query..where((s) => s.createdAt.isSmallerOrEqualValue(endDate));
+    }
+
+    final sales = await query.get();
+
+    for (final sale in sales) {
+      final items = await (_db.select(_db.saleItems)
+            ..where((i) => i.saleId.equals(sale.id)))
+          .get();
+
+      double totalCost = 0;
+      double totalRevenue = sale.total.toDouble();
+
+      for (final item in items) {
+        final product = await (_db.select(_db.products)
+              ..where((p) => p.id.equals(item.productId)))
+            .getSingle();
+
+        totalCost += (product.buyPrice * item.quantity).toDouble();
+      }
+
+      final profit = totalRevenue - totalCost;
+      final margin = totalRevenue > 0 ? (profit / totalRevenue) * 100 : 0;
+
+      report.add({
+        'saleId': sale.id,
+        'date': sale.createdAt,
+        'revenue': totalRevenue,
+        'cost': totalCost,
+        'profit': profit,
+        'margin': margin,
+      });
+    }
+
+    return report;
+  }
+
+  /// تقرير حركة صنف
+  Future<List<Map<String, dynamic>>> getProductMovementReport(
+      String productId) async {
+    final movements = <Map<String, dynamic>>[];
+
+    // حركات المبيعات
+    final sales = await (_db.select(_db.saleItems)
+          ..where((i) => i.productId.equals(productId)))
+        .join([
+      leftOuterJoin(
+        _db.sales,
+        _db.sales.id.equalsExp(_db.saleItems.saleId),
+      ),
+    ]).get();
+
+    for (final sale in sales) {
+      movements.add({
+        'type': 'sale',
+        'date': sale.readTable(_db.sales).createdAt,
+        'quantity': -sale.readTable(_db.saleItems).quantity,
+        'reference': sale.readTable(_db.sales).id,
+        'balance': 0.0, // Use double
+      });
+    }
+
+    // حركات المشتريات - Fix: Join with Purchases instead of PurchaseOrders
+    final purchases = await (_db.select(_db.purchaseItems)
+          ..where((i) => i.productId.equals(productId)))
+        .join([
+      leftOuterJoin(
+        _db.purchases,
+        _db.purchases.id.equalsExp(_db.purchaseItems.purchaseId),
+      ),
+    ]).get();
+
+    for (final purchase in purchases) {
+      movements.add({
+        'type': 'purchase',
+        'date': purchase.readTable(_db.purchases).date,
+        'quantity': purchase.readTable(_db.purchaseItems).quantity,
+        'reference': purchase.readTable(_db.purchases).id,
+        'balance': 0.0,
+      });
+    }
+
+    // حركات المخزون
+    final stockMovements = await (_db.select(_db.stockMovements)
+          ..where((m) => m.productId.equals(productId)))
+        .get();
+
+    for (final movement in stockMovements) {
+      movements.add({
+        'type': movement.type,
+        'date': movement.movementDate,
+        'quantity': movement.quantity,
+        'reference': movement.id,
+        'balance': 0.0,
+      });
+    }
+
+    // ترتيب حسب التاريخ وحساب الرصيد التراكمي
+    movements.sort(
+        (a, b) => (a['date'] as DateTime).compareTo(b['date'] as DateTime));
+
+    double runningBalance = 0.0;
+    for (final movement in movements) {
+      runningBalance += (movement['quantity'] as num).toDouble();
+      movement['balance'] = runningBalance;
+    }
+
+    return movements;
+  }
+
+  /// تصدير التقرير إلى JSON
+  String exportToJson(List<Map<String, dynamic>> data) {
+    return const JsonEncoder.withIndent('  ').convert(data);
+  }
+
+  /// تصدير التقرير إلى CSV
+  String exportToCsv(List<Map<String, dynamic>> data) {
+    if (data.isEmpty) return '';
+
+    final headers = data.first.keys.join(',');
+    final rows =
+        data.map((row) => row.values.map((v) => v.toString()).join(','));
+
+    return [headers, ...rows].join('\n');
+  }
+
+  /// تقرير المبيعات اليومية
+  Future<List<Map<String, dynamic>>> getDailySalesReport({
+    required DateTime startDate,
+    required DateTime endDate,
+  }) async {
+    final dailySales = <String, Map<String, dynamic>>{};
+
+    final sales = await (_db.select(_db.sales)
+          ..where((s) => s.createdAt.isBetweenValues(startDate, endDate)))
+        .get();
+
+    for (final sale in sales) {
+      final dateKey = DateFormat('yyyy-MM-dd').format(sale.createdAt);
+
+      if (!dailySales.containsKey(dateKey)) {
+        dailySales[dateKey] = {
+          'date': dateKey,
+          'totalSales': 0.0,
+          'totalTransactions': 0,
+          'cashSales': 0.0,
+          'cardSales': 0.0,
+        };
+      }
+
+      dailySales[dateKey]!['totalSales'] =
+          (dailySales[dateKey]!['totalSales'] as double) +
+              sale.total.toDouble();
+      dailySales[dateKey]!['totalTransactions']++;
+
+      if (sale.paymentMethod == PaymentMethod.cash) {
+        dailySales[dateKey]!['cashSales'] =
+            (dailySales[dateKey]!['cashSales'] as double) +
+                sale.total.toDouble();
+      } else {
+        dailySales[dateKey]!['cardSales'] =
+            (dailySales[dateKey]!['cardSales'] as double) +
+                sale.total.toDouble();
+      }
+    }
+
+    return dailySales.values.toList()
+      ..sort((a, b) => a['date'].toString().compareTo(b['date'].toString()));
+  }
+
+  /// تقرير قيمة المخزون
+  Future<Map<String, dynamic>> getInventoryValuationReport() async {
+    final products = await _db.select(_db.products).get();
+
+    double totalValue = 0;
+    double totalItems = 0;
+    final categories = <String, double>{};
+
+    for (final product in products) {
+      final value = (product.buyPrice * product.stock).toDouble();
+      totalValue += value;
+      totalItems += product.stock.toDouble();
+
+      final categoryName = product.categoryId ?? 'Uncategorized';
+      categories[categoryName] = (categories[categoryName] ?? 0) + value;
+    }
+
+    return {
+      'totalValue': totalValue,
+      'totalItems': totalItems,
+      'byCategory': categories,
+      'generatedAt': DateTime.now(),
+    };
+  }
+}

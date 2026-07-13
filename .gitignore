@@ -1,0 +1,112 @@
+<<<<<<< HEAD
+# Sync .project/sourceTexts/ folder (source text files)
+
+# Don't sync user-specific SQLite databases
+.project/*.sqlite
+
+# Don't sync SQLite auxiliary files
+.project/*.sqlite-wal
+.project/*.sqlite-shm
+
+# Don't sync temporary files
+.project/.temp/**
+
+# Don't sync user-specific files
+.project/complete_drafts.txt
+.project/localProjectSettings.json
+.project/localProjectSwap.json
+copilot-messages.log
+
+# Archive formats
+*.zip
+*.rar
+*.7z
+*.tar
+*.tar.gz
+*.tar.bz2
+*.tar.xz
+*.gz
+*.bz2
+*.xz
+
+# Windows executables and installers
+*.exe
+*.msi
+*.bat
+*.cmd
+*.com
+*.scr
+*.dll
+
+# macOS executables and disk images
+*.dmg
+*.pkg
+
+# Disk images and virtual machine files
+*.iso
+*.img
+*.vhd
+*.vmdk
+
+# System files
+.DS_Store
+.project/attachments/files/**
+
+# Flutter / Dart build artifacts
+build/
+.dart_tool/
+.pub/
+.cache/
+*.apk
+*.aab
+*.ipa
+*.dSYM.zip
+*.dSYM/
+=======
+```dart
+# Flutter/Dart specific
+.dart_tool/
+.packages
+flutter_export_environment.sh
+
+# Build
+build/
+*.iws
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# VS Code related
+.vscode/
+
+# Dependencies
+pubspec.lock
+
+# Logs
+logs/
+*.log
+
+# Coverage
+coverage/
+
+# Temporary files
+*.tmp
+*.temp
+
+# Environment
+.env
+.env.local
+*.env.*
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Web
+web/.build/
+web/build/
+```
+>>>>>>> 2d430f8439a4d864f3ca3b6e9d35a290d925fd86

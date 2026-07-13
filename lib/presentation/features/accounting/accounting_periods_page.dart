@@ -1,0 +1,524 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:drift/drift.dart' as drift;
+import 'package:supermarket/data/datasources/local/app_database.dart';
+import 'package:uuid/uuid.dart';
+import 'package:intl/intl.dart';
+import 'package:supermarket/core/services/financial_closing_service.dart';
+import 'package:supermarket/core/auth/auth_provider.dart';
+import 'package:supermarket/core/services/accounting_period_service.dart';
+
+/// صفحة إدارة الفترات المحاسبية
+class AccountingPeriodsPage extends StatefulWidget {
+  const AccountingPeriodsPage({super.key});
+
+  @override
+  State<AccountingPeriodsPage> createState() => _AccountingPeriodsPageState();
+}
+
+class _AccountingPeriodsPageState extends State<AccountingPeriodsPage> {
+  final TextEditingController _nameController = TextEditingController();
+  DateTime? _startDate;
+  DateTime? _endDate;
+
+  // متغيرات لإنشاء فترات تلقائية
+  int _selectedYear = DateTime.now().year;
+  String _periodType = 'monthly'; // monthly, quarterly, yearly
+  bool _isBulkCreate = false;
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final db = context.read<AppDatabase>();
+    final periodService = context.read<AccountingPeriodService>();
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('الفترات المحاسبية'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.calendar_month),
+            tooltip: 'إنشاء فترات تلقائية',
+            onPressed: () => _showBulkCreateDialog(db, periodService),
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          // نموذج إضافة فترة يدوية
+          Card(
+            margin: const EdgeInsets.all(16),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'إضافة فترة يدوية',
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      TextButton.icon(
+                        onPressed: () {
+                          setState(() {
+                            _isBulkCreate = !_isBulkCreate;
+                          });
+                        },
+                        icon: Icon(
+                            _isBulkCreate ? Icons.close : Icons.auto_awesome),
+                        label: Text(_isBulkCreate
+                            ? 'إلغاء التوليد التلقائي'
+                            : 'توليد تلقائي'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: _nameController,
+                    decoration: const InputDecoration(
+                      labelText: 'اسم الفترة',
+                      border: OutlineInputBorder(),
+                      hintText: 'مثال: يناير 2026',
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: InkWell(
+                          onTap: () => _selectStartDate(context),
+                          child: InputDecorator(
+                            decoration: const InputDecoration(
+                              labelText: 'تاريخ البداية',
+                              border: OutlineInputBorder(),
+                              suffixIcon: Icon(Icons.calendar_today),
+                            ),
+                            child: Text(
+                              _startDate != null
+                                  ? DateFormat('yyyy-MM-dd').format(_startDate!)
+                                  : 'اختر التاريخ',
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: InkWell(
+                          onTap: () => _selectEndDate(context),
+                          child: InputDecorator(
+                            decoration: const InputDecoration(
+                              labelText: 'تاريخ النهاية',
+                              border: OutlineInputBorder(),
+                              suffixIcon: Icon(Icons.calendar_today),
+                            ),
+                            child: Text(
+                              _endDate != null
+                                  ? DateFormat('yyyy-MM-dd').format(_endDate!)
+                                  : 'اختر التاريخ',
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton.icon(
+                    onPressed: _startDate != null && _endDate != null
+                        ? () => _addPeriod(db)
+                        : null,
+                    icon: const Icon(Icons.add),
+                    label: const Text('إضافة فترة يدوية'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // قائمة الفترات
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'الفترات الموجودة',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: StreamBuilder<List<AccountingPeriod>>(
+              stream: db.select(db.accountingPeriods).watch(),
+              builder: (context, snapshot) {
+                final periods = snapshot.data ?? [];
+                if (periods.isEmpty) {
+                  return const Center(child: Text('لا توجد فترات محاسبية'));
+                }
+                return ListView.separated(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: periods.length,
+                  separatorBuilder: (context, index) =>
+                      const SizedBox(height: 8),
+                  itemBuilder: (context, index) {
+                    final period = periods[index];
+                    return Card(
+                      child: ListTile(
+                        leading: Icon(
+                          period.isClosed
+                              ? Icons.lock_outline
+                              : Icons.lock_open,
+                          color: period.isClosed ? Colors.red : Colors.green,
+                        ),
+                        title: Text(period.name),
+                        subtitle: Text(
+                          '${DateFormat('yyyy-MM-dd').format(period.startDate)} - ${DateFormat('yyyy-MM-dd').format(period.endDate)}',
+                        ),
+                        trailing: Wrap(
+                          spacing: 8,
+                          children: [
+                            if (!period.isClosed)
+                              TextButton.icon(
+                                onPressed: () =>
+                                    _confirmClosePeriod(db, period),
+                                icon: const Icon(Icons.lock, size: 18),
+                                label: const Text('إغلاق'),
+                              ),
+                            if (period.isClosed)
+                              TextButton.icon(
+                                onPressed: () => _reopenPeriod(db, period),
+                                icon: const Icon(Icons.lock_open, size: 18),
+                                label: const Text('فتح'),
+                              ),
+                            IconButton(
+                              icon: const Icon(Icons.delete, color: Colors.red),
+                              onPressed: () => _deletePeriod(db, period),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _selectStartDate(BuildContext context) async {
+    final date = await showDatePicker(
+      context: context,
+      initialDate: _startDate ?? DateTime.now(),
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2030),
+    );
+    if (date != null) setState(() => _startDate = date);
+  }
+
+  Future<void> _selectEndDate(BuildContext context) async {
+    final date = await showDatePicker(
+      context: context,
+      initialDate: _endDate ?? DateTime.now().add(const Duration(days: 30)),
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2030),
+    );
+    if (date != null) setState(() => _endDate = date);
+  }
+
+  Future<void> _addPeriod(AppDatabase db) async {
+    if (_nameController.text.isEmpty ||
+        _startDate == null ||
+        _endDate == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('يرجى ملء جميع الحقول')));
+      return;
+    }
+
+    await db.into(db.accountingPeriods).insert(
+          AccountingPeriodsCompanion.insert(
+            id: drift.Value(const Uuid().v4()),
+            name: _nameController.text,
+            fiscalYear: _startDate!.year,
+            startDate: _startDate!,
+            endDate: _endDate!,
+            status: const drift.Value('OPEN'),
+          ),
+        );
+
+    _nameController.clear();
+    setState(() {
+      _startDate = null;
+      _endDate = null;
+    });
+
+    if (mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('تم إضافة الفترة بنجاح')));
+    }
+  }
+
+  Future<void> _confirmClosePeriod(
+    AppDatabase db,
+    AccountingPeriod period,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('تأكيد إغلاق الفترة'),
+        content: Text(
+          'هل أنت متأكد من إغلاق الفترة "${period.name}"؟\n'
+          'سيتم ترحيل الأرباح إلى الأرباح المحتجزة.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('إلغاء'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('تأكيد'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      await _closePeriod(db, period);
+    }
+  }
+
+  Future<void> _closePeriod(AppDatabase db, AccountingPeriod period) async {
+    try {
+      final authProvider = context.read<AuthProvider>();
+      final closingService = context.read<FinancialClosingService>();
+
+      final result = await closingService.closeMonthlyPeriod(
+        periodId: period.id,
+        userId: authProvider.currentUser?.id ?? '',
+      );
+
+      if (mounted) {
+        if (result.success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content: Text(result.message), backgroundColor: Colors.green),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content: Text(result.error ?? 'فشل في إغلاق الفترة'),
+                backgroundColor: Colors.red),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text('فشل في إغلاق الفترة: $e'),
+              backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
+  Future<void> _reopenPeriod(AppDatabase db, AccountingPeriod period) async {
+    try {
+      final authProvider = context.read<AuthProvider>();
+      final closingService = context.read<FinancialClosingService>();
+
+      final result = await closingService.reopenPeriod(
+        period.id,
+        authProvider.currentUser?.id ?? '',
+        authProvider.currentUser?.id ?? '',
+      );
+
+      if (mounted) {
+        if (result.success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content: Text(result.message), backgroundColor: Colors.green),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content: Text(result.error ?? 'فشل في إعادة فتح الفترة'),
+                backgroundColor: Colors.red),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text('فشل في إعادة فتح الفترة: $e'),
+              backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
+  Future<void> _deletePeriod(AppDatabase db, AccountingPeriod period) async {
+    if (period.isClosed) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('لا يمكن حذف فترة مغلقة')));
+      return;
+    }
+
+    // Check for GL entries in this period's date range
+    final entryCount = await (db.select(db.gLEntries)
+          ..where(
+              (e) => e.date.isBiggerOrEqual(drift.Variable(period.startDate)))
+          ..where(
+              (e) => e.date.isSmallerOrEqual(drift.Variable(period.endDate))))
+        .get();
+
+    if (!mounted) return;
+
+    if (entryCount.isNotEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+              'لا يمكن حذف الفترة: توجد قيود محاسبية مسجلة ضمن هذه الفترة'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    await (db.delete(
+      db.accountingPeriods,
+    )..where((p) => p.id.equals(period.id)))
+        .go();
+
+    if (mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('تم حذف الفترة')));
+    }
+  }
+
+  /// عرض حوار إنشاء فترات تلقائية
+  Future<void> _showBulkCreateDialog(
+    AppDatabase db,
+    AccountingPeriodService periodService,
+  ) async {
+    int year = _selectedYear;
+    String type = _periodType;
+
+    await showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('إنشاء فترات محاسبية تلقائية'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // اختيار السنة
+              DropdownButtonFormField<int>(
+                value: year,
+                decoration: const InputDecoration(
+                  labelText: 'السنة',
+                  border: OutlineInputBorder(),
+                ),
+                items: List.generate(10, (i) => DateTime.now().year - 5 + i)
+                    .map((y) => DropdownMenuItem(
+                          value: y,
+                          child: Text(y.toString()),
+                        ))
+                    .toList(),
+                onChanged: (v) => setDialogState(() => year = v!),
+              ),
+              const SizedBox(height: 16),
+              // نوع الفترة
+              DropdownButtonFormField<String>(
+                value: type,
+                decoration: const InputDecoration(
+                  labelText: 'نوع الفترة',
+                  border: OutlineInputBorder(),
+                ),
+                items: const [
+                  DropdownMenuItem(
+                      value: 'monthly', child: Text('شهرية (12 فترة)')),
+                  DropdownMenuItem(
+                      value: 'quarterly', child: Text('ربع سنوية (4 فترات)')),
+                  DropdownMenuItem(
+                      value: 'yearly', child: Text('سنوية (فترة واحدة)')),
+                ],
+                onChanged: (v) => setDialogState(() => type = v!),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'سيتم إنشاء الفترات تلقائياً بناءً على الاختيار.',
+                style: TextStyle(fontSize: 12, color: Colors.grey),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('إلغاء'),
+            ),
+            ElevatedButton.icon(
+              onPressed: () async {
+                Navigator.pop(context);
+                await _bulkCreatePeriods(db, periodService, year, type);
+              },
+              icon: const Icon(Icons.auto_awesome),
+              label: const Text('إنشاء'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// إنشاء فترات متعددة تلقائياً
+  Future<void> _bulkCreatePeriods(
+    AppDatabase db,
+    AccountingPeriodService periodService,
+    int year,
+    String type,
+  ) async {
+    try {
+      final count =
+          await periodService.bulkCreatePeriods(year: year, type: type);
+
+      if (mounted) {
+        setState(() {
+          _selectedYear = year;
+          _periodType = type;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('تم إنشاء $count فترات محاسبية بنجاح'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('فشل في إنشاء الفترات: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+}

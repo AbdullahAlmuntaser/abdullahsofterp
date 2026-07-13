@@ -1,0 +1,171 @@
+import 'package:drift/drift.dart';
+import '../../data/datasources/local/app_database.dart';
+
+/// خدمة إدارة إعدادات التطبيق الديناميكية
+/// تستبدل القيم المزروعة (Hardcoded) بقيم قابلة للتغيير من واجهة المستخدم
+class AppConfigService {
+  final AppDatabase _db;
+
+  AppConfigService(this._db);
+
+  // مفاتيح الإعدادات الثابتة
+  static const String keyDefaultWarehouse = 'default_warehouse_id';
+  static const String keyDefaultBranch = 'default_branch_id';
+  static const String keyTaxRate = 'tax_rate';
+  static const String keyCompanyPhone = 'company_phone';
+  static const String keyInvoiceMessage = 'invoice_message';
+  static const String keyLowStockThreshold = 'low_stock_threshold';
+  static const String keyAllowSellBelowCost = 'allow_sell_below_cost';
+  static const String keyHideSalePrices = 'hide_sale_prices';
+  static const String keyLocaleCode = 'locale_code';
+
+  /// الحصول على قيمة إعداد معينة
+  Future<String?> getString(String key) async {
+    final result = await (_db.select(_db.appConfigTable)
+          ..where((t) => t.key.equals(key)))
+        .getSingleOrNull();
+    return result?.value;
+  }
+
+  /// الحصول على قيمة رقمية
+  Future<double> getDouble(String key, {double defaultValue = 0.0}) async {
+    final val = await getString(key);
+    return val != null ? double.tryParse(val) ?? defaultValue : defaultValue;
+  }
+
+  /// الحصول على قيمة صحيحة
+  Future<int> getInt(String key, {int defaultValue = 0}) async {
+    final val = await getString(key);
+    return val != null ? int.tryParse(val) ?? defaultValue : defaultValue;
+  }
+
+  /// حفظ إعداد نصي
+  Future<void> setString(String key, String value) async {
+    await _db.into(_db.appConfigTable).insert(
+          AppConfigTableCompanion(
+            key: Value(key),
+            value: Value(value),
+            updatedAt: Value(DateTime.now()),
+          ),
+          mode: InsertMode.insertOrReplace,
+        );
+  }
+
+  /// حفظ إعداد رقمي
+  Future<void> setDouble(String key, double value) async {
+    await setString(key, value.toString());
+  }
+
+  /// حفظ إعداد صحيح
+  Future<void> setInt(String key, int value) async {
+    await setString(key, value.toString());
+  }
+
+  // --- دوال مساعدة للإعدادات الشائعة ---
+
+  /// الحصول على معرف المستودع الافتراضي
+  Future<String> getDefaultWarehouseId() async {
+    final configuredId = await getString(keyDefaultWarehouse);
+    if (configuredId != null) return configuredId;
+
+    final defaultWarehouse = await (_db.select(_db.warehouses)
+          ..where((w) => w.isDefault.equals(true)))
+        .getSingleOrNull();
+    if (defaultWarehouse != null) {
+      await setString(keyDefaultWarehouse, defaultWarehouse.id);
+      return defaultWarehouse.id;
+    }
+
+    final firstWarehouse =
+        await (_db.select(_db.warehouses)..limit(1)).getSingleOrNull();
+    if (firstWarehouse != null) {
+      await setString(keyDefaultWarehouse, firstWarehouse.id);
+      return firstWarehouse.id;
+    }
+
+    throw Exception('لا يوجد مستودع افتراضي. يرجى تهيئة بيانات النظام أولاً.');
+  }
+
+  /// الحصول على معرف الفرع الافتراضي
+  Future<String> getDefaultBranchId() async {
+    final configuredId = await getString(keyDefaultBranch);
+    if (configuredId != null) {
+      final exists = await (_db.select(_db.branches)
+            ..where((b) => b.id.equals(configuredId)))
+          .getSingleOrNull();
+      if (exists != null) return configuredId;
+    }
+
+    return _db.ensureDefaultBranch();
+  }
+
+  /// الحصول على نسبة الضريبة
+  Future<double> getTaxRate() async {
+    return await getDouble(keyTaxRate, defaultValue: 0.15); // 15% افتراضي
+  }
+
+  /// الحصول على قيمة منطقية (Boolean)
+  Future<bool> getBool(String key, {bool defaultValue = false}) async {
+    final val = await getString(key);
+    if (val == null) return defaultValue;
+    return val.toLowerCase() == 'true' || val == '1';
+  }
+
+  /// حفظ إعداد منطقي
+  Future<void> setBool(String key, bool value) async {
+    await setString(key, value ? 'true' : 'false');
+  }
+
+  /// السماح بالمخزون السلبي
+  Future<bool> allowNegativeStock() async {
+    return await getBool('allow_negative_stock', defaultValue: false);
+  }
+
+  /// السماح بالبيع بأقل من التكلفة
+  Future<bool> allowSellBelowCost() async {
+    return await getBool(keyAllowSellBelowCost, defaultValue: true);
+  }
+
+  /// إخفاء أسعار البيع
+  Future<bool> hideSalePrices() async {
+    return await getBool(keyHideSalePrices, defaultValue: false);
+  }
+
+  /// الحصول على رسالة الفاتورة الافتراضية للواتساب
+  Future<String> getInvoiceMessage() async {
+    return await getString(keyInvoiceMessage) ??
+        'شكراً لتعاملكم معنا.\nتفاصيل الفاتورة مرفقة.';
+  }
+
+  /// تحديد حد التنبيه للمخزون المنخفض
+  Future<int> getLowStockThreshold() async {
+    return await getInt(keyLowStockThreshold, defaultValue: 10);
+  }
+
+  /// الحصول على لغة التطبيق
+  Future<String> getLocaleCode() async {
+    final code = await getString(keyLocaleCode);
+    return code == 'en' ? 'en' : 'ar';
+  }
+
+  /// حفظ لغة التطبيق
+  Future<void> setLocaleCode(String languageCode) async {
+    await setString(keyLocaleCode, languageCode == 'en' ? 'en' : 'ar');
+  }
+
+  /// تهيئة الإعدادات الافتراضية عند أول تشغيل
+  Future<void> initializeDefaults() async {
+    final hasConfig = await (_db.select(_db.appConfigTable)..limit(1))
+        .get()
+        .then((v) => v.isNotEmpty);
+    if (!hasConfig) {
+      await setString(keyDefaultWarehouse, 'MAIN_WAREHOUSE');
+      await setString(keyDefaultBranch, 'BR001');
+      await setDouble(keyTaxRate, 0.15);
+      await setInt(keyLowStockThreshold, 10);
+      await setString(
+          keyInvoiceMessage, 'شكراً لتعاملكم معنا. نقدر ثقتكم بنا.');
+      await setLocaleCode('ar');
+    }
+  }
+}

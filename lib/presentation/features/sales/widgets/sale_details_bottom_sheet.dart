@@ -1,0 +1,458 @@
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
+import 'package:printing/printing.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:supermarket/l10n/app_localizations.dart';
+import 'package:supermarket/data/datasources/local/app_database.dart';
+import 'package:supermarket/core/services/invoice_service.dart';
+import 'package:supermarket/core/constants/app_enums.dart';
+import 'package:supermarket/injection_container.dart' as di;
+import 'package:supermarket/core/services/audit_service.dart';
+import 'package:supermarket/presentation/widgets/app_snack_bar.dart';
+
+class SaleDetailsBottomSheet extends StatelessWidget {
+  final Sale sale;
+  final AppDatabase db;
+  final AppLocalizations l10n;
+
+  const SaleDetailsBottomSheet({
+    super.key,
+    required this.sale,
+    required this.db,
+    required this.l10n,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return DraggableScrollableSheet(
+      initialChildSize: 0.6,
+      minChildSize: 0.4,
+      maxChildSize: 0.9,
+      expand: false,
+      builder: (context, scrollController) => FutureBuilder<List<SaleItem>>(
+        future: (db.select(
+          db.saleItems,
+        )..where((t) => t.saleId.equals(sale.id)))
+            .get(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          final items = snapshot.data ?? [];
+          if (items.isEmpty) {
+            return Center(
+              child: Text(l10n.noItemsFound),
+            ); // Assuming you have this localization
+          }
+
+          // Optimized product fetching: Fetch all products related to sale items in one go
+          return FutureBuilder<List<Product>>(
+            future: (db.select(db.products)
+                  ..where(
+                    (p) => p.id.isIn(items.map((i) => i.productId).toList()),
+                  ))
+                .get(),
+            builder: (context, productSnapshot) {
+              if (productSnapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              final products = productSnapshot.data ?? [];
+              final Map<String, Product> productMap = {
+                for (var p in products) p.id: p,
+              };
+
+              return Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          l10n.saleDetails,
+                          style: Theme.of(context).textTheme.headlineSmall,
+                        ),
+                        Row(
+                          children: [
+                            if (sale.status == DocumentStatus.draft) ...[
+                              IconButton(
+                                icon: const Icon(Icons.edit,
+                                    color: Colors.orange),
+                                tooltip: 'تعديل',
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                  context
+                                      .push('/sales/invoice/edit/${sale.id}');
+                                },
+                              ),
+                              IconButton(
+                                icon:
+                                    const Icon(Icons.delete, color: Colors.red),
+                                tooltip: 'حذف',
+                                onPressed: () =>
+                                    _confirmDelete(context, db, sale),
+                              ),
+                            ],
+<<<<<<< HEAD
+                            if (sale.status == DocumentStatus.posted) ...[
+=======
+                            if (sale.status == DocumentStatus.posted)
+>>>>>>> 2d430f8439a4d864f3ca3b6e9d35a290d925fd86
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.assignment_return,
+                                  color: Colors.orange,
+                                ),
+                                tooltip: 'إرجاع أصناف',
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                  context.push(
+                                    '/sales/returns/new',
+                                    extra: sale.id,
+                                  );
+                                },
+                              ),
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.account_balance,
+                                  color: Colors.brown,
+                                ),
+                                tooltip: 'عرض قيد اليومية',
+                                onPressed: () =>
+                                    _showJournalEntry(context, db, sale.id),
+                              ),
+                            ],
+                            IconButton(
+                              icon: const Icon(Icons.picture_as_pdf),
+                              tooltip: l10n.viewInvoice,
+                              onPressed: () => _viewInvoice(
+                                context,
+                                db,
+                                sale,
+                                items,
+                                productMap,
+                              ),
+                            ),
+                            FutureBuilder<Customer?>(
+                              future: sale.customerId != null
+                                  ? (db.select(db.customers)
+                                        ..where((c) =>
+                                            c.id.equals(sale.customerId!)))
+                                      .getSingleOrNull()
+                                  : Future.value(null),
+                              builder: (context, snapshot) {
+                                final customer = snapshot.data;
+                                if (customer?.phone == null ||
+                                    customer!.phone!.isEmpty) {
+                                  return const SizedBox.shrink();
+                                }
+                                return PopupMenuButton<String>(
+                                  icon: const Icon(Icons.send,
+                                      color: Colors.blue),
+                                  tooltip: 'إرسال',
+                                  onSelected: (value) => _sendMessage(
+                                    context,
+                                    customer.phone!,
+                                    value,
+                                    sale,
+                                  ),
+                                  itemBuilder: (context) => [
+                                    const PopupMenuItem(
+                                      value: 'sms',
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.sms, color: Colors.grey),
+                                          SizedBox(width: 8),
+                                          Text('SMS'),
+                                        ],
+                                      ),
+                                    ),
+                                    const PopupMenuItem(
+                                      value: 'whatsapp',
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.chat, color: Colors.green),
+                                          SizedBox(width: 8),
+                                          Text('WhatsApp'),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: ListView.builder(
+                      controller: scrollController,
+                      itemCount: items.length,
+                      itemBuilder: (context, index) {
+                        final item = items[index];
+                        final product = productMap[item.productId];
+                        return ListTile(
+                          title: Text(
+                            product?.name ?? l10n.unknownProduct,
+                          ), // Assuming unknownProduct localization
+                          subtitle: Text(
+                            l10n.qtyAtPrice(
+                              item.quantity.toString(),
+                              item.price.toStringAsFixed(2),
+                            ),
+                          ),
+                          trailing: Text(
+                            (item.quantity * item.price).toStringAsFixed(2),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  const Divider(),
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          l10n.total,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                          ),
+                        ),
+                        Text(
+                          sale.total.toStringAsFixed(2),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                            color: Colors.teal,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  void _showJournalEntry(
+      BuildContext context, AppDatabase db, String saleId) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => FutureBuilder<List<GLEntry>>(
+        future: (db.select(db.gLEntries)
+              ..where((e) => e.referenceId.equals(saleId))
+              ..where((e) => e.referenceType.equals('SALE'))
+              ..where((e) => e.status.equals('POSTED')))
+            .get(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          final entries = snapshot.data ?? [];
+          if (entries.isEmpty) {
+            return AlertDialog(
+              title: const Text('قيد اليومية'),
+              content: const Text('لا يوجد قيد محاسبي لهذه الفاتورة'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('إغلاق'),
+                ),
+              ],
+            );
+          }
+          return AlertDialog(
+            title: Text('قيد اليومية (${entries.length})'),
+            content: SizedBox(
+              width: double.maxFinite,
+              child: ListView.builder(
+                itemCount: entries.length,
+                itemBuilder: (context, index) {
+                  final entry = entries[index];
+                  return FutureBuilder<List<GLLine>>(
+                    future: (db.select(db.gLLines)
+                          ..where((l) => l.entryId.equals(entry.id)))
+                        .get(),
+                    builder: (context, lineSnapshot) {
+                      if (lineSnapshot.connectionState ==
+                          ConnectionState.waiting) {
+                        return const ListTile(title: Text('جاري التحميل...'));
+                      }
+                      final lines = lineSnapshot.data ?? [];
+                      return Card(
+                        margin: const EdgeInsets.symmetric(vertical: 4),
+                        child: Padding(
+                          padding: const EdgeInsets.all(8),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                entry.description,
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold),
+                              ),
+                              Text(
+                                'التاريخ: ${DateFormat.yMd().format(entry.date)}',
+                                style: const TextStyle(fontSize: 12),
+                              ),
+                              const Divider(),
+                              ...lines.map((line) => Padding(
+                                    padding:
+                                        const EdgeInsets.symmetric(vertical: 2),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(line.accountId,
+                                            style:
+                                                const TextStyle(fontSize: 12)),
+                                        if (line.debit > Decimal.zero)
+                                          Text(
+                                            'مدين: ${line.debit.toStringAsFixed(2)}',
+                                            style: TextStyle(
+                                              color: Colors.red[700],
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        if (line.credit > Decimal.zero)
+                                          Text(
+                                            'دائن: ${line.credit.toStringAsFixed(2)}',
+                                            style: TextStyle(
+                                              color: Colors.green[700],
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                  )),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('إغلاق'),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Future<void> _viewInvoice(
+    BuildContext context,
+    AppDatabase db,
+    Sale sale,
+    List<SaleItem> items,
+    Map<String, Product> productMap,
+  ) async {
+    try {
+      if (!context.mounted) return;
+
+      final invoiceService = InvoiceService(db);
+      final pdfData = await invoiceService.generateInvoice(
+        sale: sale,
+        items: items,
+        products: productMap.values.toList(), // Pass products as a list
+        companyName: 'My Supermarket',
+        companyVatNumber: '1234567890',
+      );
+
+      await Printing.layoutPdf(onLayout: (format) => pdfData);
+    } catch (e) {
+      debugPrint("Invoice generation error: $e");
+    }
+  }
+
+  Future<void> _sendMessage(
+    BuildContext context,
+    String phone,
+    String type,
+    Sale sale,
+  ) async {
+    final message = 'شكراً لتعاملكم معنا!\n'
+        'فاتورة رقم: ${sale.id.substring(0, 8)}\n'
+        'المبلغ: ${sale.total.toStringAsFixed(2)} SAR\n'
+        'التاريخ: ${DateFormat.yMMMd().format(sale.createdAt)}';
+
+    String url;
+    if (type == 'whatsapp') {
+      final cleanPhone = phone.replaceAll(RegExp(r'[^\d]'), '');
+      url = 'https://wa.me/$cleanPhone?text=${Uri.encodeComponent(message)}';
+    } else {
+      url = 'sms:$phone?body=${Uri.encodeComponent(message)}';
+    }
+
+    try {
+      if (await canLaunchUrl(Uri.parse(url))) {
+        await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+      } else {
+        if (context.mounted) {
+          AppSnackBar.warning(context, 'تعذر فتح التطبيق');
+        }
+      }
+    } catch (e) {
+      debugPrint('Error sending message: $e');
+    }
+  }
+
+  Future<void> _confirmDelete(
+      BuildContext context, AppDatabase db, Sale sale) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('تأكيد الحذف'),
+        content:
+            Text('هل أنت متأكد من حذف الفاتورة #${sale.id.substring(0, 8)}؟'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('إلغاء'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('حذف', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      try {
+        await db.salesDao.deleteSale(sale.id);
+
+        await di.sl<AuditService>().logDelete(
+              'SalesInvoice',
+              sale.id,
+            );
+
+        if (context.mounted) {
+          Navigator.pop(context);
+          AppSnackBar.success(context, 'تم حذف الفاتورة بنجاح');
+        }
+      } catch (e) {
+        if (context.mounted) {
+          AppSnackBar.error(context, 'فشل الحذف: $e');
+        }
+      }
+    }
+  }
+}

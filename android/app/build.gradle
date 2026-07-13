@@ -1,0 +1,86 @@
+plugins {
+    id "com.android.application"
+    id "kotlin-android"
+    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
+    id "dev.flutter.flutter-gradle-plugin"
+}
+
+def localProperties = new Properties()
+def localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.withReader("UTF-8") { reader ->
+        localProperties.load(reader)
+    }
+}
+
+def flutterVersionCode = localProperties.getProperty("flutter.versionCode")
+if (flutterVersionCode == null) {
+    flutterVersionCode = "1"
+}
+
+def flutterVersionName = localProperties.getProperty("flutter.versionName")
+if (flutterVersionName == null) {
+    flutterVersionName = "1.0"
+}
+
+android {
+    namespace = "com.example.systemmarket"
+    compileSdk = 36
+    ndkVersion = flutter.ndkVersion
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+
+    signingConfigs {
+        // TODO: Replace with your release keystore for production builds
+        // debug is used for development only — never publish to Play Store with this
+        release {
+            // keyAlias 'your_key_alias'
+            // keyPassword 'your_key_password'
+            // storeFile file('your_keystore.jks')
+            // storePassword 'your_store_password'
+        }
+    }
+
+    defaultConfig {
+        applicationId = "com.example.systemmarket"
+        minSdk = 23
+        targetSdk = 36
+        versionCode = flutterVersionCode.toInteger()
+        versionName = flutterVersionName
+    }
+
+    buildTypes {
+        release {
+            // TODO: Configure proper signing for production release
+            // For now, use debug signing for development/testing only
+            signingConfig = signingConfigs.debug
+        }
+    }
+}
+
+flutter {
+    source = "../.."
+}
+
+subprojects {
+    afterEvaluate { project ->
+        if (project.hasProperty('android')) {
+            project.android {
+                if (compileSdk == null || compileSdk < 36) {
+                    compileSdk = 36
+                }
+                defaultConfig {
+                    if (minSdk == null) {
+                        minSdk = 23
+                    }
+                    if (targetSdk == null || targetSdk < 36) {
+                        targetSdk = 36
+                    }
+                }
+            }
+        }
+    }
+}
