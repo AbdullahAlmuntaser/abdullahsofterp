@@ -44,7 +44,7 @@ dependencies:
   googleapis: ^12.0.0
   google_sign_in: ^6.2.1
   http: ^1.2.0
-  firebase_core: ^2.30.1
+  firebase_core: ^3.15.2
   url_launcher: ^6.3.0
   permission_handler: ^11.3.1
   flutter_local_notifications: ^19.5.0
@@ -53,6 +53,8 @@ dependencies:
   flutter_secure_storage: ^10.2.0
   image_picker: ^1.1.2
   excel: ^4.0.6
+  firebase_messaging: ^15.0.0
+  web_socket_channel: ^3.0.0
   # sqlite3_flutter_libs removed to avoid conflict with sqlcipher_flutter_libs
 
 dev_dependencies:

@@ -56,7 +56,9 @@ class _FixedAssetsPageState extends State<FixedAssetsPage> {
                 ),
               );
               if (confirmed ?? false) {
-                await provider.runDepreciation(context);
+                if (context.mounted) {
+                  await provider.runDepreciation(context);
+                }
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(

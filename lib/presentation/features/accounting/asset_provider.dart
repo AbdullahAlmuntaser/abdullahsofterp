@@ -36,7 +36,7 @@ class AssetProvider with ChangeNotifier {
     _error = null;
     try {
       await _service.addAsset(asset);
-      await loadAssets(context);
+      if (context.mounted) await loadAssets(context);
       return true;
     } catch (e) {
       _error = l10n.failedToAddAsset(e.toString());
@@ -50,7 +50,7 @@ class AssetProvider with ChangeNotifier {
     _error = null;
     try {
       await _service.updateAsset(asset);
-      await loadAssets(context);
+      if (context.mounted) await loadAssets(context);
       return true;
     } catch (e) {
       _error = l10n.failedToUpdateAsset(e.toString());
@@ -66,7 +66,7 @@ class AssetProvider with ChangeNotifier {
     notifyListeners();
     try {
       await _service.processDepreciation();
-      await loadAssets(context);
+      if (context.mounted) await loadAssets(context);
       return true;
     } catch (e) {
       _error = l10n.failedToCalculateDepreciation(e.toString());

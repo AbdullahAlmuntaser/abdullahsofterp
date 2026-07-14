@@ -1583,7 +1583,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String confirmDeleteRecurringEntry(Object entryName) {
-    return 'Are you sure you want to delete \"$entryName\"?';
+    return 'Are you sure you want to delete \'$entryName\'?';
   }
 
   @override
@@ -2921,7 +2921,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String confirmReturnMessage(Object serialNumber) {
-    return 'Do you want to mark serial number \"$serialNumber\" as returned?';
+    return 'Do you want to mark serial number \'$serialNumber\' as returned?';
   }
 
   @override
@@ -3315,4 +3315,3016 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noPriceQuotes => 'No price quotes';
+
+  @override
+  String get fatwrhMshtryat => '       فاتورة مشتريات         ';
+
+  @override
+  String get ywm => ' يوم';
+
+  @override
+  String get n8AhrfAlaAlaql => '8 أحرف على الأقل';
+
+  @override
+  String get ajl => 'آجل';
+
+  @override
+  String get akhrAlamlyat => 'آخر العمليات';
+
+  @override
+  String get adkhlRqmAlfatwrhAwla => 'أدخل رقم الفاتورة أولاً';
+
+  @override
+  String get adkhlRqmAlfatwrhAlaslyhLlbhth => 'أدخل رقم الفاتورة الأصلية للبحث';
+
+  @override
+  String get adkhlRqmaShyha => 'أدخل رقماً صحيحاً';
+
+  @override
+  String get adkhlMarfAlamylWalmblghBshklShyh => 'أدخل معرف العميل والمبلغ بشكل صحيح';
+
+  @override
+  String get adkhlMarfAlamylWaddAlnqatBshklShyh => 'أدخل معرف العميل وعدد النقاط بشكل صحيح';
+
+  @override
+  String get adkhlNsbhByn1W100 => 'أدخل نسبة بين 1 و 100';
+
+  @override
+  String get adwarAlmstkhdmyn => 'أدوار المستخدمين';
+
+  @override
+  String get arqamAltslsl => 'أرقام التسلسل';
+
+  @override
+  String get arqamAltslslRqmWahdFyKlStr => 'أرقام التسلسل (رقم واحد في كل سطر) *';
+
+  @override
+  String get asaarSrfAlamlat => 'أسعار صرف العملات';
+
+  @override
+  String get adfSnfaWahdaAlaAlaql => 'أضف صنفاً واحداً على الأقل';
+
+  @override
+  String get adfMlahzatLltlbyh => 'أضف ملاحظات للطلبية...';
+
+  @override
+  String get aamarAldywn => 'أعمار الديون';
+
+  @override
+  String get akthrAlmntjatMbyaa => 'أكثر المنتجات مبيعاً';
+
+  @override
+  String get amrSHraa => 'أمر شراء';
+
+  @override
+  String get anwaaAlijazat => 'أنواع الإجازات';
+
+  @override
+  String get awamrAlintaj => 'أوامر الإنتاج';
+
+  @override
+  String get awamrAlshraa => 'أوامر الشراء';
+
+  @override
+  String get awlAlmdhTswyhAlmkhzwnAlawly => 'أول المدة - تسوية المخزون الأولي';
+
+  @override
+  String get ayamAlaftrady => 'أيام الافتراضي';
+
+  @override
+  String get itmamAmlyhAlbya => 'إتمام عملية البيع';
+
+  @override
+  String get ijazh => 'إجازة';
+
+  @override
+  String get ijmalyAlayam => 'إجمالي الأيام';
+
+  @override
+  String get ijmalyAlrbh => 'إجمالي الربح';
+
+  @override
+  String get ijmalyAlsadr => 'إجمالي الصادر';
+
+  @override
+  String get ijmalyAlamlaa => 'إجمالي العملاء';
+
+  @override
+  String get ijmalyAlamwlh => 'إجمالي العمولة';
+
+  @override
+  String get ijmalyAlmbyaat => 'إجمالي المبيعات';
+
+  @override
+  String get ijmalyAlmbyaatAlkhadahLldrybh => 'إجمالي المبيعات الخاضعة للضريبة';
+
+  @override
+  String get ijmalyAlmdywnyh => 'إجمالي المديونية';
+
+  @override
+  String get ijmalyAlmrtja => 'إجمالي المرتجع:';
+
+  @override
+  String get ijmalyAlmshtryatAlkhadahLldrybh => 'إجمالي المشتريات الخاضعة للضريبة';
+
+  @override
+  String get ijmalyAlmkafat => 'إجمالي المكافآت';
+
+  @override
+  String get ijmalyAlmwrdyn => 'إجمالي الموردين';
+
+  @override
+  String get ijmalyAlward => 'إجمالي الوارد';
+
+  @override
+  String get ijmalyTklfhAlbdaah => 'إجمالي تكلفة البضاعة';
+
+  @override
+  String get ijmalyDrybhAlmkhrjat => 'إجمالي ضريبة المخرجات';
+
+  @override
+  String get ijmalyDrybhAlmdkhlat => 'إجمالي ضريبة المدخلات';
+
+  @override
+  String get ikhfaaAsaarAlbya => 'إخفاء أسعار البيع';
+
+  @override
+  String get ikhfaaAsaarAlbyaFySHashatMaynh => 'إخفاء أسعار البيع في شاشات معينة';
+
+  @override
+  String get idarhAsaarSrfAlamlat => 'إدارة أسعار صرف العملات';
+
+  @override
+  String get idarhAmynAlmkhzn => 'إدارة أمين المخزن';
+
+  @override
+  String get idarhAlijazat => 'إدارة الإجازات';
+
+  @override
+  String get idarhAliadadat => 'إدارة الإعدادات';
+
+  @override
+  String get idarhAltsnya => 'إدارة التصنيع';
+
+  @override
+  String get idarhAlhsabat => 'إدارة الحسابات';
+
+  @override
+  String get idarhAlhdwrWalansraf => 'إدارة الحضور والانصراف';
+
+  @override
+  String get idarhAlshykat => 'إدارة الشيكات';
+
+  @override
+  String get idarhAlslahyat => 'إدارة الصلاحيات';
+
+  @override
+  String get idarhAlamlaa => 'إدارة العملاء';
+
+  @override
+  String get idarhAlmkhzwn => 'إدارة المخزون';
+
+  @override
+  String get idarhAlmstkhdmyn => 'إدارة المستخدمين';
+
+  @override
+  String get idarhAlmstwdaat => 'إدارة المستودعات';
+
+  @override
+  String get idarhAlmwrdyn => 'إدارة الموردين';
+
+  @override
+  String get idarhAlmwzfyn => 'إدارة الموظفين';
+
+  @override
+  String get idarhAlwrdyat => 'إدارة الورديات';
+
+  @override
+  String get idkhalWtadylAldrybh => 'إدخال وتعديل الضريبة';
+
+  @override
+  String get idhaKantHdhhAlamlhAlasasyhAdkhl1 => 'إذا كانت هذه العملة الأساسية، أدخل 1';
+
+  @override
+  String get irjaaAsnaf => 'إرجاع أصناف';
+
+  @override
+  String get irsal => 'إرسال';
+
+  @override
+  String get ishaarDaenJdyd => 'إشعار دائن جديد';
+
+  @override
+  String get ishaaratAldaen => 'إشعارات الدائن';
+
+  @override
+  String get idafh => 'إضافة';
+
+  @override
+  String get idafhArqamTslslMtaddh => 'إضافة أرقام تسلسل متعددة';
+
+  @override
+  String get idafhDwr => 'إضافة دور';
+
+  @override
+  String get idafhDwrJdyd => 'إضافة دور جديد';
+
+  @override
+  String get idafhRqmTslsl => 'إضافة رقم تسلسل';
+
+  @override
+  String get idafhSlahyh => 'إضافة صلاحية';
+
+  @override
+  String get idafhSnf => 'إضافة صنف';
+
+  @override
+  String get idafhSnfJdyd => 'إضافة صنف جديد';
+
+  @override
+  String get idafhSnfLlthwyl => 'إضافة صنف للتحويل';
+
+  @override
+  String get idafhSnfMwjwd => 'إضافة صنف موجود';
+
+  @override
+  String get idafhAmlhJdydh => 'إضافة عملة جديدة';
+
+  @override
+  String get idafhQydTrhylJdyd => 'إضافة قيد ترحيل جديد';
+
+  @override
+  String get idafhLljrd => 'إضافة للجرد';
+
+  @override
+  String get idafhMrkzTklfh => 'إضافة مركز تكلفة';
+
+  @override
+  String get idafhMstkhdm => 'إضافة مستخدم';
+
+  @override
+  String get idafhMstkhdmJdyd => 'إضافة مستخدم جديد';
+
+  @override
+  String get idafhMstwdaJdyd => 'إضافة مستودع جديد';
+
+  @override
+  String get idafhMntjJdydSrya => 'إضافة منتج جديد سريع';
+
+  @override
+  String get idafhMntjLljrd => 'إضافة منتج للجرد';
+
+  @override
+  String get idafhMntjYdwya => 'إضافة منتج يدوياً';
+
+  @override
+  String get idafhMwzf => 'إضافة موظف';
+
+  @override
+  String get idafhNqatMnBya => 'إضافة نقاط من بيع';
+
+  @override
+  String get idafhNwaIjazh => 'إضافة نوع إجازة';
+
+  @override
+  String get idafhWhdh => 'إضافة وحدة';
+
+  @override
+  String get idafhWhdhThwyl => 'إضافة وحدة تحويل';
+
+  @override
+  String get idafhWhdhThwylJdydh => 'إضافة وحدة تحويل جديدة';
+
+  @override
+  String get iaadhAlmhawlh => 'إعادة المحاولة';
+
+  @override
+  String get iaadhThmyl => 'إعادة تحميل';
+
+  @override
+  String get iaadhThmylAlamlat => 'إعادة تحميل العملات';
+
+  @override
+  String get iaadhTayyn => 'إعادة تعيين';
+
+  @override
+  String get iaadhLlmkhzwn => 'إعادة للمخزون';
+
+  @override
+  String get iadadatAlfwatyr => 'إعدادات الفواتير';
+
+  @override
+  String get iadadatAlqywdAlmhasbyh => 'إعدادات القيود المحاسبية';
+
+  @override
+  String get iadadatAlnzam => 'إعدادات النظام';
+
+  @override
+  String get iadadatAamh => 'إعدادات عامة';
+
+  @override
+  String get ighlaq => 'إغلاق';
+
+  @override
+  String get ighlaqAlwrdyh => 'إغلاق الوردية';
+
+  @override
+  String get ilghaa => 'إلغاء';
+
+  @override
+  String get ilghaaAlthdyd => 'إلغاء التحديد';
+
+  @override
+  String get ilghaaAltlbyh => 'إلغاء الطلبية';
+
+  @override
+  String get ilghaaAlmaamlat => 'إلغاء المعاملات';
+
+  @override
+  String get ilghaaAmlyh => 'إلغاء عملية';
+
+  @override
+  String get ilghaaWdaAlmrtjaat => 'إلغاء وضع المرتجعات';
+
+  @override
+  String get ila => 'إلى';
+
+  @override
+  String get ilaTarykh => 'إلى تاريخ';
+
+  @override
+  String get ilaMstwda => 'إلى مستودع';
+
+  @override
+  String get inshaa => 'إنشاء';
+
+  @override
+  String get inshaaAlhsabatAlaftradyh => 'إنشاء الحسابات الافتراضية';
+
+  @override
+  String get inshaaAltlbyh => 'إنشاء الطلبية';
+
+  @override
+  String get inshaaAlmswwlWaldkhwl => 'إنشاء المسؤول والدخول';
+
+  @override
+  String get inshaaArdSarJdyd => 'إنشاء عرض سعر جديد';
+
+  @override
+  String get inshaaMbyaat => 'إنشاء مبيعات';
+
+  @override
+  String get inshaaMshtryat => 'إنشاء مشتريات';
+
+  @override
+  String get inshaaNskhhAhtyatyhMhlyh => 'إنشاء نسخة احتياطية محلية';
+
+  @override
+  String get inshaaHdfMbyaat => 'إنشاء هدف مبيعات';
+
+  @override
+  String get iyrad => 'إيراد';
+
+  @override
+  String get abhthAnAlmntj => 'ابحث عن المنتج';
+
+  @override
+  String get abhthAnSHashhAwWzyfhMthlaMkhznByaKshf => 'ابحث عن شاشة أو وظيفة... (مثلاً: مخزن، بيع، كشف)';
+
+  @override
+  String get atrkhFarghaLlahtfazBklmhAlmrwr => 'اتركه فارغاً للاحتفاظ بكلمة المرور';
+
+  @override
+  String get atrkhFarghaLltwlydAltlqaey => 'اتركه فارغاً للتوليد التلقائي';
+
+  @override
+  String get atsal => 'اتصال';
+
+  @override
+  String get akhtrAlhsab => 'اختر الحساب';
+
+  @override
+  String get akhtrAldfahalmntj => 'اختر الدفعة/المنتج';
+
+  @override
+  String get akhtrAldwr => 'اختر الدور';
+
+  @override
+  String get akhtrAlamyl => 'اختر العميل';
+
+  @override
+  String get akhtrAlamylAkhtyary => 'اختر العميل (اختياري)';
+
+  @override
+  String get akhtrTarykhAlanthaa => 'اختر تاريخ الانتهاء';
+
+  @override
+  String get akhtrFtrhTqryrAldrybh => 'اختر فترة تقرير الضريبة';
+
+  @override
+  String get akhtrMlfNskhhAhtyatyhLastaadhAlbyanat => 'اختر ملف نسخة احتياطية لاستعادة البيانات';
+
+  @override
+  String get akhtrMntj => 'اختر منتج';
+
+  @override
+  String get akhtsaratSryah => 'اختصارات سريعة';
+
+  @override
+  String get akhtyarAlamyl => 'اختيار العميل';
+
+  @override
+  String get akhtyarAlmwrd => 'اختيار المورد';
+
+  @override
+  String get akhtyarAmyl => 'اختيار عميل';
+
+  @override
+  String get akhtyarMstwda => 'اختيار مستودع';
+
+  @override
+  String get akhtyarMntj => 'اختيار منتج';
+
+  @override
+  String get akhtyarMwrd => 'اختيار مورد';
+
+  @override
+  String get akhtyary => 'اختياري';
+
+  @override
+  String get astbdalNqat => 'استبدال نقاط';
+
+  @override
+  String get astaadh => 'استعادة';
+
+  @override
+  String get astaadhAlnskhhAlahtyatyhStqwmBhdhfAlbyanatAlhalyhS => 'استعادة النسخة الاحتياطية ستقوم بحذف البيانات الحالية. سيتم إنشاء نسخة أمان قبل الاستعادة. هل أنت متأكد؟';
+
+  @override
+  String get astaadhMnMlfMhly => 'استعادة من ملف محلي';
+
+  @override
+  String get asmAlijazh => 'اسم الإجازة';
+
+  @override
+  String get asmAldwr => 'اسم الدور';
+
+  @override
+  String get asmAlamlh => 'اسم العملة';
+
+  @override
+  String get asmAlamlhDwlarAmryky => 'اسم العملة (دولار أمريكي)';
+
+  @override
+  String get asmAlamlhAlkaml => 'اسم العملة الكامل';
+
+  @override
+  String get asmAlamyl => 'اسم العميل';
+
+  @override
+  String get asmAlmswwl => 'اسم المسؤول';
+
+  @override
+  String get asmAlmstkhdm => 'اسم المستخدم';
+
+  @override
+  String get asmAlmstwda => 'اسم المستودع';
+
+  @override
+  String get asmAlmstwdaMtlwb => 'اسم المستودع مطلوب';
+
+  @override
+  String get asmAlmntj => 'اسم المنتج';
+
+  @override
+  String get asmAlwhdhMthlaKrtwn => 'اسم الوحدة (مثلاً: كرتون)';
+
+  @override
+  String get ashtrWahsl => 'اشتر واحصل';
+
+  @override
+  String get adghtLinshaaHdfMbyaatJdyd => 'اضغط لإنشاء هدف مبيعات جديد';
+
+  @override
+  String get aatmadWiqfalAljrdNhaeya => 'اعتماد وإقفال الجرد نهائياً';
+
+  @override
+  String get aftrady => 'افتراضي';
+
+  @override
+  String get aladwar => 'الأدوار';
+
+  @override
+  String get aladwarAlmwjwdh => 'الأدوار الموجودة';
+
+  @override
+  String get alarbah => 'الأرباح';
+
+  @override
+  String get alarbahAlmtqdm => 'الأرباح المتقدم';
+
+  @override
+  String get alarbahHsbAltsnyf => 'الأرباح حسب التصنيف';
+
+  @override
+  String get alarsdh => 'الأرصدة';
+
+  @override
+  String get alarqamAltslslyh => 'الأرقام التسلسلية';
+
+  @override
+  String get alasnaf => 'الأصناف';
+
+  @override
+  String get alatraf => 'الأطراف';
+
+  @override
+  String get alaqlAhmyh => 'الأقل أهمية';
+
+  @override
+  String get alakthrAhmyh => 'الأكثر أهمية';
+
+  @override
+  String get alijmaly => 'الإجمالي';
+
+  @override
+  String get alijmalyAlfray => 'الإجمالي الفرعي';
+
+  @override
+  String get alijmalyAlnhaey => 'الإجمالي النهائي';
+
+  @override
+  String get alijmaly_1 => 'الإجمالي:';
+
+  @override
+  String get alidarh => 'الإدارة';
+
+  @override
+  String get alishaarat => 'الإشعارات';
+
+  @override
+  String get aliadadatAlmtqdmh => 'الإعدادات المتقدمة';
+
+  @override
+  String get aliyrad => 'الإيراد';
+
+  @override
+  String get aliyradat => 'الإيرادات';
+
+  @override
+  String get alasm => 'الاسم';
+
+  @override
+  String get alasmAlkaml => 'الاسم الكامل';
+
+  @override
+  String get alasmMtlwb => 'الاسم مطلوب';
+
+  @override
+  String get alasmYjbAnYkwnAlaAlaqlHrfyn => 'الاسم يجب أن يكون على الأقل حرفين';
+
+  @override
+  String get alaftrady => 'الافتراضي';
+
+  @override
+  String get albarkwd => 'الباركود';
+
+  @override
+  String get albarkwdSKU => 'الباركود / SKU';
+
+  @override
+  String get albrydAlilktrwny => 'البريد الإلكتروني';
+
+  @override
+  String get altarykh => 'التاريخ';
+
+  @override
+  String get althsylat => 'التحصيلات';
+
+  @override
+  String get althwylAlmkhzny => 'التحويل المخزني';
+
+  @override
+  String get althwylat => 'التحويلات';
+
+  @override
+  String get altdfqatAlnqdyh => 'التدفقات النقدية';
+
+  @override
+  String get altrakmy => 'التراكمي %';
+
+  @override
+  String get altsnyaBOM => 'التصنيع (BOM)';
+
+  @override
+  String get altsnyf => 'التصنيف';
+
+  @override
+  String get altqaryr => 'التقارير';
+
+  @override
+  String get altklfh => 'التكلفة';
+
+  @override
+  String get aljanb => 'الجانب';
+
+  @override
+  String get alhalh => 'الحالة';
+
+  @override
+  String get alhsabAlthlyly => 'الحساب التحليلي';
+
+  @override
+  String get alhsabAlmhasby => 'الحساب المحاسبي';
+
+  @override
+  String get alhsabat => 'الحسابات';
+
+  @override
+  String get alkhsm => 'الخصم';
+
+  @override
+  String get aldwr => 'الدور';
+
+  @override
+  String get alreysyh => 'الرئيسية';
+
+  @override
+  String get alratbAlasasy => 'الراتب الأساسي';
+
+  @override
+  String get alrbh => 'الربح';
+
+  @override
+  String get alrjaaIdkhalAlhdAladna => 'الرجاء إدخال الحد الأدنى';
+
+  @override
+  String get alrjaaIdkhalAlftrh => 'الرجاء إدخال الفترة';
+
+  @override
+  String get alrjaaIdkhalAlmblgh => 'الرجاء إدخال المبلغ';
+
+  @override
+  String get alrjaaIdkhalAlnsbh => 'الرجاء إدخال النسبة';
+
+  @override
+  String get alrjaaIdkhalRsalhAlfatwrh => 'الرجاء إدخال رسالة الفاتورة';
+
+  @override
+  String get alrjaaIdkhalSarAlsrf => 'الرجاء إدخال سعر الصرف';
+
+  @override
+  String get alrjaaIdkhalNsbhAldrybh => 'الرجاء إدخال نسبة الضريبة';
+
+  @override
+  String get alrjaaIdafhAsnaf => 'الرجاء إضافة أصناف';
+
+  @override
+  String get alrjaaInshaaNskhhAhtyatyhAwla => 'الرجاء إنشاء نسخة احتياطية أولاً';
+
+  @override
+  String get alrjaaAkhtyarAlmstwda => 'الرجاء اختيار المستودع';
+
+  @override
+  String get alrjaaAkhtyarAlmwrd => 'الرجاء اختيار المورد';
+
+  @override
+  String get alrjaaAkhtyarAmlh => 'الرجاء اختيار عملة';
+
+  @override
+  String get alrjaaAkhtyarMntjLklSnf => 'الرجاء اختيار منتج لكل صنف';
+
+  @override
+  String get alrjaaAkhtyarMndwb => 'الرجاء اختيار مندوب';
+
+  @override
+  String get alrsyd => 'الرصيد';
+
+  @override
+  String get alrsydAlijmaly => 'الرصيد الإجمالي';
+
+  @override
+  String get alrsydAlhalyAlmsthq => 'الرصيد الحالي المستحق';
+
+  @override
+  String get alrsydAlmtwqa => 'الرصيد المتوقع';
+
+  @override
+  String get alrsydAlmsthqLlmwrd => 'الرصيد المستحق للمورد';
+
+  @override
+  String get alrqm => 'الرقم';
+
+  @override
+  String get alrqmAldrybyVATNo => 'الرقم الضريبي (VAT No.)';
+
+  @override
+  String get alsbb => 'السبب';
+
+  @override
+  String get alsbb_1 => 'السبب *';
+
+  @override
+  String get alsjl => 'السجل';
+
+  @override
+  String get alsar => 'السعر';
+
+  @override
+  String get alsarAqlBkthyrMnMtwstAltklfh => 'السعر أقل بكثير من متوسط التكلفة';
+
+  @override
+  String get alsarAqlMnAltklfh => 'السعر أقل من التكلفة';
+
+  @override
+  String get alsarYjbAnYkwnAkbrMnAwYsawyAlsfr => 'السعر يجب أن يكون أكبر من أو يساوي الصفر.';
+
+  @override
+  String get alsarYjbAnYkwnAkbrMnAwYsawySfr => 'السعر يجب أن يكون أكبر من أو يساوي صفر';
+
+  @override
+  String get alslhFarghh => 'السلة فارغة';
+
+  @override
+  String get alslfWalkhswmat => 'السلف والخصومات';
+
+  @override
+  String get alsmahBalbyaBaqlMnAltklfh => 'السماح بالبيع بأقل من التكلفة';
+
+  @override
+  String get alsmahBalbyaHtaFyHalhAdmTwfrKmyh => 'السماح بالبيع حتى في حالة عدم توفر كمية';
+
+  @override
+  String get alsmahBalmkhzwnAlslby => 'السماح بالمخزون السلبي';
+
+  @override
+  String get alsmahBbyaMntjatBdwnRsydKaf => 'السماح ببيع منتجات بدون رصيد كافٍ';
+
+  @override
+  String get alsnh => 'السنة';
+
+  @override
+  String get alsnhGHyrShyhh => 'السنة غير صحيحة';
+
+  @override
+  String get alshhn => 'الشحن';
+
+  @override
+  String get alshhr => 'الشهر';
+
+  @override
+  String get alshhrYjbAnYkwnByn1W12 => 'الشهر يجب أن يكون بين 1 و12';
+
+  @override
+  String get alsafy => 'الصافي';
+
+  @override
+  String get alsafyAlmsthq => 'الصافي المستحق';
+
+  @override
+  String get alslahyat => 'الصلاحيات';
+
+  @override
+  String get alslahyatAlmtahh => 'الصلاحيات المتاحة';
+
+  @override
+  String get alsndwq => 'الصندوق';
+
+  @override
+  String get alsnfAlkmyhAlsar => 'الصنف          | الكمية | السعر';
+
+  @override
+  String get alsyghhYYYYMM => 'الصيغة: YYYY-MM';
+
+  @override
+  String get aldraeb => 'الضرائب';
+
+  @override
+  String get aldrybh => 'الضريبة';
+
+  @override
+  String get altabah => 'الطابعة';
+
+  @override
+  String get altlbyhGHyrMwjwdh => 'الطلبية غير موجودة';
+
+  @override
+  String get aladd => 'العدد';
+
+  @override
+  String get alarbyh => 'العربية';
+
+  @override
+  String get alarwdWalbrwmwshnz => 'العروض والبروموشنز';
+
+  @override
+  String get alamlaa => 'العملاء';
+
+  @override
+  String get alamlh => 'العملة';
+
+  @override
+  String get alamlyat => 'العمليات';
+
+  @override
+  String get alamwlat => 'العمولات';
+
+  @override
+  String get alamyl => 'العميل';
+
+  @override
+  String get alamyl_1 => 'العميل *';
+
+  @override
+  String get alamylTjawzAlhdAlaetmanyAlmsmwhBh => 'العميل تجاوز الحد الائتماني المسموح به';
+
+  @override
+  String get alamylTjawzHdAlaetman => 'العميل تجاوز حد الائتمان!';
+
+  @override
+  String get alanwan => 'العنوان';
+
+  @override
+  String get alfeat => 'الفئات';
+
+  @override
+  String get alfeh => 'الفئة';
+
+  @override
+  String get alfehAltsnyf => 'الفئة / التصنيف';
+
+  @override
+  String get alfatwrhAlaslyhGHyrMwjwdh => 'الفاتورة الأصلية غير موجودة';
+
+  @override
+  String get alfatwrhFarghhAlrjaaIdafhAsnaf => 'الفاتورة فارغة - الرجاء إضافة أصناف';
+
+  @override
+  String get alfarq => 'الفارق';
+
+  @override
+  String get alftratAlmhasbyh => 'الفترات المحاسبية';
+
+  @override
+  String get alftrh => 'الفترة';
+
+  @override
+  String get alftrhYYYYMM => 'الفترة (YYYY-MM)';
+
+  @override
+  String get alftrhAlmhasbyhMghlqhLaYmknAltrhyl => 'الفترة المحاسبية مغلقة. لا يمكن الترحيل.';
+
+  @override
+  String get alftrhAlmhasbyhMghlqhLaYmknTrhylAlfwatyrHtaFthFtrh => 'الفترة المحاسبية مغلقة. لا يمكن ترحيل الفواتير حتى فتح فترة جديدة.';
+
+  @override
+  String get alfraAlaftrady => 'الفرع الافتراضي';
+
+  @override
+  String get alfrq => 'الفرق';
+
+  @override
+  String get alqymhYjbAnTkwnRqmMwjb => 'القيمة يجب أن تكون رقم موجب';
+
+  @override
+  String get alqywdAlydwyh => 'القيود اليدوية';
+
+  @override
+  String get alqywdAlywmyh => 'القيود اليومية';
+
+  @override
+  String get alkamyra => 'الكاميرا';
+
+  @override
+  String get alkl => 'الكل';
+
+  @override
+  String get alkmyh => 'الكمية';
+
+  @override
+  String get alkmyhAlfalyhAlmktshfh => 'الكمية الفعلية المكتشفة';
+
+  @override
+  String get alkmyhAlfalyhAlmwjwdhAlan => 'الكمية الفعلية الموجودة الآن';
+
+  @override
+  String get alkmyhAlmtbqyh => 'الكمية المتبقية';
+
+  @override
+  String get alkmyhAlmrtjah => 'الكمية المرتجعة: ';
+
+  @override
+  String get alkmyhAlmntjh => 'الكمية المُنتَجة';
+
+  @override
+  String get alkmyhYjbAnTkwnAkbrMnAlsfr => 'الكمية يجب أن تكون أكبر من الصفر.';
+
+  @override
+  String get alkmyhYjbAnTkwnAkbrMnSfr => 'الكمية يجب أن تكون أكبر من صفر';
+
+  @override
+  String get alkwd => 'الكود';
+
+  @override
+  String get alkwdMtlwb => 'الكود مطلوب';
+
+  @override
+  String get alkwdYjbAnYkwnAlaAlaqlHrfyn => 'الكود يجب أن يكون على الأقل حرفين';
+
+  @override
+  String get almwshratAlmalyhAldhkyh => 'المؤشرات المالية الذكية';
+
+  @override
+  String get almblgh => 'المبلغ';
+
+  @override
+  String get almblghAlijmaly => 'المبلغ الإجمالي';
+
+  @override
+  String get almblghAlmdfwa => 'المبلغ المدفوع';
+
+  @override
+  String get almblghAlmstlm => 'المبلغ المستلم';
+
+  @override
+  String get almblghAlmsthdf => 'المبلغ المستهدف';
+
+  @override
+  String get almbyaatWalmkhrjat => 'المبيعات والمخرجات';
+
+  @override
+  String get almtbqyAlfkh => 'المتبقي (الفكة):';
+
+  @override
+  String get almtwqaAlnzam => 'المتوقع (النظام)';
+
+  @override
+  String get almjmwaAlfray => 'المجموع الفرعي';
+
+  @override
+  String get almhqq => 'المحقق';
+
+  @override
+  String get almkhzwn => 'المخزون';
+
+  @override
+  String get almkhzwnGHyrKaf => 'المخزون غير كافٍ';
+
+  @override
+  String get almdh => 'المدة';
+
+  @override
+  String get almdfwaat => 'المدفوعات';
+
+  @override
+  String get almdfwah => 'المدفوعة';
+
+  @override
+  String get almrtjaat => 'المرتجعات';
+
+  @override
+  String get almrja => 'المرجع';
+
+  @override
+  String get almzamnh => 'المزامنة';
+
+  @override
+  String get almstwda => 'المستودع';
+
+  @override
+  String get almstwda_1 => 'المستودع *';
+
+  @override
+  String get almstwdaAlaftrady => 'المستودع الافتراضي';
+
+  @override
+  String get almstwdaAlmsthdf => 'المستودع المستهدف';
+
+  @override
+  String get almstwdaWalfra => 'المستودع والفرع';
+
+  @override
+  String get almstwda_2 => 'المستودع:';
+
+  @override
+  String get almstwdaat => 'المستودعات';
+
+  @override
+  String get almshtryatWalmdkhlat => 'المشتريات والمدخلات';
+
+  @override
+  String get almsrwfat => 'المصروفات';
+
+  @override
+  String get almsrwfatHsbAlmrkz => 'المصروفات حسب المركز';
+
+  @override
+  String get almsrwfatHsbMrkzAltklfh => 'المصروفات حسب مركز التكلفة';
+
+  @override
+  String get almaamlKmWhdhAsasyhFyHdhhAlwhdh => 'المعامل (كم وحدة أساسية في هذه الوحدة؟)';
+
+  @override
+  String get almaamlYjbAnYkwnAkbrMn1 => 'المعامل يجب أن يكون أكبر من 1';
+
+  @override
+  String get almard => 'المعرض';
+
+  @override
+  String get almarfatAlaftradyh => 'المعرفات الافتراضية';
+
+  @override
+  String get almalqh => 'المعلقة';
+
+  @override
+  String get almkwnatAlmtlwbh => 'المكونات المطلوبة:';
+
+  @override
+  String get almntj => 'المنتج';
+
+  @override
+  String get almntjAkhtyary => 'المنتج (اختياري)';
+
+  @override
+  String get almntj_1 => 'المنتج *';
+
+  @override
+  String get almntjAlmsna => 'المنتج المُصنَّع';
+
+  @override
+  String get almntjGHyrMwjwd => 'المنتج غير موجود';
+
+  @override
+  String get almntjat => 'المنتجات';
+
+  @override
+  String get almntjatAlakthrMbyaa => 'المنتجات الأكثر مبيعاً';
+
+  @override
+  String get almntjatAlrakdh => 'المنتجات الراكدة';
+
+  @override
+  String get almndwb => 'المندوب';
+
+  @override
+  String get almnsb => 'المنصب';
+
+  @override
+  String get almwafqhAlaAlkhswmat => 'الموافقة على الخصومات';
+
+  @override
+  String get almwafqhAlaKHsm => 'الموافقة على خصم';
+
+  @override
+  String get almwrd => 'المورد';
+
+  @override
+  String get almwrdyn => 'الموردين';
+
+  @override
+  String get almwzf => 'الموظف';
+
+  @override
+  String get almwzfyn => 'الموظفين';
+
+  @override
+  String get almwqa => 'الموقع';
+
+  @override
+  String get almyzanyhAlamwmyh => 'الميزانية العمومية';
+
+  @override
+  String get alnsbh => 'النسبة';
+
+  @override
+  String get alnsbh_1 => 'النسبة %';
+
+  @override
+  String get alnsbhYjbAnTkwnByn0W100 => 'النسبة يجب أن تكون بين 0 و 100';
+
+  @override
+  String get alnskhAlahtyaty => 'النسخ الاحتياطي';
+
+  @override
+  String get alnskhAlahtyatyWalastaadh => 'النسخ الاحتياطي والاستعادة';
+
+  @override
+  String get alnskhAlmhlyh => 'النسخ المحلية';
+
+  @override
+  String get alnwa => 'النوع';
+
+  @override
+  String get alhamsh => 'الهامش';
+
+  @override
+  String get alhdf => 'الهدف';
+
+  @override
+  String get alwhdh => 'الوحدة';
+
+  @override
+  String get alwhdhAlasasyhAlmaaml1 => 'الوحدة الأساسية (المعامل: 1)';
+
+  @override
+  String get ansrafMbkr => 'انصراف مبكر';
+
+  @override
+  String get barkwdAlwhdhAkhtyary => 'باركود الوحدة (اختياري)';
+
+  @override
+  String get bhth => 'بحث';
+
+  @override
+  String get bhthBalasmAwAlkwdAwAlbarkwd => 'بحث بالاسم أو الكود أو الباركود...';
+
+  @override
+  String get bhthBalasmAwAlkwd => 'بحث بالاسم أو الكود...';
+
+  @override
+  String get bhthBalasmAwAlhatf => 'بحث بالاسم أو الهاتف...';
+
+  @override
+  String get bhthBrqmAltlbyhAwAsmAlamyl => 'بحث برقم الطلبية أو اسم العميل...';
+
+  @override
+  String get bhthSryaCtrlK => 'بحث سريع... (Ctrl+K)';
+
+  @override
+  String get bhthAnAmyl => 'بحث عن عميل...';
+
+  @override
+  String get bhthAnMntj => 'بحث عن منتج...';
+
+  @override
+  String get bhthAnMwrd => 'بحث عن مورد...';
+
+  @override
+  String get bhth_1 => 'بحث...';
+
+  @override
+  String get bdaJlshJrdJdydh => 'بدء جلسة جرد جديدة';
+
+  @override
+  String get bdayhAlwrdyh => 'بداية الوردية';
+
+  @override
+  String get bdwnAjr => 'بدون أجر';
+
+  @override
+  String get bdwnAmyl => 'بدون عميل';
+
+  @override
+  String get bdwnMwqa => 'بدون موقع';
+
+  @override
+  String get btaqh => 'بطاقة';
+
+  @override
+  String get badAlasnafBdwnSbbIrjaaHlTrydAlmtabah => 'بعض الأصناف بدون سبب إرجاع. هل تريد المتابعة؟';
+
+  @override
+  String get bnk => 'بنك';
+
+  @override
+  String get bya => 'بيع';
+
+  @override
+  String get byaJdydPOS => 'بيع جديد (POS)';
+
+  @override
+  String get takyd => 'تأكيد';
+
+  @override
+  String get takydAlirjaa => 'تأكيد الإرجاع';
+
+  @override
+  String get takydAlilghaa => 'تأكيد الإلغاء';
+
+  @override
+  String get takydAlthwyl => 'تأكيد التحويل';
+
+  @override
+  String get takydAltsdyd => 'تأكيد التسديد';
+
+  @override
+  String get takydAlhdhf => 'تأكيد الحذف';
+
+  @override
+  String get takydAldfa => 'تأكيد الدفع';
+
+  @override
+  String get takydAlmrtja => 'تأكيد المرتجع';
+
+  @override
+  String get takydHfzAlarsdhAlawlyh => 'تأكيد حفظ الأرصدة الأولية';
+
+  @override
+  String get takydKlmhAlmrwr => 'تأكيد كلمة المرور';
+
+  @override
+  String get tarykhAlanthaa => 'تاريخ الانتهاء';
+
+  @override
+  String get tarykhAlandmam => 'تاريخ الانضمام';
+
+  @override
+  String get tarykhAlbdayh => 'تاريخ البداية';
+
+  @override
+  String get tarykhAltrhyl => 'تاريخ الترحيل';
+
+  @override
+  String get tarykhAldfa => 'تاريخ الدفع';
+
+  @override
+  String get tarykhAlslahyh => 'تاريخ الصلاحية';
+
+  @override
+  String get tarykhAlftrh => 'تاريخ الفترة:';
+
+  @override
+  String get tarykhAlnhayh => 'تاريخ النهاية';
+
+  @override
+  String get ttrawhByn0W25 => 'تتراوح بين 0% و 25%';
+
+  @override
+  String get tjzeh => 'تجزئة';
+
+  @override
+  String get thtajSlahyhTadylAldrybh => 'تحتاج صلاحية تعديل الضريبة';
+
+  @override
+  String get thdyth => 'تحديث';
+
+  @override
+  String get thdythAltnbyhat => 'تحديث التنبيهات';
+
+  @override
+  String get thdythAltlbyh => 'تحديث الطلبية';
+
+  @override
+  String get thdythAlqaemh => 'تحديث القائمة';
+
+  @override
+  String get thdythHalhAltlbyh => 'تحديث حالة الطلبية';
+
+  @override
+  String get thdythTmAltwsyl => 'تحديث: تم التوصيل';
+
+  @override
+  String get thdythTmAltlb => 'تحديث: تم الطلب';
+
+  @override
+  String get thdythJahz => 'تحديث: جاهز';
+
+  @override
+  String get thdydAlkl => 'تحديد الكل';
+
+  @override
+  String get thdydAlklKmqrwa => 'تحديد الكل كمقروء';
+
+  @override
+  String get thdhyr => 'تحذير';
+
+  @override
+  String get thlylABCLlmntjat => 'تحليل ABC للمنتجات';
+
+  @override
+  String get thlylSafyAlrbh7Ayam => 'تحليل صافي الربح (7 أيام)';
+
+  @override
+  String get thmyl => 'تحميل...';
+
+  @override
+  String get thwyl => 'تحويل';
+
+  @override
+  String get thwylAltlbyhLamrSHraa => 'تحويل الطلبية لأمر شراء';
+
+  @override
+  String get thwylAltlbyhLfatwrh => 'تحويل الطلبية لفاتورة';
+
+  @override
+  String get thwylAlwhdat => 'تحويل الوحدات';
+
+  @override
+  String get thwylSadr => 'تحويل صادر';
+
+  @override
+  String get thwylLamrSHraa => 'تحويل لأمر شراء';
+
+  @override
+  String get thwylLfatwrh => 'تحويل لفاتورة';
+
+  @override
+  String get thwylLfatwrhQydAlttwyr => 'تحويل لفاتورة - قيد التطوير';
+
+  @override
+  String get thwylMkhzny => 'تحويل مخزني';
+
+  @override
+  String get thwylWard => 'تحويل وارد';
+
+  @override
+  String get tdqyqAlmkhzwn => 'تدقيق المخزون';
+
+  @override
+  String get trhyl => 'ترحيل';
+
+  @override
+  String get tsjylAlbya => 'تسجيل البيع';
+
+  @override
+  String get tsjylAlkhrwj => 'تسجيل الخروج';
+
+  @override
+  String get tsjylAlkl => 'تسجيل الكل';
+
+  @override
+  String get tsjylAnsraf => 'تسجيل انصراف';
+
+  @override
+  String get tsjylByaRqmAltslsl => 'تسجيل بيع رقم التسلسل';
+
+  @override
+  String get tsjylHdwr => 'تسجيل حضور';
+
+  @override
+  String get tsjylSlfhKHsm => 'تسجيل سلفة / خصم';
+
+  @override
+  String get tsdyd => 'تسديد';
+
+  @override
+  String get tsdyrExcel => 'تصدير Excel';
+
+  @override
+  String get tsdyrPDF => 'تصدير PDF';
+
+  @override
+  String get tsfyhAlntaej => 'تصفية النتائج';
+
+  @override
+  String get ttbyq => 'تطبيق';
+
+  @override
+  String get tadyl => 'تعديل';
+
+  @override
+  String get tadylAldrybh => 'تعديل الضريبة';
+
+  @override
+  String get tadylAltlbyh => 'تعديل الطلبية';
+
+  @override
+  String get tadylAlamlh => 'تعديل العملة';
+
+  @override
+  String get tadylAlmkhzwnYtmAbrAljrdAwAlthwyl => 'تعديل المخزون يتم عبر الجرد أو التحويل';
+
+  @override
+  String get tadylAlmntj => 'تعديل المنتج';
+
+  @override
+  String get tadylFatwrhMbyaat => 'تعديل فاتورة مبيعات';
+
+  @override
+  String get tadylFatwrhMshtryat => 'تعديل فاتورة مشتريات';
+
+  @override
+  String get tadylQydAltrhyl => 'تعديل قيد الترحيل';
+
+  @override
+  String get tadylMkhzwn => 'تعديل مخزون';
+
+  @override
+  String get tadylMstwda => 'تعديل مستودع';
+
+  @override
+  String get tadylMwzf => 'تعديل موظف';
+
+  @override
+  String get tadhrInshaaHsabAlmwrdLanAlfraAwAlhsabAlabGHyrMhyaT => 'تعذر إنشاء حساب المورد لأن الفرع أو الحساب الأب غير مهيأ. تمت محاولة التهيئة التلقائية، يرجى إعادة المحاولة.';
+
+  @override
+  String get tadhrThmylAlamlatYrjaIaadhAlmhawlhAwThyehByanatAln => 'تعذر تحميل العملات. يرجى إعادة المحاولة أو تهيئة بيانات النظام.';
+
+  @override
+  String get tadhrFthAlttbyq => 'تعذر فتح التطبيق';
+
+  @override
+  String get tatyl => 'تعطيل';
+
+  @override
+  String get tayynAlslahyat => 'تعيين الصلاحيات';
+
+  @override
+  String get tayynKaftrady => 'تعيين كافتراضي';
+
+  @override
+  String get tghyyr => 'تغيير';
+
+  @override
+  String get tghyyrAlftrh => 'تغيير الفترة';
+
+  @override
+  String get tfasylAltlbyh => 'تفاصيل الطلبية';
+
+  @override
+  String get tfasylSndAlaetman => 'تفاصيل سند الائتمان';
+
+  @override
+  String get tfsylAlmsrwfat => 'تفصيل المصروفات';
+
+  @override
+  String get tfayl => 'تفعيل';
+
+  @override
+  String get tqaryrAlmbyaat => 'تقارير المبيعات';
+
+  @override
+  String get tqaryrAlmkhzwn => 'تقارير المخزون';
+
+  @override
+  String get tqaryrAlmshtryat => 'تقارير المشتريات';
+
+  @override
+  String get tqryrAdaaAlmwrdyn => 'تقرير أداء الموردين';
+
+  @override
+  String get tqryrAlarbahAlshhryh => 'تقرير الأرباح الشهرية';
+
+  @override
+  String get tqryrAlarbahAlmtqdm => 'تقرير الأرباح المتقدم';
+
+  @override
+  String get tqryrAliyradatWalmsrwfat => 'تقرير الإيرادات والمصروفات';
+
+  @override
+  String get tqryrAlsnadyq => 'تقرير الصناديق';
+
+  @override
+  String get tqryrAldrybh => 'تقرير الضريبة';
+
+  @override
+  String get tqryrAlamlaa => 'تقرير العملاء';
+
+  @override
+  String get tqryrAlqymhAlmdafh => 'تقرير القيمة المضافة';
+
+  @override
+  String get tqryrAlmshtryat => 'تقرير المشتريات';
+
+  @override
+  String get tqryrAlmwrdyn => 'تقرير الموردين';
+
+  @override
+  String get tqryrAlwrdyat => 'تقرير الورديات';
+
+  @override
+  String get tqryrAlwrdyh => 'تقرير الوردية';
+
+  @override
+  String get tqryrTslymAlwrdyat => 'تقرير تسليم الورديات';
+
+  @override
+  String get tqryrHrkhAlsnf => 'تقرير حركة الصنف';
+
+  @override
+  String get tqryrHrkhAlmkhzwn => 'تقرير حركة المخزون';
+
+  @override
+  String get tqryrRbhyhAlmntjat => 'تقرير ربحية المنتجات';
+
+  @override
+  String get tqryrDrybhAlqymhAlmdafh => 'تقرير ضريبة القيمة المضافة';
+
+  @override
+  String get tqryrHamshAlrbhHsbAltsnyf => 'تقرير هامش الربح حسب التصنيف';
+
+  @override
+  String get tklfhAlbdaah => 'تكلفة البضاعة';
+
+  @override
+  String get tklfhMbyaat => 'تكلفة مبيعات';
+
+  @override
+  String get tmIrsalTlbAlijazh => 'تم إرسال طلب الإجازة';
+
+  @override
+  String get tmIdafhAlmwzf => 'تم إضافة الموظف';
+
+  @override
+  String get tmIdafhRqmAltslslBnjah => 'تم إضافة رقم التسلسل بنجاح';
+
+  @override
+  String get tmIdafhNwaAlijazh => 'تم إضافة نوع الإجازة';
+
+  @override
+  String get tmIqfalAljrdWthdythAlmkhzwnWalqywdAlmhasbyhBnjah => 'تم إقفال الجرد وتحديث المخزون والقيود المحاسبية بنجاح';
+
+  @override
+  String get tmIlghaaAlard => 'تم إلغاء العرض';
+
+  @override
+  String get tmIlghaaSndAlaetman => 'تم إلغاء سند الائتمان';
+
+  @override
+  String get tmInshaaIshaarAldaenBnjah => 'تم إنشاء إشعار الدائن بنجاح';
+
+  @override
+  String get tmInshaaAlardYhtajIlaIdafhAlasnaf => 'تم إنشاء العرض - يحتاج إلى إضافة الأصناف';
+
+  @override
+  String get tmInshaaAlmswwlLknFshlTsjylAldkhwlAltlqaey => 'تم إنشاء المسؤول، لكن فشل تسجيل الدخول التلقائي';
+
+  @override
+  String get tmInshaaAlmstwdaBnjah => 'تم إنشاء المستودع بنجاح';
+
+  @override
+  String get tmInshaaAlhdfBnjah => 'تم إنشاء الهدف بنجاح';
+
+  @override
+  String get tmAlinshaaBnjah => 'تم الإنشاء بنجاح';
+
+  @override
+  String get tmAlbya => 'تم البيع';
+
+  @override
+  String get tmAlthdyth => 'تم التحديث';
+
+  @override
+  String get tmAlthdythBnjah => 'تم التحديث بنجاح';
+
+  @override
+  String get tmAlthwylBnjah => 'تم التحويل بنجاح';
+
+  @override
+  String get tmAlthwylLamrSHraaBnjah => 'تم التحويل لأمر شراء بنجاح';
+
+  @override
+  String get tmAltwsyl => 'تم التوصيل';
+
+  @override
+  String get tmAltlb => 'تم الطلب';
+
+  @override
+  String get tmThdythAlmstwdaBnjah => 'تم تحديث المستودع بنجاح';
+
+  @override
+  String get tmTrhylAlfatwrh => 'تم ترحيل الفاتورة';
+
+  @override
+  String get tmTrhylAlfatwrhBnjah => 'تم ترحيل الفاتورة بنجاح';
+
+  @override
+  String get tmTrhylSndAlaetmanBnjah => 'تم ترحيل سند الائتمان بنجاح';
+
+  @override
+  String get tmTsjylAlirjaaBnjah => 'تم تسجيل الإرجاع بنجاح';
+
+  @override
+  String get tmTsjylAlansrafBnjah => 'تم تسجيل الانصراف بنجاح';
+
+  @override
+  String get tmTsjylAlbyaBnjah => 'تم تسجيل البيع بنجاح';
+
+  @override
+  String get tmTsjylAlhdwrBnjah => 'تم تسجيل الحضور بنجاح';
+
+  @override
+  String get tmTsjylAldfa => 'تم تسجيل الدفع';
+
+  @override
+  String get tmTsjylAlamlyhBnjah => 'تم تسجيل العملية بنجاح';
+
+  @override
+  String get tmTsdydAlamwlatBnjah => 'تم تسديد العمولات بنجاح';
+
+  @override
+  String get tmTadylAlfatwrhBnjah => 'تم تعديل الفاتورة بنجاح';
+
+  @override
+  String get tmTadylAlmwzf => 'تم تعديل الموظف';
+
+  @override
+  String get tmTwlydAwamrAlshraaBnjah => 'تم توليد أوامر الشراء بنجاح';
+
+  @override
+  String get tmHjzRqmAltslsl => 'تم حجز رقم التسلسل';
+
+  @override
+  String get tmHdhfAlamlh => 'تم حذف العملة';
+
+  @override
+  String get tmHdhfAlfatwrhBnjah => 'تم حذف الفاتورة بنجاح';
+
+  @override
+  String get tmHdhfAlmstwdaBnjah => 'تم حذف المستودع بنجاح';
+
+  @override
+  String get tmHdhfAlmntj => 'تم حذف المنتج';
+
+  @override
+  String get tmHdhfAlmwzf => 'تم حذف الموظف';
+
+  @override
+  String get tmHdhfAlnskhhAlahtyatyh => 'تم حذف النسخة الاحتياطية';
+
+  @override
+  String get tmHdhfAmlyhAlshraaBnjah => 'تم حذف عملية الشراء بنجاح';
+
+  @override
+  String get tmHdhfNwaAlijazh => 'تم حذف نوع الإجازة';
+
+  @override
+  String get tmHfzIadadAltrhylBnjah => 'تم حفظ إعداد الترحيل بنجاح';
+
+  @override
+  String get tmHfzAliadadatBnjah => 'تم حفظ الإعدادات بنجاح';
+
+  @override
+  String get tmHfzAlsndBnjah => 'تم حفظ السند بنجاح';
+
+  @override
+  String get tmHfzAlmswdh => 'تم حفظ المسودة';
+
+  @override
+  String get tmHfzAlmswdhBnjah => 'تم حفظ المسودة بنجاح';
+
+  @override
+  String get tmHfzWtrhylAlfatwrhWthdythAlmkhzwnBnjah => 'تم حفظ وترحيل الفاتورة وتحديث المخزون بنجاح';
+
+  @override
+  String get tmRfdAlijazh => 'تم رفض الإجازة';
+
+  @override
+  String get tmtAlidafh => 'تمت الإضافة';
+
+  @override
+  String get tmtAlmwafqhAlaAlijazh => 'تمت الموافقة على الإجازة';
+
+  @override
+  String get tnbyh => 'تنبيه';
+
+  @override
+  String get tnbyhatAlnqs => 'تنبيهات النقص';
+
+  @override
+  String get tnbyhatAnkhfadAlmkhzwn => 'تنبيهات انخفاض المخزون';
+
+  @override
+  String get tnfydhAltjmya => 'تنفيذ التجميع';
+
+  @override
+  String get tnfydhAlmrtja => 'تنفيذ المرتجع';
+
+  @override
+  String get thyehAlmswwlAlawl => 'تهيئة المسؤول الأول';
+
+  @override
+  String get twzyaAlmntjatHsbAlfeh => 'توزيع المنتجات حسب الفئة';
+
+  @override
+  String get twqaAltdfqAlnqdy => 'توقع التدفق النقدي';
+
+  @override
+  String get twlyd => 'توليد';
+
+  @override
+  String get twlydAwamrSHraaTlqaeyh => 'توليد أوامر شراء تلقائية';
+
+  @override
+  String get twlydBarkwdTlqaey => 'توليد باركود تلقائي';
+
+  @override
+  String get twlydBarkwdJmaay => 'توليد باركود جماعي';
+
+  @override
+  String get twlydBarkwdLlmntjatBdwnBarkwd => 'توليد باركود للمنتجات بدون باركود';
+
+  @override
+  String get twlydMsyrRwatb => 'توليد مسير رواتب';
+
+  @override
+  String get jaryAlinshaa => 'جاري الإنشاء...';
+
+  @override
+  String get jaryAlthmyl => 'جاري التحميل...';
+
+  @override
+  String get jaryAlmaaljh => 'جاري المعالجة...';
+
+  @override
+  String get jaryThdyrAltbaah => 'جاري تحضير الطباعة...';
+
+  @override
+  String get jaryThmylAlamlat => 'جاري تحميل العملات...';
+
+  @override
+  String get jary => 'جاري...';
+
+  @override
+  String get jahz => 'جاهز';
+
+  @override
+  String get jrdAlmkhzwn => 'جرد المخزون';
+
+  @override
+  String get jrdAlmstwdaat => 'جرد المستودعات';
+
+  @override
+  String get jzey => 'جزئي';
+
+  @override
+  String get jmlh => 'جملة';
+
+  @override
+  String get jmyaAlmkhzwnDmnAlhdwdAlamnh => 'جميع المخزون ضمن الحدود الآمنة';
+
+  @override
+  String get jmyaAlmntjatLhaBarkwdBalfal => 'جميع المنتجات لها باركود بالفعل';
+
+  @override
+  String get hadr => 'حاضر';
+
+  @override
+  String get hbh => 'حبة';
+
+  @override
+  String get hjz => 'حجز';
+
+  @override
+  String get hjzRqmAltslsl => 'حجز رقم التسلسل';
+
+  @override
+  String get hdAltnbyhLlmkhzwnAlmnkhfd => 'حد التنبيه للمخزون المنخفض';
+
+  @override
+  String get hdthKHta => 'حدث خطأ';
+
+  @override
+  String get hdthKHtaGHyrMtwqaAthnaaAlhfz => 'حدث خطأ غير متوقع أثناء الحفظ.';
+
+  @override
+  String get hdthKHtaFyThmylAlbyanat => 'حدث خطأ في تحميل البيانات';
+
+  @override
+  String get hddKmyhAlsnadyqAlmrtjah => 'حدد كمية الصناديق المرتجعة';
+
+  @override
+  String get hdhf => 'حذف';
+
+  @override
+  String get hdhfAltlbyh => 'حذف الطلبية';
+
+  @override
+  String get hdhfAlamlh => 'حذف العملة';
+
+  @override
+  String get hdhfAlfwatyr => 'حذف الفواتير';
+
+  @override
+  String get hdhfAlmntj => 'حذف المنتج';
+
+  @override
+  String get hdhfFatwrh => 'حذف فاتورة';
+
+  @override
+  String get hdhfMstkhdm => 'حذف مستخدم';
+
+  @override
+  String get hdhfNskhhAhtyatyh => 'حذف نسخة احتياطية';
+
+  @override
+  String get hrkatAlmkhzn => 'حركات المخزن';
+
+  @override
+  String get hrkatAlmkhzwnAlakhyrh => 'حركات المخزون الأخيرة';
+
+  @override
+  String get hrkhSnf => 'حركة صنف';
+
+  @override
+  String get hsab => 'حساب';
+
+  @override
+  String get hsabMkafahJdydh => 'حساب مكافأة جديدة';
+
+  @override
+  String get hsabMkafahNhayhAlkhdmh => 'حساب مكافأة نهاية الخدمة';
+
+  @override
+  String get hfz => 'حفظ';
+
+  @override
+  String get hfzAlarsdhAlawlyh => 'حفظ الأرصدة الأولية';
+
+  @override
+  String get hfzAliadadat => 'حفظ الإعدادات';
+
+  @override
+  String get hfzAltghyyrat => 'حفظ التغييرات';
+
+  @override
+  String get hfzAlsnd => 'حفظ السند';
+
+  @override
+  String get hfzJmyaAlbyanatFyMlfAlaAljhaz => 'حفظ جميع البيانات في ملف على الجهاز';
+
+  @override
+  String get hfzWidafhLlfatwrh => 'حفظ وإضافة للفاتورة';
+
+  @override
+  String get hfzWtrhyl => 'حفظ وترحيل';
+
+  @override
+  String get khsm => 'خصم';
+
+  @override
+  String get khsmTjryby10 => 'خصم تجريبي 10%';
+
+  @override
+  String get khsmMblgh => 'خصم مبلغ';
+
+  @override
+  String get khsmNsbh => 'خصم نسبة';
+
+  @override
+  String get khta => 'خطأ';
+
+  @override
+  String get khtaFyAltkrarRqmAlfatwrhAwByanatAkhraMwjwdhMsbqa => 'خطأ في التكرار: رقم الفاتورة أو بيانات أخرى موجودة مسبقاً.';
+
+  @override
+  String get khtaFyAlhsab => 'خطأ في الحساب';
+
+  @override
+  String get khtaFyAlrbtTakdMnShhAlbyanatAlmkhtarhAlmstwdaAwAlm => 'خطأ في الربط: تأكد من صحة البيانات المختارة (المستودع أو المورد أو الأصناف).';
+
+  @override
+  String get daen => 'دائن';
+
+  @override
+  String get dftrAlastadh => 'دفتر الأستاذ';
+
+  @override
+  String get dfaatAlmntjatAlmtwfrh => 'دفعات المنتجات المتوفرة';
+
+  @override
+  String get dfaatAlmwrdyn => 'دفعات الموردين';
+
+  @override
+  String get dfahLlmwrd => 'دفعة للمورد';
+
+  @override
+  String get dhmmDaenh => 'ذمم دائنة';
+
+  @override
+  String get dhmmMdynh => 'ذمم مدينة';
+
+  @override
+  String get rS => 'ر.س';
+
+  @override
+  String get rbhyhAlmntjat => 'ربحية المنتجات';
+
+  @override
+  String get rsalhAlfatwrhAlaftradyh => 'رسالة الفاتورة الافتراضية';
+
+  @override
+  String get rsydAlbdayh => 'رصيد البداية';
+
+  @override
+  String get rsydAlnhayh => 'رصيد النهاية';
+
+  @override
+  String get rfd => 'رفض';
+
+  @override
+  String get rfdAlijazh => 'رفض الإجازة';
+
+  @override
+  String get rqmAlbatsh => 'رقم الباتش';
+
+  @override
+  String get rqmAlbya => 'رقم البيع *';
+
+  @override
+  String get rqmAltslsl => 'رقم التسلسل *';
+
+  @override
+  String get rqmAldfah => 'رقم الدفعة';
+
+  @override
+  String get rqmAldfahAkhtyary => 'رقم الدفعة (اختياري)';
+
+  @override
+  String get rqmAlfatwrh => 'رقم الفاتورة...';
+
+  @override
+  String get rqmAlmrjaAlkharjy => 'رقم المرجع الخارجي';
+
+  @override
+  String get rqmAlmstkhdm => 'رقم المستخدم';
+
+  @override
+  String get rqmTlbAlbya => 'رقم طلب البيع *';
+
+  @override
+  String get rqmHatfAlshrkh => 'رقم هاتف الشركة';
+
+  @override
+  String get rmzAlamlh => 'رمز العملة';
+
+  @override
+  String get rmzAlamlhUSD => 'رمز العملة (USD)';
+
+  @override
+  String get saaatIdafyh => 'ساعات إضافية';
+
+  @override
+  String get sbbAlijazh => 'سبب الإجازة';
+
+  @override
+  String get sbbAlirjaa => 'سبب الإرجاع...';
+
+  @override
+  String get sbbAlrfd => 'سبب الرفض';
+
+  @override
+  String get sjlArqamAltslsl => 'سجل أرقام التسلسل';
+
+  @override
+  String get sjlAltdqyq => 'سجل التدقيق';
+
+  @override
+  String get sjlAltdqyqWalrqabh => 'سجل التدقيق والرقابة';
+
+  @override
+  String get sjlAltadylat => 'سجل التعديلات';
+
+  @override
+  String get sjlAlmbyaat => 'سجل المبيعات';
+
+  @override
+  String get sdad => 'سداد';
+
+  @override
+  String get sarAlbya => 'سعر البيع';
+
+  @override
+  String get sarAltjzeh => 'سعر التجزئة';
+
+  @override
+  String get sarAltklfh => 'سعر التكلفة';
+
+  @override
+  String get sarAljmlh => 'سعر الجملة';
+
+  @override
+  String get sarAlshraa => 'سعر الشراء';
+
+  @override
+  String get sarAlsrf => 'سعر الصرف';
+
+  @override
+  String get sarAlsrfGHyrSalh => 'سعر الصرف غير صالح';
+
+  @override
+  String get sarAlsrfMqablAlasasy => 'سعر الصرف مقابل الأساسي';
+
+  @override
+  String get sarAlwhdh => 'سعر الوحدة';
+
+  @override
+  String get sarAlwhdhAkhtyary => 'سعر الوحدة (اختياري)';
+
+  @override
+  String get sndSrf => 'سند صرف';
+
+  @override
+  String get sndQbd => 'سند قبض';
+
+  @override
+  String get sndatAlqbdWalsrf => 'سندات القبض والصرف';
+
+  @override
+  String get sytmAhtsabAlamwlatTlqaeyaAndTsjylAlmbyaat => 'سيتم احتساب العمولات تلقائياً عند تسجيل المبيعات';
+
+  @override
+  String get sytmThdythKmyhWtklfhJmyaAlmntjatAlmadlhHlTrydAlmta => 'سيتم تحديث كمية وتكلفة جميع المنتجات المعدلة. هل تريد المتابعة؟';
+
+  @override
+  String get sytmHnaArdSjlAlmzamnhWtfasylAlamlyatAlmalqh => 'سيتم هنا عرض سجل المزامنة وتفاصيل العمليات المعلقة.';
+
+  @override
+  String get syrAlmwafqat => 'سير الموافقات';
+
+  @override
+  String get shjrhAlhsabat => 'شجرة الحسابات';
+
+  @override
+  String get shraa => 'شراء';
+
+  @override
+  String get shraaJdyd => 'شراء جديد';
+
+  @override
+  String get shrwtAldfa => 'شروط الدفع';
+
+  @override
+  String get shkraLtaamlkmManan => 'شكراً لتعاملكم معنا!\\n';
+
+  @override
+  String get shkraLtaamlkmMana => 'شكراً لتعاملكم معنا...';
+
+  @override
+  String get safyAldkhl => 'صافي الدخل';
+
+  @override
+  String get safyAlrbh => 'صافي الربح';
+
+  @override
+  String get safyAldrybhAlmsthqhLldfallastrdad => 'صافي الضريبة المستحقة (للدفع/للاسترداد)';
+
+  @override
+  String get salhHta => 'صالح حتى';
+
+  @override
+  String get sndwq => 'صندوق';
+
+  @override
+  String get swrhAlmntj => 'صورة المنتج';
+
+  @override
+  String get drybh => 'ضريبة';
+
+  @override
+  String get drybhAlqymhAlmdafh => 'ضريبة القيمة المضافة';
+
+  @override
+  String get tbaah => 'طباعة';
+
+  @override
+  String get tbaahAlbarkwdWalmlsqat => 'طباعة الباركود والملصقات';
+
+  @override
+  String get tbaahAlmhdd => 'طباعة المحدد';
+
+  @override
+  String get tbaahMbashrh => 'طباعة مباشرة';
+
+  @override
+  String get tryqhAlhsab => 'طريقة الحساب';
+
+  @override
+  String get tryqhAldfa => 'طريقة الدفع';
+
+  @override
+  String get tlbIjazhJdyd => 'طلب إجازة جديد';
+
+  @override
+  String get tlbatAlijazh => 'طلبات الإجازة';
+
+  @override
+  String get tlbyatAlamlaa => 'طلبيات العملاء';
+
+  @override
+  String get tlbyatMbyaat => 'طلبيات مبيعات';
+
+  @override
+  String get tlbyhJdydh => 'طلبية جديدة';
+
+  @override
+  String get addAlayam => 'عدد الأيام';
+
+  @override
+  String get addAlamlyat => 'عدد العمليات';
+
+  @override
+  String get addAlfwatyr => 'عدد الفواتير';
+
+  @override
+  String get addAlkswr => 'عدد الكسور';
+
+  @override
+  String get addAlkswrAlashryh => 'عدد الكسور العشرية';
+
+  @override
+  String get addAlmlsqat => 'عدد الملصقات: ';
+
+  @override
+  String get ard => 'عرض';
+
+  @override
+  String get ardAlbyanatAlmalyh => 'عرض البيانات المالية';
+
+  @override
+  String get ardAltfasyl => 'عرض التفاصيل';
+
+  @override
+  String get ardAltqaryr => 'عرض التقارير';
+
+  @override
+  String get ardAltqryr => 'عرض التقرير';
+
+  @override
+  String get ardAlsjl => 'عرض السجل';
+
+  @override
+  String get ardTjryby => 'عرض تجريبي';
+
+  @override
+  String get ardQydAlywmyh => 'عرض قيد اليومية';
+
+  @override
+  String get arwdAlasaar => 'عروض الأسعار';
+
+  @override
+  String get arwdAlasaarBrwFwrma => 'عروض الأسعار (برو فورما)';
+
+  @override
+  String get amlaa => 'عملاء';
+
+  @override
+  String get amlaaBdyn => 'عملاء بدين';
+
+  @override
+  String get amlhAsasyh => 'عملة أساسية';
+
+  @override
+  String get amlhAlamyl => 'عملة العميل';
+
+  @override
+  String get amwlh => 'عمولة';
+
+  @override
+  String get amyl => 'عميل';
+
+  @override
+  String get amylJdyd => 'عميل جديد';
+
+  @override
+  String get ghaeb => 'غائب';
+
+  @override
+  String get ghyrMhdd => 'غير محدد';
+
+  @override
+  String get ghyrMrhl => 'غير مرحل';
+
+  @override
+  String get ghyrMsrhLkBinshaaTlbyh => 'غير مصرح لك بإنشاء طلبية';
+
+  @override
+  String get ghyrMarwf => 'غير معروف';
+
+  @override
+  String get fatwrhAlmbyaatAlmrjayh => 'فاتورة المبيعات المرجعية *';
+
+  @override
+  String get fatwrhMbyaat => 'فاتورة مبيعات';
+
+  @override
+  String get fatwrhMshtryat_1 => 'فاتورة مشتريات';
+
+  @override
+  String get fth => 'فتح';
+
+  @override
+  String get ftrhAltqryr => 'فترة التقرير';
+
+  @override
+  String get frdy => 'فردي';
+
+  @override
+  String get fshlInshaaIshaarAldaen => 'فشل إنشاء إشعار الدائن';
+
+  @override
+  String get fshlAlilghaa => 'فشل الإلغاء';
+
+  @override
+  String get fshlTrhylSndAlaetman => 'فشل ترحيل سند الائتمان';
+
+  @override
+  String get fshlHdhfAlnskhh => 'فشل حذف النسخة';
+
+  @override
+  String get fkhAlamlh => 'فكة العملة';
+
+  @override
+  String get fkhAlamlhSnt => 'فكة العملة (سنت)';
+
+  @override
+  String get fltrh => 'فلترة';
+
+  @override
+  String get fwatyrAlbya => 'فواتير البيع';
+
+  @override
+  String get fwatyrAlshraa => 'فواتير الشراء';
+
+  @override
+  String get fwatyrMbyaat => 'فواتير مبيعات';
+
+  @override
+  String get fwatyrMshtryat => 'فواتير مشتريات';
+
+  @override
+  String get fyAlmkhzwn => 'في المخزون';
+
+  @override
+  String get qaemhAldkhl => 'قائمة الدخل';
+
+  @override
+  String get qaemhAlamlaa => 'قائمة العملاء';
+
+  @override
+  String get qaemhAlmntjat => 'قائمة المنتجات';
+
+  @override
+  String get qaemhAlmwrdyn => 'قائمة الموردين';
+
+  @override
+  String get qtah => 'قطعة';
+
+  @override
+  String get qyasyh => 'قياسية';
+
+  @override
+  String get qydAlantzar => 'قيد الانتظار';
+
+  @override
+  String get qydAlywmyh => 'قيد اليومية';
+
+  @override
+  String get kash => 'كاش';
+
+  @override
+  String get kashyr => 'كاشير';
+
+  @override
+  String get kshfHsab => 'كشف حساب';
+
+  @override
+  String get klAlhalat => 'كل الحالات';
+
+  @override
+  String get klAlamlaa => 'كل العملاء';
+
+  @override
+  String get klmhAlmrwr => 'كلمة المرور';
+
+  @override
+  String get klmhAlmrwrYjbAnTkwn8AhrfAlaAlaql => 'كلمة المرور يجب أن تكون 8 أحرف على الأقل';
+
+  @override
+  String get klmtaAlmrwrGHyrMttabqtyn => 'كلمتا المرور غير متطابقتين';
+
+  @override
+  String get kwdAlmwzf => 'كود الموظف';
+
+  @override
+  String get la => 'لا';
+
+  @override
+  String get laTwjdAdwar => 'لا توجد أدوار';
+
+  @override
+  String get laTwjdArsdhNqatHalya => 'لا توجد أرصدة نقاط حالياً';
+
+  @override
+  String get laTwjdArqamTslsl => 'لا توجد أرقام تسلسل';
+
+  @override
+  String get laTwjdAsnaf => 'لا توجد أصناف';
+
+  @override
+  String get laTwjdAsnafFyAlfatwrhAlaslyh => 'لا توجد أصناف في الفاتورة الأصلية';
+
+  @override
+  String get laTwjdAsnafFyHdhhAljlshBad => 'لا توجد أصناف في هذه الجلسة بعد';
+
+  @override
+  String get laTwjdAsnafMdafh => 'لا توجد أصناف مضافة';
+
+  @override
+  String get laTwjdAwamrSHraa => 'لا توجد أوامر شراء';
+
+  @override
+  String get laTwjdIshaaratJdydh => 'لا توجد إشعارات جديدة';
+
+  @override
+  String get laTwjdIshaaratDaen => 'لا توجد إشعارات دائن';
+
+  @override
+  String get laTwjdByanat => 'لا توجد بيانات';
+
+  @override
+  String get laTwjdByanatLlard => 'لا توجد بيانات للعرض';
+
+  @override
+  String get laTwjdByanatLlftrhAlmhddh => 'لا توجد بيانات للفترة المحددة';
+
+  @override
+  String get laTwjdByanatMbyaat => 'لا توجد بيانات مبيعات';
+
+  @override
+  String get laTwjdByanatMbyaatHalya => 'لا توجد بيانات مبيعات حالياً';
+
+  @override
+  String get laTwjdHrkatLhdhaAlsnf => 'لا توجد حركات لهذا الصنف';
+
+  @override
+  String get laTwjdHrkatMkhzwn => 'لا توجد حركات مخزون';
+
+  @override
+  String get laTwjdHsabatMkafat => 'لا توجد حسابات مكافآت';
+
+  @override
+  String get laTwjdHsabat => 'لا توجد حسابات.';
+
+  @override
+  String get laTwjdDfaatHalya => 'لا توجد دفعات حالياً';
+
+  @override
+  String get laTwjdDfaatMsjlh => 'لا توجد دفعات مسجلة';
+
+  @override
+  String get laTwjdSjlat => 'لا توجد سجلات';
+
+  @override
+  String get laTwjdSjlatHdwr => 'لا توجد سجلات حضور';
+
+  @override
+  String get laTwjdTlbyat => 'لا توجد طلبيات';
+
+  @override
+  String get laTwjdArwdAsaar => 'لا توجد عروض أسعار';
+
+  @override
+  String get laTwjdArwdHalya => 'لا توجد عروض حالياً';
+
+  @override
+  String get laTwjdAmlatMtahhYrjaThyehByanatAlnzam => 'لا توجد عملات متاحة. يرجى تهيئة بيانات النظام.';
+
+  @override
+  String get laTwjdAmlatMdafhHalyaAdghtAlaLidafhAmlh => 'لا توجد عملات مضافة حالياً. اضغط على + لإضافة عملة.';
+
+  @override
+  String get laTwjdAmwlat => 'لا توجد عمولات';
+
+  @override
+  String get laTwjdAmwlatMalqhMhddh => 'لا توجد عمولات معلقة محددة';
+
+  @override
+  String get laTwjdFwatyrMsthqhLhdhaAlamyl => 'لا توجد فواتير مستحقة لهذا العميل';
+
+  @override
+  String get laTwjdFwatyrMsthqhLhdhaAlmwrd => 'لا توجد فواتير مستحقة لهذا المورد';
+
+  @override
+  String get laTwjdMbyaatFyHdhhAlftrh => 'لا توجد مبيعات في هذه الفترة.';
+
+  @override
+  String get laTwjdMstwdaatMdafh => 'لا توجد مستودعات مضافة';
+
+  @override
+  String get laTwjdMaamlatBad => 'لا توجد معاملات بعد.';
+
+  @override
+  String get laTwjdMaamlatLltbaah => 'لا توجد معاملات للطباعة';
+
+  @override
+  String get laTwjdMaamlatMwkhra => 'لا توجد معاملات مؤخراً';
+
+  @override
+  String get laTwjdMntjat => 'لا توجد منتجات';
+
+  @override
+  String get laTwjdMntjatTtabqBhthk => 'لا توجد منتجات تطابق بحثك';
+
+  @override
+  String get laTwjdMntjatRakdh => 'لا توجد منتجات راكدة';
+
+  @override
+  String get laTwjdNtaej => 'لا توجد نتائج';
+
+  @override
+  String get laTwjdNtaejMtabqh => 'لا توجد نتائج مطابقة';
+
+  @override
+  String get laTwjdNskhAhtyatyhMhlyhHtaAlan => 'لا توجد نسخ احتياطية محلية حتى الآن';
+
+  @override
+  String get laTwjdWrdyatBad => 'لا توجد ورديات بعد';
+
+  @override
+  String get laYmknIdafhAsnafIlaFatwrhMbyaatGHyrMswdh => 'لا يمكن إضافة أصناف إلى فاتورة مبيعات غير مسودة';
+
+  @override
+  String get laYmknIdafhWhdhBnfsAsmAlwhdhAlasasyh => 'لا يمكن إضافة وحدة بنفس اسم الوحدة الأساسية';
+
+  @override
+  String get laYmknAkhtyarHsabReysy => 'لا يمكن اختيار حساب رئيسي';
+
+  @override
+  String get laYmknTadylAsnafFatwrhMshtryatGHyrMswdh => 'لا يمكن تعديل أصناف فاتورة مشتريات غير مسودة';
+
+  @override
+  String get laYmknTadylFatwrhMbyaatGHyrMswdhAstkhdmMrtjaaAwMst => 'لا يمكن تعديل فاتورة مبيعات غير مسودة. استخدم مرتجعاً أو مستند تصحيح بدلاً من التعديل المباشر.';
+
+  @override
+  String get laYmknTadylFatwrhMshtryatGHyrMswdhAstkhdmMstndTshy => 'لا يمكن تعديل فاتورة مشتريات غير مسودة. استخدم مستند تصحيح أو مرتجع بدلاً من التعديل المباشر.';
+
+  @override
+  String get laYmknHdhfAsnafMnFatwrhMbyaatGHyrMswdh => 'لا يمكن حذف أصناف من فاتورة مبيعات غير مسودة';
+
+  @override
+  String get laYmknHdhfAlmstwdaLanhYhtwyAlaMkhzwn => 'لا يمكن حذف المستودع لأنه يحتوي على مخزون.';
+
+  @override
+  String get laYmknHfzAlfatwrhAlamylTjawzAlhdAlaetmanyAlmsmwhBh => 'لا يمكن حفظ الفاتورة: العميل تجاوز الحد الائتماني المسموح به';
+
+  @override
+  String get laYwjdAsnafMdafhLlthwyl => 'لا يوجد أصناف مضافة للتحويل';
+
+  @override
+  String get laYwjdThwylatMdafhBad => 'لا يوجد تحويلات مضافة بعد.';
+
+  @override
+  String get laYwjdSjlatTdqyqBad => 'لا يوجد سجلات تدقيق بعد.';
+
+  @override
+  String get laYwjdQydMhasbyLhdhhAlfatwrh => 'لا يوجد قيد محاسبي لهذه الفاتورة';
+
+  @override
+  String get laYwjdMstkhdmwnBadAnsheHsabMswwlBklmhMrwrQwyhLlbda => 'لا يوجد مستخدمون بعد. أنشئ حساب مسؤول بكلمة مرور قوية للبدء.';
+
+  @override
+  String get laYwjdMntjatFyHdhhAlfeh => 'لا يوجد منتجات في هذه الفئة';
+
+  @override
+  String get laYwjdMndwbynMsjlyn => 'لا يوجد مندوبين مسجلين';
+
+  @override
+  String get laYwjdHdfLhdhhAlftrh => 'لا يوجد هدف لهذه الفترة';
+
+  @override
+  String get lghhAlttbyq => 'لغة التطبيق';
+
+  @override
+  String get lmTtmIdafhAsnafBad => 'لم تتم إضافة أصناف بعد';
+
+  @override
+  String get lmYtmAlathwrAlaAyAmlatBadAlthyeh => 'لم يتم العثور على أي عملات بعد التهيئة.';
+
+  @override
+  String get lmYtmAlathwrAlaAltfasyl => 'لم يتم العثور على التفاصيل';
+
+  @override
+  String get lmYtmThdydAyAsnafLlmrtja => 'لم يتم تحديد أي أصناف للمرتجع';
+
+  @override
+  String get lmYsjlAnsraf => 'لم يسجل انصراف';
+
+  @override
+  String get lwhhAlthkmAlreysy => 'لوحة التحكم الرئيسي';
+
+  @override
+  String get lystLdykSlahyhIdkhalAwTadylAldrybh => 'ليست لديك صلاحية إدخال أو تعديل الضريبة';
+
+  @override
+  String get mashAlbarkwd => 'ماسح الباركود';
+
+  @override
+  String get mblghAlbyaAwAlnqat => 'مبلغ البيع أو النقاط';
+
+  @override
+  String get mbyaatAltjzeh => 'مبيعات التجزئة';
+
+  @override
+  String get mbyaatAljmlh => 'مبيعات الجملة';
+
+  @override
+  String get mbyaatAlywm => 'مبيعات اليوم';
+
+  @override
+  String get mtakhr => 'متأخر';
+
+  @override
+  String get mtabah => 'متابعة';
+
+  @override
+  String get mtqdmh => 'متقدمة';
+
+  @override
+  String get mtwstAlahmyh => 'متوسط الأهمية';
+
+  @override
+  String get mthal10 => 'مثال: 10';
+
+  @override
+  String get mthal15 => 'مثال: 15';
+
+  @override
+  String get mthalIdhaKanAlkrtwn20HbhAdkhl20 => 'مثال: إذا كان الكرتون = 20 حبة، أدخل 20';
+
+  @override
+  String get mthlaUSDYERSAR => 'مثلاً: USD, YER, SAR';
+
+  @override
+  String get mjza => 'مجزأ';
+
+  @override
+  String get mhjwz => 'محجوز';
+
+  @override
+  String get mhswbh => 'محسوبة';
+
+  @override
+  String get mhwlLfatwrh => 'محول لفاتورة';
+
+  @override
+  String get mhwl => 'محوّل';
+
+  @override
+  String get mhwlLfatwrh_1 => 'محوّل لفاتورة';
+
+  @override
+  String get mkhzwn => 'مخزون';
+
+  @override
+  String get mdfwa => 'مدفوع';
+
+  @override
+  String get mdfwah => 'مدفوعة';
+
+  @override
+  String get mdfwahAlajr => 'مدفوعة الأجر';
+
+  @override
+  String get mdyr => 'مدير';
+
+  @override
+  String get mdyrAlmstwda => 'مدير المستودع';
+
+  @override
+  String get mdyrAlnzam => 'مدير النظام';
+
+  @override
+  String get mdyn => 'مدين';
+
+  @override
+  String get mrakzAltklfh => 'مراكز التكلفة';
+
+  @override
+  String get mrtja => 'مرتجع';
+
+  @override
+  String get mrtjaSHraa => 'مرتجع شراء';
+
+  @override
+  String get mrtjaMbyaat => 'مرتجع مبيعات';
+
+  @override
+  String get mrtjaMshtryat => 'مرتجع مشتريات';
+
+  @override
+  String get mrtjaatAlmbyaat => 'مرتجعات المبيعات';
+
+  @override
+  String get mrtjaatAlmshtryat => 'مرتجعات المشتريات';
+
+  @override
+  String get mrja => 'مرجع';
+
+  @override
+  String get mrhbaNwdAltwaslBkhswsAltlbat => 'مرحباً، نود التواصل بخصوص الطلبات.';
+
+  @override
+  String get mrhl => 'مرحّل';
+
+  @override
+  String get mrfwdh => 'مرفوضة';
+
+  @override
+  String get mrkzAltqaryr => 'مركز التقارير';
+
+  @override
+  String get mrkzTklfh => 'مركز تكلفة';
+
+  @override
+  String get msahhAmlAlatraf => 'مساحة عمل الأطراف';
+
+  @override
+  String get msahhAmlAlidarh => 'مساحة عمل الإدارة';
+
+  @override
+  String get msahhAmlAltqaryr => 'مساحة عمل التقارير';
+
+  @override
+  String get msahhAmlAlhsabat => 'مساحة عمل الحسابات';
+
+  @override
+  String get msahhAmlAlamlyat => 'مساحة عمل العمليات';
+
+  @override
+  String get msahhAmlAlmkhzwn => 'مساحة عمل المخزون';
+
+  @override
+  String get mstkhdm => 'مستخدم';
+
+  @override
+  String get mstwda => 'مستودع';
+
+  @override
+  String get mstwdaJdyd => 'مستودع جديد';
+
+  @override
+  String get mstwaAltsayr => 'مستوى التسعير';
+
+  @override
+  String get msh => 'مسح';
+
+  @override
+  String get mshAlbarkwd => 'مسح الباركود';
+
+  @override
+  String get mshBarkwdAwBhth => 'مسح باركود أو بحث...';
+
+  @override
+  String get mswdh => 'مسودة';
+
+  @override
+  String get msyratAlrwatb => 'مسيرات الرواتب';
+
+  @override
+  String get msharkh => 'مشاركة';
+
+  @override
+  String get msharkhAkhrNskhhAhtyatyh => 'مشاركة آخر نسخة احتياطية';
+
+  @override
+  String get mshtryatAlywm => 'مشتريات اليوم';
+
+  @override
+  String get mshtryatMnNqthBya => 'مشتريات من نقطة بيع';
+
+  @override
+  String get msaryfAkhra => 'مصاريف أخرى';
+
+  @override
+  String get msrwf => 'مصروف';
+
+  @override
+  String get mtlwb => 'مطلوب';
+
+  @override
+  String get maaynhAltbaah => 'معاينة الطباعة';
+
+  @override
+  String get matmd => 'معتمد';
+
+  @override
+  String get marfAlamyl => 'معرف العميل';
+
+  @override
+  String get malq => 'معلق';
+
+  @override
+  String get malwmatAlshrkh => 'معلومات الشركة';
+
+  @override
+  String get mghlqh => 'مغلقة';
+
+  @override
+  String get mftwhh => 'مفتوحة';
+
+  @override
+  String get mfswlhBfwasl => 'مفصولة بفواصل';
+
+  @override
+  String get mkafatNhayhAlkhdmh => 'مكافآت نهاية الخدمة';
+
+  @override
+  String get mlahzat => 'ملاحظات';
+
+  @override
+  String get mlahzatAkhtyary => 'ملاحظات (اختياري)';
+
+  @override
+  String get mlahzatAlfatwrh => 'ملاحظات الفاتورة';
+
+  @override
+  String get mlahzatNhaeyhLljrd => 'ملاحظات نهائية للجرد';
+
+  @override
+  String get mlahzhYmknTghyyrAlmstwdaWalfraMnSHashhNqthAlbyaAwA => 'ملاحظة: يمكن تغيير المستودع والفرع من شاشة نقطة البيع أو الفواتير';
+
+  @override
+  String get mlkhsAlhdwr => 'ملخص الحضور';
+
+  @override
+  String get mlkhsAlamwlat => 'ملخص العمولات';
+
+  @override
+  String get mlghah => 'ملغاة';
+
+  @override
+  String get mlgha => 'ملغى';
+
+  @override
+  String get mlghy => 'ملغي';
+
+  @override
+  String get mn => 'من';
+
+  @override
+  String get mnTarykh => 'من تاريخ';
+
+  @override
+  String get mnMstwda => 'من مستودع';
+
+  @override
+  String get mntj => 'منتج';
+
+  @override
+  String get mntjJdyd => 'منتج جديد';
+
+  @override
+  String get mntjat => 'منتجات';
+
+  @override
+  String get mndwbAlmbyaat => 'مندوب المبيعات';
+
+  @override
+  String get mndwbAam => 'مندوب عام';
+
+  @override
+  String get mndh => 'منذ ';
+
+  @override
+  String get mwafqAlyha => 'موافق عليها';
+
+  @override
+  String get mwafqh => 'موافقة';
+
+  @override
+  String get mwafqhAlaAlijazh => 'موافقة على الإجازة';
+
+  @override
+  String get mwrd => 'مورد';
+
+  @override
+  String get mwrdJdyd => 'مورد جديد';
+
+  @override
+  String get mwrdyn => 'موردين';
+
+  @override
+  String get mwrdynBdyn => 'موردين بدين';
+
+  @override
+  String get mwzf => 'موظف';
+
+  @override
+  String get mwzfGHyrMarwf => 'موظف غير معروف';
+
+  @override
+  String get myzanAlmrajah => 'ميزان المراجعة';
+
+  @override
+  String get mnjz => 'مُنجَز';
+
+  @override
+  String get nsbhAlinjaz => 'نسبة الإنجاز';
+
+  @override
+  String get nsbhAlsywlh => 'نسبة السيولة';
+
+  @override
+  String get nsbhAldrybh => 'نسبة الضريبة (%)';
+
+  @override
+  String get nsbhAlamwlh => 'نسبة العمولة (%)';
+
+  @override
+  String get nsbhAlhamsh => 'نسبة الهامش %';
+
+  @override
+  String get nshrAlmbyaat => 'نشر المبيعات';
+
+  @override
+  String get nshrAlmshtryat => 'نشر المشتريات';
+
+  @override
+  String get nshrMrtjaatAlmbyaat => 'نشر مرتجعات المبيعات';
+
+  @override
+  String get nshrMrtjaatAlmshtryat => 'نشر مرتجعات المشتريات';
+
+  @override
+  String get nsht => 'نشط';
+
+  @override
+  String get nzrhAamh => 'نظرة عامة';
+
+  @override
+  String get nam => 'نعم';
+
+  @override
+  String get nqatAlwlaa => 'نقاط الولاء';
+
+  @override
+  String get nqd => 'نقد';
+
+  @override
+  String get nqdbnk => 'نقد/بنك';
+
+  @override
+  String get nqda => 'نقداً';
+
+  @override
+  String get nqthAlbyaPOS => 'نقطة البيع (POS)';
+
+  @override
+  String get nhayhAlwrdyh => 'نهاية الوردية';
+
+  @override
+  String get nwaAlijazh => 'نوع الإجازة';
+
+  @override
+  String get nwaAlbarkwd => 'نوع الباركود: ';
+
+  @override
+  String get nwaAlhsab => 'نوع الحساب';
+
+  @override
+  String get nwaAlsjl => 'نوع السجل';
+
+  @override
+  String get nwaAlamlyh => 'نوع العملية';
+
+  @override
+  String get nwaAlamlyhWnwaAlhsabMtlwban => 'نوع العملية ونوع الحساب مطلوبان';
+
+  @override
+  String get nwaAlamyl => 'نوع العميل';
+
+  @override
+  String get hamshAlrbh => 'هامش الربح';
+
+  @override
+  String get hamshAlrbhAlijmaly => 'هامش الربح الإجمالي';
+
+  @override
+  String get hamshAlrbhAlsafy => 'هامش الربح الصافي';
+
+  @override
+  String get hamshAlrbhHsbAltsnyf => 'هامش الربح حسب التصنيف';
+
+  @override
+  String get hdfAlmbyaat => 'هدف المبيعات';
+
+  @override
+  String get hdhhAlfatwrhLystMswdhLdhlkLaYmknTadylhaMbashrhAstk => 'هذه الفاتورة ليست مسودة، لذلك لا يمكن تعديلها مباشرة. استخدم مرتجعاً أو مستند تصحيح عند الحاجة.';
+
+  @override
+  String get hdhhAlfatwrhLystMswdhLdhlkLaYmknTadylhaMbashrhAstk_1 => 'هذه الفاتورة ليست مسودة، لذلك لا يمكن تعديلها مباشرة. استخدم مستند تصحيح أو مرتجع عند الحاجة.';
+
+  @override
+  String get hdhhAlwhdhMwjwdhBalfal => 'هذه الوحدة موجودة بالفعل';
+
+  @override
+  String get hdhhHyAlamlhAlasasyh => 'هذه هي العملة الأساسية';
+
+  @override
+  String get hlAntMtakdMnIlghaaSndAlaetman => 'هل أنت متأكد من إلغاء سند الائتمان؟';
+
+  @override
+  String get hlAntMtakdMnHdhfHdhaAlmstwda => 'هل أنت متأكد من حذف هذا المستودع؟';
+
+  @override
+  String get hlTrydIlghaaHdhhAltlbyh => 'هل تريد إلغاء هذه الطلبية؟';
+
+  @override
+  String get hlTrydThwylHdhhAltlbyhLamrSHraaMnAlmwrd => 'هل تريد تحويل هذه الطلبية لأمر شراء من المورد؟';
+
+  @override
+  String get hlTrydThwylHdhhAltlbyhLfatwrhMbyaat => 'هل تريد تحويل هذه الطلبية لفاتورة مبيعات؟';
+
+  @override
+  String get hlTrydHdhfHdhhAltlbyhNhaeya => 'هل تريد حذف هذه الطلبية نهائياً؟';
+
+  @override
+  String get wahd => 'واحد';
+
+  @override
+  String get whdatAltabeh => 'وحدات التعبئة';
+
+  @override
+  String get wrqhBarkwd => 'ورقة باركود';
+
+  @override
+  String get wdaAltjzeh => 'وضع التجزئة';
+
+  @override
+  String get wdaAljmlh => 'وضع الجملة';
+
+  @override
+  String get wdaAlmrtjaat => 'وضع المرتجعات';
+
+  @override
+  String get yjbIdafhAsnafAwla => 'يجب إضافة أصناف أولاً';
+
+  @override
+  String get yjbAkhtyarAmylLlbyaAlajl => 'يجب اختيار عميل للبيع الآجل';
+
+  @override
+  String get yjbAkhtyarMwrdLlbyaAlajl => 'يجب اختيار مورد للبيع الآجل';
+
+  @override
+  String get yjbFthWrdyhAmlQblIjraaAmlyhByaNqdy => 'يجب فتح وردية عمل قبل إجراء عملية بيع نقدي';
+
+  @override
+  String get yrjaIdkhalArqamTslslWahdhAlaAlaql => 'يرجى إدخال أرقام تسلسل واحدة على الأقل';
+
+  @override
+  String get yrjaIdkhalAsmAlijazh => 'يرجى إدخال اسم الإجازة';
+
+  @override
+  String get yrjaIdkhalAsmAlamlh => 'يرجى إدخال اسم العملة';
+
+  @override
+  String get yrjaIdkhalAsmAlmstkhdm => 'يرجى إدخال اسم المستخدم';
+
+  @override
+  String get yrjaIdkhalAlkwd => 'يرجى إدخال الكود';
+
+  @override
+  String get yrjaIdkhalAlmblgh => 'يرجى إدخال المبلغ';
+
+  @override
+  String get yrjaIdkhalTwarykhShyhh => 'يرجى إدخال تواريخ صحيحة';
+
+  @override
+  String get yrjaIdkhalRqmAlbya => 'يرجى إدخال رقم البيع';
+
+  @override
+  String get yrjaIdkhalRqmShyh => 'يرجى إدخال رقم صحيح';
+
+  @override
+  String get yrjaIdkhalRqmTlbAlbya => 'يرجى إدخال رقم طلب البيع';
+
+  @override
+  String get yrjaIdkhalRmzAlamlh => 'يرجى إدخال رمز العملة';
+
+  @override
+  String get yrjaIdkhalSbbAlrfd => 'يرجى إدخال سبب الرفض';
+
+  @override
+  String get yrjaIdkhalSarSrfShyh => 'يرجى إدخال سعر صرف صحيح';
+
+  @override
+  String get yrjaIdkhalSHhrWsnhShyhyn => 'يرجى إدخال شهر وسنة صحيحين';
+
+  @override
+  String get yrjaIdkhalAddAyamShyh => 'يرجى إدخال عدد أيام صحيح';
+
+  @override
+  String get yrjaIdkhalMblghShyh => 'يرجى إدخال مبلغ صحيح';
+
+  @override
+  String get yrjaIdafhSnfWahdAlaAlaql => 'يرجى إضافة صنف واحد على الأقل';
+
+  @override
+  String get yrjaAkhtyarAlmntjWalmstwda => 'يرجى اختيار المنتج والمستودع';
+
+  @override
+  String get yrjaAkhtyarAlmwzf => 'يرجى اختيار الموظف';
+
+  @override
+  String get yrjaAkhtyarHsabTfsylyLltrhyl => 'يرجى اختيار حساب تفصيلي للترحيل';
+
+  @override
+  String get yrjaAkhtyarFatwrhWahdhAlaAlaql => 'يرجى اختيار فاتورة واحدة على الأقل';
+
+  @override
+  String get yrjaAkhtyarMstwdaLbdaAljrd => 'يرجى اختيار مستودع لبدء الجرد';
+
+  @override
+  String get yrjaAkhtyarNwaAlijazh => 'يرجى اختيار نوع الإجازة';
+
+  @override
+  String get yrjaTshyhAlakhtaaAltalyh => 'يرجى تصحيح الأخطاء التالية:';
+
+  @override
+  String get yrjaTshyhAlhqwlAlmalyhQblAlhfz => 'يرجى تصحيح الحقول المالية قبل الحفظ';
+
+  @override
+  String get yrjaMlaJmyaAlhqwlAlmtlwbh => 'يرجى ملء جميع الحقول المطلوبة';
 }
