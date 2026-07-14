@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supermarket/core/services/dashboard_service.dart';
+import 'package:supermarket/l10n/app_localizations.dart';
 
 class DynamicDashboard extends StatelessWidget {
   const DynamicDashboard({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final dashboardService = Provider.of<DashboardService>(context);
 
     return FutureBuilder<DashboardStats>(
@@ -21,12 +23,12 @@ class DynamicDashboard extends StatelessWidget {
           children: [
             _buildStatRow([
               _StatItem(
-                  title: 'مبيعات اليوم',
+                  title: l10n.todaySalesKpi,
                   value: stats.todaySales,
                   icon: Icons.trending_up,
                   color: Colors.green),
               _StatItem(
-                  title: 'مشتريات اليوم',
+                  title: l10n.todayPurchasesKpi,
                   value: stats.todayPurchases,
                   icon: Icons.shopping_cart,
                   color: Colors.blue),
@@ -34,12 +36,12 @@ class DynamicDashboard extends StatelessWidget {
             const SizedBox(height: 16),
             _buildStatRow([
               _StatItem(
-                  title: 'رصيد الصندوق',
+                  title: l10n.cashBalance,
                   value: stats.currentCash,
                   icon: Icons.account_balance_wallet,
                   color: Colors.teal),
               _StatItem(
-                  title: 'نواقص المخزون',
+                  title: l10n.lowStockSupply,
                   value: stats.lowStockCount.toDouble(),
                   icon: Icons.warning,
                   color: Colors.orange,

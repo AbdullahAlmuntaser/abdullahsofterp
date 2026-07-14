@@ -95,11 +95,11 @@ class InventoryCostingService {
 
   Future<InventoryValuation> getInventoryValuation(String productId) async {
     final method = await getProductValuationMethod(productId);
-    final batches = await (_db.select(_db.productBatches)).get();
-
-    final productBatches = batches
-        .where((b) => b.productId == productId && b.quantity > Decimal.zero)
-        .toList();
+    final productBatches = await (_db.select(_db.productBatches)
+          ..where((b) => b.productId.equals(productId))
+          ..where((b) =>
+              b.quantity.isBiggerThan(Constant(Decimal.zero.toString()))))
+        .get();
 
     if (productBatches.isEmpty) {
       return InventoryValuation(
@@ -146,14 +146,30 @@ class InventoryCostingService {
   Future<InventoryValuation> _calculateFifoValuation(
       String productId, List<ProductBatch> batches) async {
     final sortedBatches = List<ProductBatch>.from(batches)
-      ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+      ..sort((a, b) {
+        if (a.expiryDate == null && b.expiryDate == null) {
+          return a.createdAt.compareTo(b.createdAt);
+        }
+        if (a.expiryDate == null) return 1;
+        if (b.expiryDate == null) return -1;
+        return a.expiryDate!.compareTo(b.expiryDate!);
+      });
+
+    final remainingQty =
+        sortedBatches.fold<Decimal>(Decimal.zero, (sum, b) => sum + b.quantity);
 
     Decimal totalValue = Decimal.zero;
     Decimal totalQty = Decimal.zero;
+    Decimal counted = Decimal.zero;
 
-    for (var batch in sortedBatches) {
-      totalValue += batch.quantity * batch.costPrice;
-      totalQty += batch.quantity;
+    for (var batch in sortedBatches.reversed) {
+      if (counted >= remainingQty) break;
+      final useQty = (counted + batch.quantity > remainingQty)
+          ? (remainingQty - counted)
+          : batch.quantity;
+      totalValue += useQty * batch.costPrice;
+      totalQty += useQty;
+      counted += useQty;
     }
 
     final avgCost = totalQty > Decimal.zero
@@ -171,14 +187,30 @@ class InventoryCostingService {
   Future<InventoryValuation> _calculateLifoValuation(
       String productId, List<ProductBatch> batches) async {
     final sortedBatches = List<ProductBatch>.from(batches)
-      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      ..sort((a, b) {
+        if (a.expiryDate == null && b.expiryDate == null) {
+          return a.createdAt.compareTo(b.createdAt);
+        }
+        if (a.expiryDate == null) return 1;
+        if (b.expiryDate == null) return -1;
+        return a.expiryDate!.compareTo(b.expiryDate!);
+      });
+
+    final remainingQty =
+        sortedBatches.fold<Decimal>(Decimal.zero, (sum, b) => sum + b.quantity);
 
     Decimal totalValue = Decimal.zero;
     Decimal totalQty = Decimal.zero;
+    Decimal counted = Decimal.zero;
 
     for (var batch in sortedBatches) {
-      totalValue += batch.quantity * batch.costPrice;
-      totalQty += batch.quantity;
+      if (counted >= remainingQty) break;
+      final useQty = (counted + batch.quantity > remainingQty)
+          ? (remainingQty - counted)
+          : batch.quantity;
+      totalValue += useQty * batch.costPrice;
+      totalQty += useQty;
+      counted += useQty;
     }
 
     final avgCost = totalQty > Decimal.zero
@@ -208,13 +240,39 @@ class InventoryCostingService {
 
     switch (method) {
       case InventoryValuationMethod.avco:
-        return productBatches
-            .map((b) => BatchWithCost(
-                  batch: b,
-                  remainingQuantity: b.quantity,
-                  costPerUnit: b.costPrice,
+        final avgCost = (productBatches.fold<Decimal>(
+                  Decimal.zero,
+                  (sum, b) => sum + b.quantity * b.costPrice,
+                ) /
+                productBatches.fold<Decimal>(
+                  Decimal.zero,
+                  (sum, b) => sum + b.quantity,
                 ))
-            .toList();
+            .toDecimal();
+
+        sortedBatches = List<ProductBatch>.from(productBatches)
+          ..sort((a, b) {
+            if (a.expiryDate == null && b.expiryDate == null) {
+              return a.createdAt.compareTo(b.createdAt);
+            }
+            if (a.expiryDate == null) return 1;
+            if (b.expiryDate == null) return -1;
+            return a.expiryDate!.compareTo(b.expiryDate!);
+          });
+
+        Decimal remaining = quantity;
+        final result = <BatchWithCost>[];
+        for (var batch in sortedBatches) {
+          if (remaining <= Decimal.zero) break;
+          final deduct = remaining > batch.quantity ? batch.quantity : remaining;
+          result.add(BatchWithCost(
+            batch: batch,
+            remainingQuantity: deduct,
+            costPerUnit: avgCost,
+          ));
+          remaining -= deduct;
+        }
+        return result;
 
       case InventoryValuationMethod.lifo:
         sortedBatches = List<ProductBatch>.from(productBatches)

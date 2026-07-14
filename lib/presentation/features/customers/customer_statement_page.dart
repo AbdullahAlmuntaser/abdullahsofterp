@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart' as intl;
+import 'package:supermarket/l10n/app_localizations.dart';
 import 'package:supermarket/presentation/features/customers/customer_statement_provider.dart';
 import 'package:supermarket/injection_container.dart';
 import 'package:supermarket/core/services/statement_printing_service.dart';
@@ -27,9 +28,10 @@ class _CustomerStatementPageState extends State<CustomerStatementPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('كشف حساب العميل'),
+        title: Text(l10n.customerStatement),
         actions: [
           Consumer<CustomerStatementProvider>(
             builder: (context, provider, _) {
@@ -44,7 +46,7 @@ class _CustomerStatementPageState extends State<CustomerStatementPage> {
                     );
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('لا توجد معاملات للطباعة')),
+                      SnackBar(content: Text(l10n.noTransactionsToPrint)),
                     );
                   }
                 },
@@ -60,7 +62,7 @@ class _CustomerStatementPageState extends State<CustomerStatementPage> {
           }
 
           if (provider.customer == null) {
-            return const Center(child: Text('لم يتم العثور على العميل'));
+            return Center(child: Text(l10n.customerNotFound));
           }
 
           return Column(
@@ -79,6 +81,7 @@ class _CustomerStatementPageState extends State<CustomerStatementPage> {
     BuildContext context,
     CustomerStatementProvider provider,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(16.0),
       color: Theme.of(context).colorScheme.surfaceContainerLow,
@@ -96,19 +99,19 @@ class _CustomerStatementPageState extends State<CustomerStatementPage> {
             children: [
               _buildSummaryItem(
                 context,
-                'إجمالي المبيعات',
+                l10n.totalSales,
                 provider.totalDebit,
                 Colors.red,
               ),
               _buildSummaryItem(
                 context,
-                'إجمالي المدفوعات',
+                l10n.totalPayments,
                 provider.totalCredit,
                 Colors.green,
               ),
               _buildSummaryItem(
                 context,
-                'الرصيد المتبقي',
+                l10n.remainingBalance,
                 provider.balance,
                 Theme.of(context).colorScheme.primary,
               ),
@@ -145,9 +148,10 @@ class _CustomerStatementPageState extends State<CustomerStatementPage> {
     BuildContext context,
     CustomerStatementProvider provider,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     if (provider.transactions.isEmpty) {
-      return const Expanded(
-        child: Center(child: Text('لا توجد حركات مالية لهذا العميل')),
+      return Expanded(
+        child: Center(child: Text(l10n.noFinancialMovements)),
       );
     }
 
@@ -158,12 +162,12 @@ class _CustomerStatementPageState extends State<CustomerStatementPage> {
         scrollDirection: Axis.horizontal,
         child: SingleChildScrollView(
           child: DataTable(
-            columns: const [
-              DataColumn(label: Text('التاريخ')),
-              DataColumn(label: Text('البيان')),
-              DataColumn(label: Text('عليه (مدين)')),
-              DataColumn(label: Text('له (دائن)')),
-              DataColumn(label: Text('الرصيد')),
+            columns: [
+              DataColumn(label: Text(l10n.date)),
+              DataColumn(label: Text(l10n.statementLabel)),
+              DataColumn(label: Text(l10n.debit)),
+              DataColumn(label: Text(l10n.credit)),
+              DataColumn(label: Text(l10n.balance)),
             ],
             rows: provider.transactions.map((t) {
               runningBalance += (t.debit - t.credit);

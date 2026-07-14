@@ -6,6 +6,7 @@ import 'package:supermarket/presentation/widgets/shared/account_selector_widget.
 import 'package:intl/intl.dart' as intl;
 import 'package:supermarket/presentation/widgets/app_snack_bar.dart';
 import 'package:supermarket/presentation/widgets/money_form_field.dart';
+import 'package:supermarket/l10n/app_localizations.dart';
 
 class CashManagementPage extends StatefulWidget {
   const CashManagementPage({super.key});
@@ -25,11 +26,12 @@ class _CashManagementPageState extends State<CashManagementPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final db = Provider.of<AppDatabase>(context);
     final cashService = Provider.of<CashManagementService>(context);
 
     return Scaffold(
-      appBar: AppBar(title: Text(_isReceipt ? 'سند قبض نقدي' : 'سند صرف نقدي')),
+      appBar: AppBar(title: Text(_isReceipt ? l10n.cashReceiptVoucher : l10n.cashPaymentVoucher)),
       body: Column(
         children: [
           Padding(
@@ -42,13 +44,13 @@ class _CashManagementPageState extends State<CashManagementPage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       ChoiceChip(
-                        label: const Text('قبض (In)'),
+                        label: Text(l10n.receiptIn),
                         selected: _isReceipt,
                         onSelected: (v) => setState(() => _isReceipt = true),
                       ),
                       const SizedBox(width: 10),
                       ChoiceChip(
-                        label: const Text('صرف (Out)'),
+                        label: Text(l10n.paymentOut),
                         selected: !_isReceipt,
                         onSelected: (v) => setState(() => _isReceipt = false),
                       ),
@@ -57,8 +59,8 @@ class _CashManagementPageState extends State<CashManagementPage> {
                   const SizedBox(height: 10),
                   AccountSelectorWidget(
                     label: _isReceipt
-                        ? 'الحساب الدائن (المصدر)'
-                        : 'الحساب المدين (الجهة)',
+                        ? l10n.creditAccountSource
+                        : l10n.debitAccountEntity,
                     selectedAccountId: _accountId,
                     onSelected: (acc) => setState(() => _accountId = acc?.id),
                   ),
@@ -68,7 +70,7 @@ class _CashManagementPageState extends State<CashManagementPage> {
                       Expanded(
                         child: MoneyFormField(
                           controller: _amountController,
-                          label: 'المبلغ',
+                          label: l10n.amount,
                           required: true,
                           allowZero: false,
                         ),
@@ -77,10 +79,10 @@ class _CashManagementPageState extends State<CashManagementPage> {
                       Expanded(
                         child: TextFormField(
                           controller: _categoryController,
-                          decoration: const InputDecoration(
-                              labelText: 'التصنيف (مثلاً: إيجار، رواتب)',
-                              border: OutlineInputBorder()),
-                          validator: (v) => v!.isEmpty ? 'مطلوب' : null,
+                          decoration: InputDecoration(
+                              labelText: l10n.categoryHint,
+                              border: const OutlineInputBorder()),
+                          validator: (v) => v!.isEmpty ? l10n.requiredField : null,
                         ),
                       ),
                     ],
@@ -88,15 +90,15 @@ class _CashManagementPageState extends State<CashManagementPage> {
                   const SizedBox(height: 10),
                   TextFormField(
                     controller: _noteController,
-                    decoration: const InputDecoration(
-                        labelText: 'ملاحظات', border: OutlineInputBorder()),
+                    decoration: InputDecoration(
+                        labelText: l10n.notes, border: const OutlineInputBorder()),
                   ),
                   const SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: () async {
                       if (_formKey.currentState!.validate()) {
                         if (_accountId == null) {
-                          AppSnackBar.warning(context, 'يرجى اختيار الحساب');
+                          AppSnackBar.warning(context, l10n.selectAccountError);
                           return;
                         }
                         try {
@@ -121,17 +123,17 @@ class _CashManagementPageState extends State<CashManagementPage> {
                           }
                           if (!context.mounted) return;
 
-                          AppSnackBar.success(context, 'تم تسجيل السند بنجاح');
+                          AppSnackBar.success(context, l10n.voucherSavedSuccessfully);
                           _formKey.currentState!.reset();
                           setState(() => _accountId = null);
                         } catch (e) {
                           if (!context.mounted) return;
 
-                          AppSnackBar.error(context, 'خطأ: $e');
+                          AppSnackBar.error(context, l10n.errorWithMessage(e.toString()));
                         }
                       }
                     },
-                    child: Text(_isReceipt ? 'حفظ سند القبض' : 'حفظ سند الصرف'),
+                    child: Text(_isReceipt ? l10n.saveReceiptVoucher : l10n.savePaymentVoucher),
                   ),
                 ],
               ),

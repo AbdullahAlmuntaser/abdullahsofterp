@@ -1,113 +1,14 @@
-import 'dart:convert';
-
-import 'package:uuid/uuid.dart';
-import 'package:supermarket/core/services/app_config_service.dart';
-
-class ApprovalStatus {
-  static const String pending = 'pending';
-  static const String approved = 'approved';
-  static const String rejected = 'rejected';
-}
-
-class ApprovalRequest {
-  const ApprovalRequest({
-    required this.id,
-    required this.type,
-    required this.title,
-    required this.amount,
-    required this.requestedBy,
-    required this.createdAt,
-    required this.status,
-    this.referenceId,
-    this.note,
-    this.decidedBy,
-    this.decidedAt,
-    this.decisionNote,
-  });
-
-  final String id;
-  final String type;
-  final String title;
-  final double amount;
-  final String requestedBy;
-  final DateTime createdAt;
-  final String status;
-  final String? referenceId;
-  final String? note;
-  final String? decidedBy;
-  final DateTime? decidedAt;
-  final String? decisionNote;
-
-  bool get isPending => status == ApprovalStatus.pending;
-  bool get isApproved => status == ApprovalStatus.approved;
-  bool get isRejected => status == ApprovalStatus.rejected;
-
-  ApprovalRequest copyWith({
-    String? status,
-    String? decidedBy,
-    DateTime? decidedAt,
-    String? decisionNote,
-  }) {
-    return ApprovalRequest(
-      id: id,
-      type: type,
-      title: title,
-      amount: amount,
-      requestedBy: requestedBy,
-      createdAt: createdAt,
-      status: status ?? this.status,
-      referenceId: referenceId,
-      note: note,
-      decidedBy: decidedBy ?? this.decidedBy,
-      decidedAt: decidedAt ?? this.decidedAt,
-      decisionNote: decisionNote ?? this.decisionNote,
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'type': type,
-      'title': title,
-      'amount': amount,
-      'requestedBy': requestedBy,
-      'createdAt': createdAt.toIso8601String(),
-      'status': status,
-      'referenceId': referenceId,
-      'note': note,
-      'decidedBy': decidedBy,
-      'decidedAt': decidedAt?.toIso8601String(),
-      'decisionNote': decisionNote,
-    };
-  }
-
-  factory ApprovalRequest.fromJson(Map<String, dynamic> json) {
-    return ApprovalRequest(
-      id: json['id'] as String,
-      type: json['type'] as String,
-      title: json['title'] as String,
-      amount: (json['amount'] as num).toDouble(),
-      requestedBy: json['requestedBy'] as String,
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      status: json['status'] as String,
-      referenceId: json['referenceId'] as String?,
-      note: json['note'] as String?,
-      decidedBy: json['decidedBy'] as String?,
-      decidedAt: json['decidedAt'] == null
-          ? null
-          : DateTime.parse(json['decidedAt'] as String),
-      decisionNote: json['decisionNote'] as String?,
-    );
-  }
-}
+import 'package:drift/drift.dart';
+import 'package:supermarket/data/datasources/local/app_database.dart';
+import 'package:supermarket/core/services/audit_log_service.dart';
 
 class ApprovalWorkflowService {
-  ApprovalWorkflowService(this._configService);
+  final AppDatabase db;
+  final AuditLogService? auditLogService;
 
-  static const String keyApprovalRequests = 'approval_requests_json';
+  ApprovalWorkflowService(this.db, {this.auditLogService});
+
   static const double defaultPurchaseApprovalThreshold = 10000;
-
-  final AppConfigService _configService;
 
   /// Check if a transaction requires approval based on amount threshold
   Future<bool> requiresApproval({
@@ -118,8 +19,8 @@ class ApprovalWorkflowService {
     return amount >= (threshold ?? defaultPurchaseApprovalThreshold);
   }
 
-  /// Submit a new approval request (alias for createRequest)
-  Future<ApprovalRequest> submitRequest({
+  /// Create a new approval request (persisted in DB)
+  Future<Map<String, dynamic>> createRequest({
     required String type,
     required String title,
     required double amount,
@@ -127,101 +28,157 @@ class ApprovalWorkflowService {
     String? referenceId,
     String? note,
   }) async {
-    return await createRequest(
-      type: type,
-      title: title,
-      amount: amount,
-      requestedBy: requestedBy,
-      referenceId: referenceId,
-      note: note,
+    final id = await db.customInsert(
+      'INSERT INTO approval_requests (document_type, document_id, requested_by, status) '
+      'VALUES (?, ?, ?, ?)',
+      variables: [
+        Variable(type),
+        Variable(referenceId ?? ''),
+        Variable(int.tryParse(requestedBy) ?? 0),
+        const Variable('pending'),
+      ],
     );
-  }
 
-  /// Create a new approval request
-  Future<ApprovalRequest> createRequest({
-    required String type,
-    required String title,
-    required double amount,
-    required String requestedBy,
-    String? referenceId,
-    String? note,
-  }) async {
-    final requests = await listRequests();
-    final request = ApprovalRequest(
-      id: const Uuid().v4(),
-      type: type,
-      title: title,
-      amount: amount,
-      requestedBy: requestedBy,
-      createdAt: DateTime.now(),
-      status: ApprovalStatus.pending,
-      referenceId: referenceId,
-      note: note,
-    );
-    requests.insert(0, request);
-    await _saveRequests(requests);
-    return request;
-  }
-
-  /// Get approval request by reference ID
-  Future<ApprovalRequest?> getRequestByReferenceId(String referenceId) async {
-    final requests = await listRequests();
-    try {
-      return requests.firstWhere((r) => r.referenceId == referenceId);
-    } catch (_) {
-      return null;
+    final idStr = id.toString();
+    if (auditLogService != null) {
+      await auditLogService!.logAction(
+        userId: requestedBy,
+        action: 'APPROVAL_REQUEST_CREATE',
+        logTableName: 'approval_requests',
+        recordId: idStr,
+        newValues: {'type': type, 'amount': amount},
+      );
     }
+
+    return {
+      'id': idStr,
+      'type': type,
+      'title': title,
+      'amount': amount,
+      'requestedBy': requestedBy,
+      'status': 'pending',
+      'referenceId': referenceId,
+      'note': note,
+      'requestedAt': DateTime.now().toIso8601String(),
+    };
   }
 
   /// Get pending approval request for a reference
-  Future<ApprovalRequest?> getPendingRequestForReference(String referenceId) async {
-    final requests = await listRequests(status: ApprovalStatus.pending);
-    try {
-      return requests.firstWhere((r) => r.referenceId == referenceId);
-    } catch (_) {
-      return null;
-    }
+  Future<Map<String, dynamic>?> getPendingRequestForReference(
+      String referenceId) async {
+    final rows = (await db.customSelect(
+      'SELECT * FROM approval_requests WHERE document_id = ? AND status = ?',
+      variables: [Variable(referenceId), const Variable('pending')],
+    ).get());
+    return rows.isNotEmpty ? rows.first.data : null;
   }
 
   /// List all approval requests, optionally filtered by status
-  Future<List<ApprovalRequest>> listRequests({String? status}) async {
-    final raw = await _configService.getString(keyApprovalRequests);
-    if (raw == null || raw.trim().isEmpty) return [];
-
-    final decoded = jsonDecode(raw) as List<dynamic>;
-    final requests = decoded
-        .map((item) => ApprovalRequest.fromJson(item as Map<String, dynamic>))
-        .toList()
-      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
-
-    if (status == null) return requests;
-    return requests.where((request) => request.status == status).toList();
+  Future<List<Map<String, dynamic>>> listRequests({String? status}) async {
+    String sql = 'SELECT * FROM approval_requests';
+    final vars = <Variable>[];
+    if (status != null) {
+      sql += ' WHERE status = ?';
+      vars.add(Variable(status));
+    }
+    sql += ' ORDER BY requested_at DESC';
+    return (await db.customSelect(sql, variables: vars).get())
+        .map((e) => e.data)
+        .toList();
   }
 
   /// Get count of pending approvals
   Future<int> getPendingCount() async {
-    final requests = await listRequests(status: ApprovalStatus.pending);
-    return requests.length;
+    final rows = await db.customSelect(
+      'SELECT COUNT(*) AS cnt FROM approval_requests WHERE status = ?',
+      variables: [const Variable('pending')],
+    ).get();
+    return rows.first.data['cnt'] as int;
   }
 
   /// Approve an approval request
   Future<void> approve({
-    required String requestId,
-    required String decidedBy,
+    required int requestId,
+    required int decidedBy,
     String? decisionNote,
   }) async {
     await _decide(
       requestId: requestId,
-      status: ApprovalStatus.approved,
+      status: 'approved',
       decidedBy: decidedBy,
       decisionNote: decisionNote,
     );
   }
 
-  /// Alias for approveRequest
+  /// Reject an approval request
+  Future<void> reject({
+    required int requestId,
+    required int decidedBy,
+    String? decisionNote,
+  }) async {
+    await _decide(
+      requestId: requestId,
+      status: 'rejected',
+      decidedBy: decidedBy,
+      decisionNote: decisionNote,
+    );
+  }
+
+  Future<void> _decide({
+    required int requestId,
+    required String status,
+    required int decidedBy,
+    String? decisionNote,
+  }) async {
+    final existing = await db.customSelect(
+      'SELECT * FROM approval_requests WHERE id = ?',
+      variables: [Variable(requestId)],
+    ).get();
+
+    if (existing.isEmpty) {
+      throw Exception('Approval request not found');
+    }
+
+    final request = existing.first.data;
+    if (request['status'] != 'pending') {
+      throw Exception('Approval request already decided');
+    }
+
+    await db.customUpdate(
+      "UPDATE approval_requests SET status = ?, completed_at = ? WHERE id = ?",
+      variables: [
+        Variable(status),
+        Variable(DateTime.now().toIso8601String()),
+        Variable(requestId),
+      ],
+    );
+
+    await db.customInsert(
+      'INSERT INTO approval_history (request_id, level_order, approver_id, action, comments) VALUES (?, ?, ?, ?, ?)',
+      variables: [
+        Variable(requestId),
+        Variable(request['current_level'] ?? 1),
+        Variable(decidedBy),
+        Variable(status),
+        Variable(decisionNote),
+      ],
+    );
+
+    if (auditLogService != null) {
+      await auditLogService!.logAction(
+        userId: decidedBy.toString(),
+        action: 'APPROVAL_REQUEST_${status.toUpperCase()}',
+        logTableName: 'approval_requests',
+        recordId: requestId.toString(),
+        oldValues: {'status': 'pending'},
+        newValues: {'status': status, 'decisionNote': decisionNote},
+      );
+    }
+  }
+
   Future<void> approveRequest({
-    required String requestId,
-    required String decidedBy,
+    required int requestId,
+    required int decidedBy,
     String? decisionNote,
   }) async {
     await approve(
@@ -231,24 +188,9 @@ class ApprovalWorkflowService {
     );
   }
 
-  /// Reject an approval request
-  Future<void> reject({
-    required String requestId,
-    required String decidedBy,
-    String? decisionNote,
-  }) async {
-    await _decide(
-      requestId: requestId,
-      status: ApprovalStatus.rejected,
-      decidedBy: decidedBy,
-      decisionNote: decisionNote,
-    );
-  }
-
-  /// Alias for reject
   Future<void> rejectRequest({
-    required String requestId,
-    required String decidedBy,
+    required int requestId,
+    required int decidedBy,
     String? decisionNote,
   }) async {
     await reject(
@@ -258,49 +200,44 @@ class ApprovalWorkflowService {
     );
   }
 
-  /// Get all pending requests
-  Future<List<ApprovalRequest>> getPendingRequests() async {
-    return await listRequests(status: ApprovalStatus.pending);
+  Future<List<Map<String, dynamic>>> getPendingRequests() async {
+    return listRequests(status: 'pending');
   }
 
-  /// Get a specific request by ID
-  Future<ApprovalRequest?> getRequestById(String requestId) async {
-    final requests = await listRequests();
-    try {
-      return requests.firstWhere((r) => r.id == requestId);
-    } catch (_) {
-      return null;
-    }
+  Future<Map<String, dynamic>?> getRequestById(int requestId) async {
+    final rows = await db.customSelect(
+      'SELECT * FROM approval_requests WHERE id = ?',
+      variables: [Variable(requestId)],
+    ).get();
+    return rows.isNotEmpty ? rows.first.data : null;
   }
 
-  Future<void> _decide({
-    required String requestId,
-    required String status,
-    required String decidedBy,
-    String? decisionNote,
-  }) async {
-    final requests = await listRequests();
-    final index = requests.indexWhere((request) => request.id == requestId);
-    if (index == -1) {
-      throw Exception('Approval request not found');
-    }
-    if (!requests[index].isPending) {
-      throw Exception('Approval request already decided');
-    }
-
-    requests[index] = requests[index].copyWith(
-      status: status,
-      decidedBy: decidedBy,
-      decidedAt: DateTime.now(),
-      decisionNote: decisionNote,
-    );
-    await _saveRequests(requests);
+  Future<Map<String, dynamic>?> getRequestByReferenceId(
+      String referenceId) async {
+    final rows = await db.customSelect(
+      'SELECT * FROM approval_requests WHERE document_id = ?',
+      variables: [Variable(referenceId)],
+    ).get();
+    return rows.isNotEmpty ? rows.first.data : null;
   }
 
-  Future<void> _saveRequests(List<ApprovalRequest> requests) async {
-    final encoded = jsonEncode(
-      requests.map((request) => request.toJson()).toList(),
-    );
-    await _configService.setString(keyApprovalRequests, encoded);
+  /// 2.8: Verify that a user is authorized to approve based on role
+  Future<bool> canApprove(int userId, String documentType) async {
+    final user = await (db.select(db.users)
+          ..where((u) => u.id.equals(userId.toString())))
+        .getSingleOrNull();
+    if (user == null) return false;
+    if (user.role.toLowerCase() == 'admin') return true;
+    return user.role.contains('manager') || user.role.contains('supervisor');
+  }
+
+  /// 2.9: Auto-confirm a transaction after full approval
+  Future<void> onApproved(int requestId,
+      {Future<void> Function()? onConfirm}) async {
+    final request = await getRequestById(requestId);
+    if (request == null || request['status'] != 'approved') return;
+    if (onConfirm != null) {
+      await onConfirm();
+    }
   }
 }

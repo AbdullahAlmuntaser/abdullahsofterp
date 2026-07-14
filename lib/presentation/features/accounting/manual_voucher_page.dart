@@ -7,6 +7,7 @@ import 'package:supermarket/injection_container.dart';
 import 'package:supermarket/presentation/features/accounting/widgets/bill_allocation_widget.dart';
 import 'package:supermarket/presentation/widgets/app_snack_bar.dart';
 import 'package:supermarket/presentation/widgets/money_form_field.dart';
+import 'package:supermarket/l10n/app_localizations.dart';
 
 /// صفحة سند القبض/الصرف اليدوي
 class ManualVoucherPage extends StatefulWidget {
@@ -50,10 +51,11 @@ class _ManualVoucherPageState extends State<ManualVoucherPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final db = context.read<AppDatabase>();
 
     return Scaffold(
-      appBar: AppBar(title: Text(widget.isReceipt ? 'سند قبض' : 'سند صرف')),
+      appBar: AppBar(title: Text(widget.isReceipt ? l10n.receiptVoucher : l10n.paymentVoucher)),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -67,7 +69,7 @@ class _ManualVoucherPageState extends State<ManualVoucherPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      widget.isReceipt ? 'القبض من' : 'الصرف إلى',
+                      widget.isReceipt ? l10n.receiveFrom : l10n.payTo,
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -75,9 +77,9 @@ class _ManualVoucherPageState extends State<ManualVoucherPage> {
                     ),
                     const SizedBox(height: 8),
                     SegmentedButton<String>(
-                      segments: const [
-                        ButtonSegment(value: 'customer', label: Text('عميل')),
-                        ButtonSegment(value: 'supplier', label: Text('مورد')),
+                      segments: [
+                        ButtonSegment(value: 'customer', label: Text(l10n.customer)),
+                        ButtonSegment(value: 'supplier', label: Text(l10n.supplier)),
                       ],
                       selected: {
                         _selectedCustomer != null ? 'customer' : 'supplier',
@@ -113,9 +115,9 @@ class _ManualVoucherPageState extends State<ManualVoucherPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'المبلغ',
-                      style: TextStyle(
+                    Text(
+                      l10n.amount,
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
@@ -123,13 +125,13 @@ class _ManualVoucherPageState extends State<ManualVoucherPage> {
                     const SizedBox(height: 8),
                     MoneyFormField(
                       controller: _amountController,
-                      label: 'المبلغ',
+                      label: l10n.amount,
                       required: true,
                       allowZero: false,
-                      decoration: const InputDecoration(
-                        labelText: 'المبلغ',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.payments),
+                      decoration: InputDecoration(
+                        labelText: l10n.amount,
+                        border: const OutlineInputBorder(),
+                        prefixIcon: const Icon(Icons.payments),
                       ),
                     ),
                   ],
@@ -145,9 +147,9 @@ class _ManualVoucherPageState extends State<ManualVoucherPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'طريقة الدفع',
-                      style: TextStyle(
+                    Text(
+                      l10n.paymentMethod,
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
@@ -158,10 +160,10 @@ class _ManualVoucherPageState extends State<ManualVoucherPage> {
                       decoration: const InputDecoration(
                         border: OutlineInputBorder(),
                       ),
-                      items: const [
-                        DropdownMenuItem(value: 'cash', child: Text('نقدي')),
-                        DropdownMenuItem(value: 'bank', child: Text('بنكي')),
-                        DropdownMenuItem(value: 'check', child: Text('شيك')),
+                      items: [
+                        DropdownMenuItem(value: 'cash', child: Text(l10n.cash)),
+                        DropdownMenuItem(value: 'bank', child: Text(l10n.bankTransfer)),
+                        DropdownMenuItem(value: 'check', child: Text(l10n.check)),
                       ],
                       onChanged: (val) {
                         if (val != null) setState(() => _paymentMethod = val);
@@ -171,15 +173,14 @@ class _ManualVoucherPageState extends State<ManualVoucherPage> {
                       const SizedBox(height: 16),
                       TextField(
                         controller: _checkNumberController,
-                        decoration: const InputDecoration(
-                          labelText: 'رقم الشيك',
-                          border: OutlineInputBorder(),
+                        decoration: InputDecoration(
+                          labelText: l10n.checkNumber,
+                          border: const OutlineInputBorder(),
                         ),
                       ),
                       const SizedBox(height: 8),
                       ListTile(
-                        title: Text(
-                            'تاريخ استحقاق الشيك: ${_formatDate(_checkDueDate)}'),
+                        title: Text(l10n.checkDueDate(_formatDate(_checkDueDate))),
                         leading: const Icon(Icons.calendar_today),
                         onTap: () async {
                           final date = await showDatePicker(
@@ -217,9 +218,9 @@ class _ManualVoucherPageState extends State<ManualVoucherPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'التاريخ',
-                      style: TextStyle(
+                    Text(
+                      l10n.date,
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
@@ -261,9 +262,9 @@ class _ManualVoucherPageState extends State<ManualVoucherPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'ملاحظات',
-                      style: TextStyle(
+                    Text(
+                      l10n.notes,
+                      style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
@@ -272,9 +273,9 @@ class _ManualVoucherPageState extends State<ManualVoucherPage> {
                     TextField(
                       controller: _noteController,
                       maxLines: 3,
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                        hintText: 'ملاحظات إضافية...',
+                      decoration: InputDecoration(
+                        border: const OutlineInputBorder(),
+                        hintText: l10n.additionalNotes,
                       ),
                     ),
                   ],
@@ -305,8 +306,8 @@ class _ManualVoucherPageState extends State<ManualVoucherPage> {
                           const SizedBox(width: 8),
                           Text(
                             widget.isReceipt
-                                ? 'حفظ سند القبض'
-                                : 'حفظ سند الصرف',
+                                ? l10n.saveReceiptVoucher
+                                : l10n.savePaymentVoucher,
                           ),
                         ],
                       ),
@@ -319,6 +320,7 @@ class _ManualVoucherPageState extends State<ManualVoucherPage> {
   }
 
   Widget _buildCustomerSelector(AppDatabase db) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -328,9 +330,9 @@ class _ManualVoucherPageState extends State<ManualVoucherPage> {
             final customers = snapshot.data ?? [];
             return DropdownButtonFormField<Customer>(
               value: _selectedCustomer,
-              decoration: const InputDecoration(
-                labelText: 'اختر العميل',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: l10n.selectCustomer,
+                border: const OutlineInputBorder(),
               ),
               items: customers
                   .map((c) => DropdownMenuItem(value: c, child: Text(c.name)))
@@ -349,6 +351,7 @@ class _ManualVoucherPageState extends State<ManualVoucherPage> {
   }
 
   Widget _buildSupplierSelector(AppDatabase db) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -358,9 +361,9 @@ class _ManualVoucherPageState extends State<ManualVoucherPage> {
             final suppliers = snapshot.data ?? [];
             return DropdownButtonFormField<Supplier>(
               value: _selectedSupplier,
-              decoration: const InputDecoration(
-                labelText: 'اختر المورد',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: l10n.selectSupplier,
+                border: const OutlineInputBorder(),
               ),
               items: suppliers
                   .map((s) => DropdownMenuItem(value: s, child: Text(s.name)))
@@ -379,14 +382,15 @@ class _ManualVoucherPageState extends State<ManualVoucherPage> {
   }
 
   Future<void> _saveVoucher() async {
+    final l10n = AppLocalizations.of(context)!;
     final amount = MoneyFormField.tryParse(_amountController.text);
     if (amount == null || amount <= 0) {
-      AppSnackBar.warning(context, 'الرجاء إدخال مبلغ صحيح');
+      AppSnackBar.warning(context, l10n.enterAmountError);
       return;
     }
 
     if (_selectedCustomer == null && _selectedSupplier == null) {
-      AppSnackBar.warning(context, 'الرجاء اختيار عميل أو مورد');
+      AppSnackBar.warning(context, l10n.selectCustomerOrSupplier);
       return;
     }
 
@@ -415,13 +419,13 @@ class _ManualVoucherPageState extends State<ManualVoucherPage> {
         AppSnackBar.success(
           context,
           widget.isReceipt
-              ? 'تم حفظ سند القبض بنجاح'
-              : 'تم حفظ سند الصرف بنجاح',
+              ? l10n.receiptVoucherSaved
+              : l10n.paymentVoucherSaved,
         );
       }
     } catch (e) {
       if (mounted) {
-        AppSnackBar.error(context, 'فشل في الحفظ: $e');
+        AppSnackBar.error(context, l10n.saveFailed(e.toString()));
       }
     } finally {
       if (mounted) setState(() => _isSaving = false);

@@ -1,40 +1,57 @@
 import 'package:flutter/material.dart';
-import 'package:bcrypt/bcrypt.dart';
-import '../../data/datasources/local/app_database.dart';
-import '../services/permission_service.dart';
+import 'package:drift/drift.dart';
+import 'package:supermarket/data/datasources/local/app_database.dart' hide UserSession;
+import 'package:supermarket/core/services/security_service.dart' show SecurityService, UserSession;
+import 'package:supermarket/core/services/permission_service.dart';
 
 class AuthProvider with ChangeNotifier {
   final AppDatabase db;
   final PermissionService permissionsService;
+  final SecurityService securityService;
+  UserSession? _currentSession;
+  String? _currentToken;
+
+  AuthProvider(this.db, this.permissionsService, this.securityService);
+
   User? _currentUser;
 
-  AuthProvider(this.db, this.permissionsService);
-
   User? get currentUser => _currentUser;
-  bool get isAuthenticated => _currentUser != null;
-  bool get isAdmin => _currentUser?.role.toLowerCase() == 'admin';
+
+  bool get isAuthenticated => _currentSession != null;
+  bool get isAdmin =>
+      _currentSession?.role.toLowerCase() == 'admin';
   bool get isManager =>
-      isAdmin || _currentUser?.role.toLowerCase() == 'manager';
+      isAdmin || _currentSession?.role.toLowerCase() == 'manager';
   bool get isCashier =>
-      isManager || _currentUser?.role.toLowerCase() == 'cashier';
+      isManager || _currentSession?.role.toLowerCase() == 'cashier';
 
   Future<bool> login(String username, String password) async {
-    final user = await (db.select(
-      db.users,
-    )..where((u) => u.username.equals(username)))
-        .getSingleOrNull();
-
-    if (user != null && BCrypt.checkpw(password, user.password)) {
-      _currentUser = user;
-      // Note: New PermissionService doesn't need init, it checks DB directly
-      notifyListeners();
-      return true;
+    try {
+      final session = await securityService.login(username, password);
+      if (session != null) {
+        _currentSession = session;
+        _currentToken = session.token;
+        _currentUser = await (db.select(db.users)
+              ..where((u) => u.id.equals(session.userId)))
+            .getSingleOrNull();
+        notifyListeners();
+        return true;
+      }
+      return false;
+    } catch (e) {
+      _currentSession = null;
+      _currentToken = null;
+      _currentUser = null;
+      rethrow;
     }
-    return false;
   }
 
-  void logout() {
-    _currentUser = null;
+  Future<void> logout() async {
+    if (_currentToken != null) {
+      await securityService.logout(_currentToken!);
+    }
+    _currentSession = null;
+    _currentToken = null;
     notifyListeners();
   }
 
@@ -60,7 +77,8 @@ class AuthProvider with ChangeNotifier {
       throw Exception('Admin password must be at least 8 characters.');
     }
 
-    final hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
+    final salt = securityService.generateSalt();
+    final hashedPassword = securityService.hashPassword(password, salt);
     await db.into(db.users).insert(
           UsersCompanion.insert(
             username: username.trim(),
@@ -68,6 +86,8 @@ class AuthProvider with ChangeNotifier {
             role: 'admin',
             fullName:
                 fullName.trim().isEmpty ? 'System Admin' : fullName.trim(),
+            passwordHash: Value(hashedPassword),
+            passwordSalt: Value(salt),
           ),
         );
 

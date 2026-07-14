@@ -63,6 +63,8 @@ class PostingEngine {
         default:
           await _postGeneric(referenceId, context);
       }
+
+      await _updateAccountBalances();
     });
   }
 
@@ -940,6 +942,22 @@ class PostingEngine {
           ..where((p) => p.endDate.isBiggerOrEqual(Variable(date))))
         .getSingleOrNull();
     if (period == null) throw Exception('Period is locked or closed.');
+  }
+
+  Future<void> _updateAccountBalances() async {
+    final accounts = await (db.select(db.gLAccounts)).get();
+    for (final account in accounts) {
+      final lines = await (db.select(db.gLLines)
+            ..where((l) => l.accountId.equals(account.id)))
+          .get();
+      Decimal balance = Decimal.zero;
+      for (final line in lines) {
+        balance += line.debit - line.credit;
+      }
+      await (db.update(db.gLAccounts)
+            ..where((a) => a.id.equals(account.id)))
+          .write(GLAccountsCompanion(balance: Value(balance)));
+    }
   }
 
   Future<List<PostingLine>> getEntriesByAccount(

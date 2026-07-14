@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:supermarket/core/constants/app_colors.dart';
 import 'package:supermarket/core/constants/app_dimensions.dart';
+import 'package:supermarket/l10n/app_localizations.dart';
 import 'package:supermarket/presentation/features/home/providers/command_center_provider.dart';
 
 class AttentionCenterSection extends StatelessWidget {
@@ -10,6 +11,7 @@ class AttentionCenterSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final alerts = context.watch<CommandCenterProvider>().alerts;
 
     return Column(
@@ -20,8 +22,8 @@ class AttentionCenterSection extends StatelessWidget {
             const Icon(Icons.notifications_active,
                 size: 20, color: AppColors.error),
             const SizedBox(width: AppDimensions.sm),
-            const Text('مركز الانتباه',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(l10n.attentionCenter,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const Spacer(),
             if (alerts.isNotEmpty)
               Container(
@@ -48,6 +50,7 @@ class AttentionCenterSection extends StatelessWidget {
   }
 
   Widget _buildEmptyState(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(AppDimensions.lg),
@@ -56,13 +59,13 @@ class AttentionCenterSection extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
         border: Border.all(color: AppColors.success.withOpacity(0.3)),
       ),
-      child: const Row(
+      child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.check_circle, color: AppColors.success, size: 20),
-          SizedBox(width: AppDimensions.sm),
-          Text('لا توجد تنبيهات حالياً',
-              style: TextStyle(
+          const Icon(Icons.check_circle, color: AppColors.success, size: 20),
+          const SizedBox(width: AppDimensions.sm),
+          Text(l10n.noAlerts,
+              style: const TextStyle(
                   color: AppColors.success, fontWeight: FontWeight.w500)),
         ],
       ),

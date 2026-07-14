@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:supermarket/l10n/app_localizations.dart';
 import 'package:supermarket/presentation/features/pos/bloc/pos_bloc.dart';
 import 'package:supermarket/presentation/features/pos/bloc/pos_event.dart';
 import 'package:supermarket/presentation/features/pos/bloc/pos_state.dart';
@@ -72,7 +73,7 @@ class _PosViewState extends State<PosView> {
 
           return Scaffold(
             appBar: AppBar(
-              title: const Text('نقطة البيع السريع'),
+              title: Text(AppLocalizations.of(context)!.quickPos),
               actions: [
                 IconButton(
                   icon: Icon(
@@ -84,8 +85,8 @@ class _PosViewState extends State<PosView> {
                         : null,
                   ),
                   tooltip: state is PosLoaded && state.isReturnMode
-                      ? 'وضع البيع'
-                      : 'وضع المرتجعات',
+                      ? AppLocalizations.of(context)!.sellMode
+                      : AppLocalizations.of(context)!.returnMode,
                   onPressed: () {
                     if (state is PosLoaded) {
                       context.read<PosBloc>().add(
@@ -99,7 +100,9 @@ class _PosViewState extends State<PosView> {
                     isWholesale ? Icons.store : Icons.storefront,
                     color: isWholesale ? Colors.green : null,
                   ),
-                  tooltip: isWholesale ? 'وضع التجزئة' : 'وضع الجملة',
+                  tooltip: isWholesale
+                      ? AppLocalizations.of(context)!.retailMode
+                      : AppLocalizations.of(context)!.wholesaleModeDescription,
                   onPressed: () {
                     if (state is PosLoaded) {
                       context.read<PosBloc>().add(
@@ -111,12 +114,12 @@ class _PosViewState extends State<PosView> {
                 if (state is PosLoaded && state.cart.isNotEmpty)
                   IconButton(
                     icon: const Icon(Icons.pause_circle_outline),
-                    tooltip: 'تعليق البيع',
+                    tooltip: AppLocalizations.of(context)!.holdSale,
                     onPressed: () {
                       context.read<PosBloc>().add(HoldSale());
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                            content: Text('تم تعليق البيع'),
+                        SnackBar(
+                            content: Text(AppLocalizations.of(context)!.saleHeld),
                             backgroundColor: Colors.orange),
                       );
                     },
@@ -127,7 +130,7 @@ class _PosViewState extends State<PosView> {
                       label: Text('${state.heldSales.length}'),
                       child: const Icon(Icons.play_circle_outline),
                     ),
-                    tooltip: 'استدعاء البيع المعلق',
+                    tooltip: AppLocalizations.of(context)!.recallSale,
                     onPressed: () => _showHeldSalesDialog(context, state),
                   ),
                 IconButton(
@@ -184,10 +187,10 @@ class _PosViewState extends State<PosView> {
                             length: 2,
                             child: Column(
                               children: [
-                                const TabBar(
+                                TabBar(
                                   tabs: [
-                                    Tab(text: 'المنتجات'),
-                                    Tab(text: 'السلة')
+                                    Tab(text: AppLocalizations.of(context)!.products),
+                                    Tab(text: AppLocalizations.of(context)!.cart)
                                   ],
                                 ),
                                 Expanded(
@@ -205,7 +208,7 @@ class _PosViewState extends State<PosView> {
                           );
                         },
                       )
-                    : const Center(child: Text('بدء نقطة البيع...')),
+                    : Center(child: Text(AppLocalizations.of(context)!.quickPos)),
           );
         },
       ),
@@ -241,10 +244,11 @@ class _PosViewState extends State<PosView> {
   }
 
   void _showHeldSalesDialog(BuildContext context, PosLoaded state) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('البيع المعلق'),
+        title: Text(l10n.heldSales),
         content: SizedBox(
           width: double.maxFinite,
           child: ListView.builder(
@@ -257,8 +261,8 @@ class _PosViewState extends State<PosView> {
                   Decimal.zero, (sum, item) => sum + item.total);
               return ListTile(
                 leading: CircleAvatar(child: Text('${index + 1}')),
-                title: Text('$itemCount صنف'),
-                subtitle: Text('${total.toStringAsFixed(2)} ر.س'),
+                title: Text(l10n.itemsCount(itemCount)),
+                subtitle: Text('${total.toStringAsFixed(2)} ${l10n.currencySar}'),
                 trailing: const Icon(Icons.play_arrow),
                 onTap: () {
                   Navigator.pop(ctx);
@@ -271,7 +275,7 @@ class _PosViewState extends State<PosView> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('إلغاء'),
+            child: Text(l10n.cancel),
           ),
         ],
       ),
@@ -284,9 +288,10 @@ class _PosViewState extends State<PosView> {
     CommunicationService commService,
     QuickCustomerService quickCustomerService,
   ) async {
+    final l10n = AppLocalizations.of(context)!;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: const Text('تمت عملية البيع بنجاح'),
+        content: Text(l10n.checkoutSuccess),
         backgroundColor: Theme.of(context).colorScheme.primary,
       ),
     );
@@ -295,7 +300,7 @@ class _PosViewState extends State<PosView> {
     await Future.delayed(const Duration(milliseconds: 300));
     if (!mounted) return;
 
-    String customerName = 'عميل نقدي';
+    String customerName = l10n.cashCustomer;
     String? customerPhone;
 
     if (state.sale.customerId != null) {
@@ -308,7 +313,7 @@ class _PosViewState extends State<PosView> {
       }
     } else {
       final quickCustomer =
-          await quickCustomerService.getOrCreateCustomerForSale('عميل نقدي');
+          await quickCustomerService.getOrCreateCustomerForSale(l10n.cashCustomerFallback);
       if (quickCustomer != null) {
         customerName = quickCustomer.name;
         customerPhone = quickCustomer.phone;
@@ -322,23 +327,23 @@ class _PosViewState extends State<PosView> {
     await showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('🧾 الفاتورة #${state.sale.id.substring(0, 8)}'),
+        title: Text('🧾 ${l10n.invoiceNo(state.sale.id.substring(0, 8))}'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('الإجمالي: ${state.sale.total.toStringAsFixed(2)} ر.س'),
+            Text(l10n.totalAmountWithCurrency(state.sale.total.toStringAsFixed(2))),
             const SizedBox(height: 16),
-            const Text('كيف تريد إرسال الفاتورة؟'),
+            Text(l10n.howToSendInvoice),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('لاحقاً'),
+            child: Text(l10n.later),
           ),
           IconButton.filledTonal(
             icon: const Icon(Icons.print),
-            tooltip: 'طباعة',
+            tooltip: l10n.print,
             onPressed: () async {
               Navigator.pop(ctx);
               await PrinterHelper.printReceipt(
@@ -365,14 +370,14 @@ class _PosViewState extends State<PosView> {
             ),
           IconButton.filledTonal(
             icon: const Icon(Icons.share),
-            tooltip: 'مشاركة',
+            tooltip: l10n.share,
             onPressed: () {
               Navigator.pop(ctx);
-              final String shareText = 'فاتورة من نظام السوبر ماركت\n'
-                  'رقم الفاتورة: #${state.sale.id.substring(0, 8)}\n'
-                  'العميل: $customerName\n'
-                  'الإجمالي: ${state.sale.total.toStringAsFixed(2)} ر.س\n'
-                  'شكراً لتسوقكم معنا!';
+              final String shareText =
+                  '${l10n.invoiceNo(state.sale.id.substring(0, 8))}\n'
+                  '${l10n.customerNameLabel(customerName)}\n'
+                  '${l10n.totalAmountWithCurrency(state.sale.total.toStringAsFixed(2))}\n'
+                  '${l10n.thankYouForShopping}';
               Share.share(shareText);
             },
           ),
@@ -386,10 +391,11 @@ class _PosViewState extends State<PosView> {
   }
 
   void _showReturnSuccess(BuildContext context, PosReturnSuccess state) {
+    final l10n = AppLocalizations.of(context)!;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          'تم تسجيل المرتجع بنجاح - المبلغ: ${state.totalRefund.toStringAsFixed(2)} ر.س',
+          '${l10n.returnSuccessTitle} - ${l10n.returnAmount(state.totalRefund.toStringAsFixed(2))}',
         ),
         backgroundColor: Colors.green,
         duration: const Duration(seconds: 3),
@@ -399,17 +405,17 @@ class _PosViewState extends State<PosView> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('تم المرتجع بنجاح'),
+        title: Text(l10n.returnSuccessTitle),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('رقم المرتجع: ${state.returnId.substring(0, 8)}'),
+            Text(l10n.returnId(state.returnId.substring(0, 8))),
             const SizedBox(height: 8),
-            Text('الفاتورة الأصلية: ${state.originalSale.id.substring(0, 8)}'),
+            Text(l10n.originalInvoice(state.originalSale.id.substring(0, 8))),
             const SizedBox(height: 8),
             Text(
-              'المبلغ المرتجع: ${state.totalRefund.toStringAsFixed(2)} ر.س',
+              l10n.returnAmount(state.totalRefund.toStringAsFixed(2)),
               style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 color: Colors.red,
@@ -424,7 +430,7 @@ class _PosViewState extends State<PosView> {
               Navigator.pop(ctx);
               context.read<PosBloc>().add(ClearReturn());
             },
-            child: const Text('تم'),
+            child: Text(l10n.done),
           ),
         ],
       ),

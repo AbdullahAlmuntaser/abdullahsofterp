@@ -129,65 +129,79 @@ class AccountingDao {
 
   // ==================== TRIAL BALANCE (JOIN) ====================
   Future<List<Map<String, dynamic>>> getTrialBalance(DateTime start, DateTime end) async {
-    return _db.query('''
+    final rows = _db.query('''
       SELECT a.id AS account_id, a.code, a.name, a.account_type,
-        COALESCE(SUM(CAST(gl.debit AS REAL)), 0) AS total_debit,
-        COALESCE(SUM(CAST(gl.credit AS REAL)), 0) AS total_credit
+        gl.debit AS raw_debit, gl.credit AS raw_credit
       FROM gl_accounts a
       LEFT JOIN gl_lines gl ON gl.account_id = a.id
       LEFT JOIN gl_entries e ON e.id = gl.entry_id AND e.status = 'POSTED'
         AND e.date >= ? AND e.date <= ?
-      GROUP BY a.id
       ORDER BY a.code
     ''', [start.toIso8601String(), end.toIso8601String()]);
+
+    final Map<String, Map<String, dynamic>> grouped = {};
+    for (final row in rows) {
+      final id = row['account_id'] as String;
+      grouped.putIfAbsent(id, () => {
+        'account_id': id, 'code': row['code'], 'name': row['name'],
+        'account_type': row['account_type'], 'total_debit': Decimal.zero, 'total_credit': Decimal.zero,
+      });
+      grouped[id]!['total_debit'] = (grouped[id]!['total_debit'] as Decimal) +
+          _pd(row['raw_debit']);
+      grouped[id]!['total_credit'] = (grouped[id]!['total_credit'] as Decimal) +
+          _pd(row['raw_credit']);
+    }
+    return grouped.values.toList();
   }
 
   // ==================== INCOME STATEMENT (JOIN) ====================
   Future<Map<String, dynamic>> getIncomeStatement(DateTime start, DateTime end) async {
-    final revenue = _db.query('''
-      SELECT COALESCE(SUM(CAST(gl.credit AS REAL) - CAST(gl.debit AS REAL)), 0) AS total
+    final rows = _db.query('''
+      SELECT a.account_type, gl.debit AS raw_debit, gl.credit AS raw_credit
       FROM gl_lines gl
       JOIN gl_accounts a ON a.id = gl.account_id
       JOIN gl_entries e ON e.id = gl.entry_id AND e.status = 'POSTED'
-      WHERE a.account_type = 3 AND e.date >= ? AND e.date <= ?
+      WHERE a.account_type IN (3, 4) AND e.date >= ? AND e.date <= ?
     ''', [start.toIso8601String(), end.toIso8601String()]);
 
-    final expense = _db.query('''
-      SELECT COALESCE(SUM(CAST(gl.debit AS REAL) - CAST(gl.credit AS REAL)), 0) AS total
-      FROM gl_lines gl
-      JOIN gl_accounts a ON a.id = gl.account_id
-      JOIN gl_entries e ON e.id = gl.entry_id AND e.status = 'POSTED'
-      WHERE a.account_type = 4 AND e.date >= ? AND e.date <= ?
-    ''', [start.toIso8601String(), end.toIso8601String()]);
-
-    final rev = Decimal.parse(revenue.first['total'].toString());
-    final exp = Decimal.parse(expense.first['total'].toString());
+    Decimal revenue = Decimal.zero;
+    Decimal expenses = Decimal.zero;
+    for (final row in rows) {
+      final type = row['account_type'] as int;
+      if (type == 3) {
+        revenue += _pd(row['raw_credit']) - _pd(row['raw_debit']);
+      } else if (type == 4) {
+        expenses += _pd(row['raw_debit']) - _pd(row['raw_credit']);
+      }
+    }
     return {
-      'total_revenue': rev,
-      'total_expenses': exp,
-      'net_income': rev - exp,
+      'total_revenue': revenue,
+      'total_expenses': expenses,
+      'net_income': revenue - expenses,
     };
   }
 
   // ==================== BALANCE SHEET (JOIN) ====================
   Future<Map<String, dynamic>> getBalanceSheet() async {
-    final assets = _db.query('''
-      SELECT COALESCE(SUM(CAST(balance AS REAL)), 0) AS total
-      FROM gl_accounts WHERE account_type = 0
-    ''');
-    final liab = _db.query('''
-      SELECT COALESCE(SUM(CAST(balance AS REAL)), 0) AS total
-      FROM gl_accounts WHERE account_type = 1
-    ''');
-    final equity = _db.query('''
-      SELECT COALESCE(SUM(CAST(balance AS REAL)), 0) AS total
-      FROM gl_accounts WHERE account_type = 2
+    final rows = _db.query('''
+      SELECT account_type, balance FROM gl_accounts WHERE account_type IN (0, 1, 2)
     ''');
 
+    Decimal assets = Decimal.zero;
+    Decimal liabilities = Decimal.zero;
+    Decimal equity = Decimal.zero;
+    for (final row in rows) {
+      final value = _pd(row['balance']);
+      switch (row['account_type'] as int) {
+        case 0: assets += value;
+        case 1: liabilities += value;
+        case 2: equity += value;
+      }
+    }
     return {
-      'total_assets': Decimal.parse(assets.first['total'].toString()),
-      'total_liabilities': Decimal.parse(liab.first['total'].toString()),
-      'total_equity': Decimal.parse(equity.first['total'].toString()),
+      'total_assets': assets,
+      'total_liabilities': liabilities,
+      'total_equity': equity,
     };
   }
 

@@ -6,6 +6,7 @@ import 'package:supermarket/core/constants/app_dimensions.dart';
 import 'package:supermarket/core/auth/auth_provider.dart';
 import 'package:supermarket/core/auth/user_role.dart';
 import 'package:supermarket/core/auth/access_guard.dart';
+import 'package:supermarket/l10n/app_localizations.dart';
 import 'package:supermarket/presentation/features/home/providers/command_center_provider.dart';
 
 class OperationCategory {
@@ -52,7 +53,8 @@ class NewOperationSheet extends StatelessWidget {
     final role = UserRole.fromString(auth.currentUser?.role ?? 'cashier');
     final provider = context.read<CommandCenterProvider>();
 
-    final categories = _buildCategories(role);
+    final l10n = AppLocalizations.of(context)!;
+    final categories = _buildCategories(role, l10n);
 
     return DraggableScrollableSheet(
       initialChildSize: 0.75,
@@ -84,8 +86,8 @@ class NewOperationSheet extends StatelessWidget {
                     const Icon(Icons.add_circle_outline,
                         color: AppColors.primary),
                     const SizedBox(width: AppDimensions.sm),
-                    const Text('إنشاء عملية جديدة',
-                        style: TextStyle(
+                    Text(AppLocalizations.of(context)!.newOperation,
+                        style: const TextStyle(
                             fontSize: 18, fontWeight: FontWeight.bold)),
                     const Spacer(),
                     IconButton(
@@ -172,29 +174,29 @@ class NewOperationSheet extends StatelessWidget {
     );
   }
 
-  List<OperationCategory> _buildCategories(UserRole role) {
+  List<OperationCategory> _buildCategories(UserRole role, AppLocalizations l10n) {
     final cats = <OperationCategory>[];
 
     if (AccessGuard.canAccess('/pos', role)) {
-      cats.add(const OperationCategory(
-        title: 'المبيعات',
+      cats.add(OperationCategory(
+        title: l10n.sales,
         icon: Icons.point_of_sale,
         color: AppColors.opSales,
         actions: [
           OperationAction(
-              title: 'فاتورة بيع',
+              title: l10n.saleInvoice,
               route: '/pos',
               icon: Icons.add_shopping_cart),
           OperationAction(
-              title: 'مرتجع بيع',
+              title: l10n.salesReturns,
               route: '/sales/returns',
               icon: Icons.assignment_return),
           OperationAction(
-              title: 'عرض سعر',
+              title: l10n.priceQuote,
               route: '/sales/invoice',
               icon: Icons.request_quote),
           OperationAction(
-              title: 'طلبية عميل',
+              title: l10n.customerOrder,
               route: '/sales/orders',
               icon: Icons.shopping_cart_checkout),
         ],
@@ -202,21 +204,21 @@ class NewOperationSheet extends StatelessWidget {
     }
 
     if (AccessGuard.canAccess('/purchases/new', role)) {
-      cats.add(const OperationCategory(
-        title: 'المشتريات',
+      cats.add(OperationCategory(
+        title: l10n.purchases,
         icon: Icons.shopping_bag,
         color: AppColors.opPurchases,
         actions: [
           OperationAction(
-              title: 'فاتورة شراء',
+              title: l10n.purchaseInvoice,
               route: '/purchases/new',
               icon: Icons.shopping_bag),
           OperationAction(
-              title: 'مرتجع شراء',
+              title: l10n.purchaseReturns,
               route: '/purchases/returns',
               icon: Icons.assignment_return),
           OperationAction(
-              title: 'طلب شراء',
+              title: l10n.purchaseOrder,
               route: '/purchases/orders',
               icon: Icons.receipt),
         ],
@@ -224,19 +226,19 @@ class NewOperationSheet extends StatelessWidget {
     }
 
     if (AccessGuard.canAccess('/customers', role)) {
-      cats.add(const OperationCategory(
-        title: 'العملاء',
+      cats.add(OperationCategory(
+        title: l10n.customers,
         icon: Icons.people,
         color: AppColors.opCustomers,
         actions: [
           OperationAction(
-              title: 'إضافة عميل', route: '/customers', icon: Icons.person_add),
+              title: l10n.addCustomer, route: '/customers', icon: Icons.person_add),
           OperationAction(
-              title: 'كشف حساب',
+              title: l10n.customerStatement,
               route: '/accounting/customer-ledger',
               icon: Icons.person_search),
           OperationAction(
-              title: 'سند قبض',
+              title: l10n.receiptVoucher,
               route: '/accounting/manual-voucher?receipt=true',
               icon: Icons.receipt),
         ],
@@ -244,21 +246,21 @@ class NewOperationSheet extends StatelessWidget {
     }
 
     if (AccessGuard.canAccess('/suppliers', role)) {
-      cats.add(const OperationCategory(
-        title: 'الموردون',
+      cats.add(OperationCategory(
+        title: l10n.suppliers,
         icon: Icons.local_shipping,
         color: AppColors.opSuppliers,
         actions: [
           OperationAction(
-              title: 'إضافة مورد',
+              title: l10n.addSupplier,
               route: '/suppliers',
               icon: Icons.add_business),
           OperationAction(
-              title: 'كشف حساب',
+              title: l10n.supplierStatement,
               route: '/accounting/supplier-ledger',
               icon: Icons.receipt_long),
           OperationAction(
-              title: 'سند صرف',
+              title: l10n.paymentVoucher,
               route: '/accounting/manual-voucher?receipt=false',
               icon: Icons.payment),
         ],
@@ -266,23 +268,23 @@ class NewOperationSheet extends StatelessWidget {
     }
 
     if (AccessGuard.canAccess('/products', role)) {
-      cats.add(const OperationCategory(
-        title: 'المخزون',
+      cats.add(OperationCategory(
+        title: l10n.inventory,
         icon: Icons.inventory_2,
         color: AppColors.opInventory,
         actions: [
           OperationAction(
-              title: 'إضافة منتج', route: '/products', icon: Icons.add_box),
+              title: l10n.addProduct, route: '/products', icon: Icons.add_box),
           OperationAction(
-              title: 'جرد مخزون',
+              title: l10n.stockTake,
               route: '/inventory/stock-take',
               icon: Icons.fact_check),
           OperationAction(
-              title: 'تحويل مخزني',
+              title: l10n.inventoryTransfer,
               route: '/inventory/transfer',
               icon: Icons.swap_horiz),
           OperationAction(
-              title: 'طباعة باركود',
+              title: l10n.printBarcode,
               route: '/barcode-printing',
               icon: Icons.qr_code),
         ],
@@ -290,21 +292,21 @@ class NewOperationSheet extends StatelessWidget {
     }
 
     if (AccessGuard.canAccess('/accounting/cashbox', role)) {
-      cats.add(const OperationCategory(
-        title: 'الصناديق',
+      cats.add(OperationCategory(
+        title: l10n.cashboxes,
         icon: Icons.account_balance_wallet,
         color: AppColors.opCashbox,
         actions: [
           OperationAction(
-              title: 'إيداع',
+              title: l10n.deposit,
               route: '/accounting/cashbox',
               icon: Icons.savings),
           OperationAction(
-              title: 'سحب',
+              title: l10n.withdraw,
               route: '/accounting/cashbox',
               icon: Icons.money_off),
           OperationAction(
-              title: 'تحويل',
+              title: l10n.transfer,
               route: '/accounting/transfers',
               icon: Icons.swap_horiz),
         ],
@@ -312,25 +314,25 @@ class NewOperationSheet extends StatelessWidget {
     }
 
     if (AccessGuard.canAccess('/reports/sales', role)) {
-      cats.add(const OperationCategory(
-        title: 'التقارير',
+      cats.add(OperationCategory(
+        title: l10n.reports,
         icon: Icons.assessment,
         color: AppColors.opReports,
         actions: [
           OperationAction(
-              title: 'تقرير المبيعات',
+              title: l10n.salesReport,
               route: '/reports/sales',
               icon: Icons.bar_chart),
           OperationAction(
-              title: 'تقرير المشتريات',
+              title: l10n.purchasesReport,
               route: '/reports/purchases',
               icon: Icons.pie_chart),
           OperationAction(
-              title: 'تقرير الأرباح',
+              title: l10n.profitReport,
               route: '/reports/profitability',
               icon: Icons.show_chart),
           OperationAction(
-              title: 'تقرير المخزون',
+              title: l10n.inventoryReport,
               route: '/reports/inventory',
               icon: Icons.inventory),
         ],

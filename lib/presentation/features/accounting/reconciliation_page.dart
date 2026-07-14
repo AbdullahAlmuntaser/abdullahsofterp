@@ -4,6 +4,7 @@ import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:supermarket/core/services/accounting_service.dart';
 import 'package:drift/drift.dart' as drift;
 import 'package:uuid/uuid.dart';
+import 'package:supermarket/l10n/app_localizations.dart';
 
 class ReconciliationPage extends StatefulWidget {
   const ReconciliationPage({super.key});
@@ -20,10 +21,11 @@ class _ReconciliationPageState extends State<ReconciliationPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final db = context.watch<AppDatabase>();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('تسوية الأرصدة (صندوق/بنك)')),
+      appBar: AppBar(title: Text(l10n.reconciliation)),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -35,9 +37,9 @@ class _ReconciliationPageState extends State<ReconciliationPage> {
               const SizedBox(height: 20),
               TextField(
                 controller: _actualBalanceController,
-                decoration: const InputDecoration(
-                  labelText: 'الرصيد الفعلي (الموجود حالياً)',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: l10n.actualBalance,
+                  border: const OutlineInputBorder(),
                 ),
                 keyboardType: TextInputType.number,
                 onChanged: (_) => setState(() {}),
@@ -45,9 +47,9 @@ class _ReconciliationPageState extends State<ReconciliationPage> {
               const SizedBox(height: 16),
               TextField(
                 controller: _noteController,
-                decoration: const InputDecoration(
-                  labelText: 'ملاحظات التسوية',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: l10n.reconciliationNotes,
+                  border: const OutlineInputBorder(),
                 ),
               ),
               const Spacer(),
@@ -60,6 +62,7 @@ class _ReconciliationPageState extends State<ReconciliationPage> {
   }
 
   Widget _buildAccountSelector(AppDatabase db) {
+    final l10n = AppLocalizations.of(context)!;
     return StreamBuilder<List<GLAccount>>(
       stream: (db.select(db.gLAccounts)
             ..where(
@@ -72,8 +75,8 @@ class _ReconciliationPageState extends State<ReconciliationPage> {
         if (!snapshot.hasData) return const CircularProgressIndicator();
         return DropdownButtonFormField<String>(
           value: _selectedAccountId,
-          decoration: const InputDecoration(
-            labelText: 'اختر الحساب المراد تسويته',
+          decoration: InputDecoration(
+            labelText: l10n.selectAccount,
           ),
           items: snapshot.data!
               .map((a) => DropdownMenuItem(value: a.id, child: Text(a.name)))
@@ -93,6 +96,7 @@ class _ReconciliationPageState extends State<ReconciliationPage> {
   }
 
   Widget _buildBalanceComparison() {
+    final l10n = AppLocalizations.of(context)!;
     final actual = double.tryParse(_actualBalanceController.text) ?? 0.0;
     final diff = actual - _bookBalance;
 
@@ -104,10 +108,10 @@ class _ReconciliationPageState extends State<ReconciliationPage> {
       ),
       child: Column(
         children: [
-          _row('الرصيد الدفتري (في النظام):', _bookBalance.toStringAsFixed(2)),
+          _row('${l10n.bookBalance}:', _bookBalance.toStringAsFixed(2)),
           const Divider(),
           _row(
-            'الفارق:',
+            '${l10n.difference}:',
             diff.toStringAsFixed(2),
             color: diff < 0 ? Colors.red : Colors.green,
           ),
@@ -134,6 +138,7 @@ class _ReconciliationPageState extends State<ReconciliationPage> {
   }
 
   Widget _buildSubmitButton(AppDatabase db) {
+    final l10n = AppLocalizations.of(context)!;
     return SizedBox(
       width: double.infinity,
       height: 55,
@@ -143,7 +148,6 @@ class _ReconciliationPageState extends State<ReconciliationPage> {
           final diff = actual - _bookBalance;
 
           if (diff == 0) {
-            // No difference, just record reconciliation
             await db.into(db.reconciliations).insert(
                   ReconciliationsCompanion.insert(
                     accountId: _selectedAccountId!,
@@ -156,7 +160,6 @@ class _ReconciliationPageState extends State<ReconciliationPage> {
                   ),
                 );
           } else {
-            // Create journal entry for the difference
             final cashAccount = await db.accountingDao.getAccountByCode(
               AccountingService.codeCash,
             );
@@ -167,10 +170,8 @@ class _ReconciliationPageState extends State<ReconciliationPage> {
             if (cashAccount == null || cashOverShort == null) {
               if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                      'حساب الصندوق أو حساب العجز/الزيادة غير موجود',
-                    ),
+                  SnackBar(
+                    content: Text(l10n.cashOverShortNotFound),
                   ),
                 );
               }
@@ -182,8 +183,9 @@ class _ReconciliationPageState extends State<ReconciliationPage> {
 
             final entry = GLEntriesCompanion.insert(
               id: drift.Value(entryId),
-              description:
-                  'تسوية: ${_noteController.text.isEmpty ? 'فرق تسوية' : _noteController.text}',
+              description: l10n.reconciliationDescription(
+                _noteController.text.isEmpty ? l10n.reconciliationDifference : _noteController.text,
+              ),
               date: drift.Value(DateTime.now()),
               referenceType: const drift.Value('RECONCILIATION'),
               referenceId: drift.Value(entryId),
@@ -192,8 +194,7 @@ class _ReconciliationPageState extends State<ReconciliationPage> {
             );
 
             final lines = diff > 0
-                ? // Actual > Book: Cash increased (extra cash found)
-                [
+                ? [
                     GLLinesCompanion.insert(
                       entryId: entryId,
                       accountId: cashAccount.id,
@@ -207,8 +208,7 @@ class _ReconciliationPageState extends State<ReconciliationPage> {
                       credit: drift.Value(Decimal.parse(absDiff.toString())),
                     ),
                   ]
-                : // Actual < Book: Cash decreased (shortage)
-                [
+                : [
                     GLLinesCompanion.insert(
                       entryId: entryId,
                       accountId: cashOverShort.id,
@@ -225,7 +225,6 @@ class _ReconciliationPageState extends State<ReconciliationPage> {
 
             await db.accountingDao.createEntry(entry, lines);
 
-            // Record reconciliation
             await db.into(db.reconciliations).insert(
                   ReconciliationsCompanion.insert(
                     accountId: _selectedAccountId!,
@@ -241,14 +240,14 @@ class _ReconciliationPageState extends State<ReconciliationPage> {
 
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('تم تسجيل التسوية بنجاح')),
+              SnackBar(content: Text(l10n.reconciliationSuccess)),
             );
             _actualBalanceController.clear();
             _noteController.clear();
             setState(() => _bookBalance = 0.0);
           }
         },
-        child: const Text('تأكيد وتسجيل التسوية'),
+        child: Text(l10n.confirmAndRecordReconciliation),
       ),
     );
   }

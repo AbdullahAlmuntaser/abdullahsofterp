@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:supermarket/core/constants/app_colors.dart';
 import 'package:supermarket/core/constants/app_dimensions.dart';
+import 'package:supermarket/l10n/app_localizations.dart';
 import 'package:supermarket/presentation/features/home/providers/command_center_provider.dart';
 import 'package:supermarket/presentation/widgets/navigation/command_palette.dart';
 
@@ -27,6 +28,7 @@ class _CommandCenterHeaderState extends State<CommandCenterHeader> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final provider = context.watch<CommandCenterProvider>();
     final isWide = MediaQuery.of(context).size.width > 600;
 
@@ -58,7 +60,7 @@ class _CommandCenterHeaderState extends State<CommandCenterHeader> {
                   controller: _controller,
                   focusNode: _focusNode,
                   decoration: InputDecoration(
-                    hintText: 'ماذا تريد أن تفعل؟',
+                    hintText: l10n.whatWouldYouLikeToDo,
                     hintStyle: TextStyle(color: Colors.grey[400]),
                     border: InputBorder.none,
                     contentPadding: const EdgeInsets.symmetric(vertical: 12),
@@ -74,7 +76,7 @@ class _CommandCenterHeaderState extends State<CommandCenterHeader> {
                 IconButton(
                   icon: const Icon(Icons.tune, size: 20),
                   onPressed: () => _openCommandPalette(context),
-                  tooltip: 'بحث متقدم',
+                  tooltip: l10n.advancedSearch,
                 ),
               Container(
                 padding:

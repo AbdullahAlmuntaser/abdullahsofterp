@@ -186,10 +186,15 @@ class InventoryDao {
 
   Future<Decimal> getWarehouseStock(String productId, String warehouseId) async {
     final rows = _db.query('''
-      SELECT COALESCE(SUM(CAST(quantity AS REAL)), 0) AS total
-      FROM product_batches WHERE product_id = ? AND warehouse_id = ? AND CAST(quantity AS REAL) > 0
+      SELECT quantity FROM product_batches
+      WHERE product_id = ? AND warehouse_id = ?
     ''', [productId, warehouseId]);
-    return Decimal.parse(rows.first['total'].toString());
+    Decimal total = Decimal.zero;
+    for (final row in rows) {
+      final qty = Decimal.tryParse(row['quantity']?.toString() ?? '0') ?? Decimal.zero;
+      if (qty > Decimal.zero) total += qty;
+    }
+    return total;
   }
 
   Future<bool> hasStock(String warehouseId) async {

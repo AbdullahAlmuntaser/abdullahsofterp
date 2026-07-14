@@ -4,6 +4,7 @@ import 'package:drift/drift.dart' as drift;
 import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:supermarket/core/services/recurring_entry_service.dart';
 import 'package:supermarket/injection_container.dart';
+import 'package:supermarket/l10n/app_localizations.dart';
 
 class RecurringEntriesPage extends StatefulWidget {
   const RecurringEntriesPage({super.key});
@@ -23,18 +24,19 @@ class _RecurringEntriesPageState extends State<RecurringEntriesPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('القيود المحاسبية الدورية'),
+        title: Text(l10n.recurringEntries),
         actions: [
           IconButton(
             icon: const Icon(Icons.play_arrow),
-            tooltip: 'تنفيذ القيود المستحقة',
+            tooltip: l10n.executeDueEntries,
             onPressed: _executeDueEntries,
           ),
           IconButton(
             icon: const Icon(Icons.add),
-            tooltip: 'إضافة قيد دوري جديد',
+            tooltip: l10n.addRecurringEntry,
             onPressed: () => _showAddDialog(context),
           ),
         ],
@@ -47,17 +49,17 @@ class _RecurringEntriesPageState extends State<RecurringEntriesPage> {
           }
           final entries = snapshot.data ?? [];
           if (entries.isEmpty) {
-            return const Center(
+            return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.replay, size: 64, color: Colors.grey),
-                  SizedBox(height: 16),
-                  Text('لا توجد قيود دورية',
-                      style: TextStyle(fontSize: 18, color: Colors.grey)),
-                  SizedBox(height: 8),
-                  Text('اضغط + لإضافة قيد دوري جديد',
-                      style: TextStyle(color: Colors.grey)),
+                  const Icon(Icons.replay, size: 64, color: Colors.grey),
+                  const SizedBox(height: 16),
+                  Text(l10n.noRecurringEntries,
+                      style: const TextStyle(fontSize: 18, color: Colors.grey)),
+                  const SizedBox(height: 8),
+                  Text(l10n.tapToAddRecurringEntry,
+                      style: const TextStyle(color: Colors.grey)),
                 ],
               ),
             );
@@ -74,21 +76,22 @@ class _RecurringEntriesPageState extends State<RecurringEntriesPage> {
   }
 
   Widget _buildEntryCard(BuildContext context, RecurringEntry entry) {
+    final l10n = AppLocalizations.of(context)!;
     final frequencyMap = {
-      'DAILY': 'يومي',
-      'WEEKLY': 'أسبوعي',
-      'BIWEEKLY': 'كل أسبوعين',
-      'MONTHLY': 'شهري',
-      'QUARTERLY': 'ربع سنوي',
-      'YEARLY': 'سنوي',
+      'DAILY': l10n.dailyFreq,
+      'WEEKLY': l10n.weeklyFreq,
+      'BIWEEKLY': l10n.biweeklyFreq,
+      'MONTHLY': l10n.monthlyFreq,
+      'QUARTERLY': l10n.quarterlyFreq,
+      'YEARLY': l10n.yearlyFreq,
     };
     final statusMap = {
-      'active': ('نشط', Colors.green),
-      'paused': ('متوقف', Colors.orange),
-      'completed': ('مكتمل', Colors.blue),
+      'active': (l10n.statusActive, Colors.green),
+      'paused': (l10n.statusPaused, Colors.orange),
+      'completed': (l10n.statusCompleted, Colors.blue),
     };
 
-    final statusInfo = statusMap[entry.status] ?? ('غير معروف', Colors.grey);
+    final statusInfo = statusMap[entry.status] ?? (l10n.statusUnknown, Colors.grey);
 
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 4),
@@ -106,17 +109,19 @@ class _RecurringEntriesPageState extends State<RecurringEntriesPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-                '${frequencyMap[entry.frequency] ?? entry.frequency} | ${entry.amount}'),
+              '${frequencyMap[entry.frequency] ?? entry.frequency} | ${entry.amount}'),
             Text(
-              'من: ${entry.debitAccountCode} إلى: ${entry.creditAccountCode}',
+              l10n.fromToAccounts(entry.creditAccountCode, entry.debitAccountCode),
               style: const TextStyle(fontSize: 12),
             ),
             Text(
-              'التنفيذ التالي: ${entry.nextExecutionDate.toString().substring(0, 10)}',
+              l10n.nextExecutionDate(entry.nextExecutionDate.toString().substring(0, 10)),
               style: const TextStyle(fontSize: 12),
             ),
             Text(
-              'المنفّذ: ${entry.totalExecutions}${entry.maxExecutions != null ? '/${entry.maxExecutions}' : ''}',
+              entry.maxExecutions != null
+                  ? l10n.executedCount(entry.totalExecutions, entry.maxExecutions!)
+                  : l10n.executedCountNoLimit(entry.totalExecutions),
               style: const TextStyle(fontSize: 12),
             ),
           ],
@@ -124,14 +129,14 @@ class _RecurringEntriesPageState extends State<RecurringEntriesPage> {
         trailing: PopupMenuButton<String>(
           onSelected: (value) => _handleMenuAction(context, value, entry),
           itemBuilder: (context) => [
-            const PopupMenuItem(value: 'edit', child: Text('تعديل')),
+            PopupMenuItem(value: 'edit', child: Text(l10n.edit)),
             PopupMenuItem(
               value: entry.status == 'active' ? 'pause' : 'resume',
-              child: Text(entry.status == 'active' ? 'إيقاف مؤقت' : 'استئناف'),
+              child: Text(entry.status == 'active' ? l10n.pause : l10n.resume),
             ),
-            const PopupMenuItem(value: 'execute', child: Text('تنفيذ الآن')),
-            const PopupMenuItem(value: 'history', child: Text('سجل التنفيذ')),
-            const PopupMenuItem(value: 'delete', child: Text('حذف')),
+            PopupMenuItem(value: 'execute', child: Text(l10n.executeNow)),
+            PopupMenuItem(value: 'history', child: Text(l10n.executionHistory)),
+            PopupMenuItem(value: 'delete', child: Text(l10n.delete)),
           ],
         ),
         isThreeLine: true,
@@ -141,6 +146,7 @@ class _RecurringEntriesPageState extends State<RecurringEntriesPage> {
 
   void _handleMenuAction(
       BuildContext context, String action, RecurringEntry entry) async {
+    final l10n = AppLocalizations.of(context)!;
     final messenger = ScaffoldMessenger.of(context);
     switch (action) {
       case 'edit':
@@ -157,12 +163,12 @@ class _RecurringEntriesPageState extends State<RecurringEntriesPage> {
           await _service.executeEntryNow(entry.id);
           if (!mounted) return;
           messenger.showSnackBar(
-            const SnackBar(content: Text('تم تنفيذ القيد بنجاح')),
+            SnackBar(content: Text(l10n.entryExecutedSuccessfully)),
           );
         } catch (e) {
           if (!mounted) return;
           messenger.showSnackBar(
-            SnackBar(content: Text('خطأ: $e')),
+            SnackBar(content: Text(l10n.errorWithMessage(e.toString()))),
           );
         }
         break;
@@ -176,12 +182,13 @@ class _RecurringEntriesPageState extends State<RecurringEntriesPage> {
   }
 
   Future<void> _executeDueEntries() async {
+    final l10n = AppLocalizations.of(context)!;
     final result = await _service.executeDueEntries();
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'تم التنفيذ: ${result.successCount} نجح، ${result.failCount} فشل',
+            l10n.executionResult(result.failCount, result.successCount),
           ),
         ),
       );
@@ -197,6 +204,7 @@ class _RecurringEntriesPageState extends State<RecurringEntriesPage> {
   }
 
   void _showEntryForm(BuildContext context, RecurringEntry? existing) {
+    final l10n = AppLocalizations.of(context)!;
     final nameCtrl = TextEditingController(text: existing?.name ?? '');
     final amountCtrl =
         TextEditingController(text: existing?.amount.toString() ?? '');
@@ -213,46 +221,46 @@ class _RecurringEntriesPageState extends State<RecurringEntriesPage> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          title: Text(existing == null ? 'إضافة قيد دوري' : 'تعديل القيد الدوري'),
+          title: Text(existing == null ? l10n.addRecurringEntry : l10n.edit),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 TextField(
                   controller: nameCtrl,
-                  decoration: const InputDecoration(
-                      labelText: 'اسم القيد', border: OutlineInputBorder()),
+                  decoration: InputDecoration(
+                      labelText: l10n.entryName, border: const OutlineInputBorder()),
                 ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: amountCtrl,
-                  decoration: const InputDecoration(
-                      labelText: 'المبلغ', border: OutlineInputBorder()),
+                  decoration: InputDecoration(
+                      labelText: l10n.amount, border: const OutlineInputBorder()),
                   keyboardType: TextInputType.number,
                 ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: debitCtrl,
-                  decoration: const InputDecoration(
-                      labelText: 'كود حساب المدين', border: OutlineInputBorder()),
+                  decoration: InputDecoration(
+                      labelText: l10n.debitAccountCode, border: const OutlineInputBorder()),
                 ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: creditCtrl,
-                  decoration: const InputDecoration(
-                      labelText: 'كود حساب الدائن', border: OutlineInputBorder()),
+                  decoration: InputDecoration(
+                      labelText: l10n.creditAccountCode, border: const OutlineInputBorder()),
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
                   value: frequency,
-                  decoration: const InputDecoration(
-                      labelText: 'التكرار', border: OutlineInputBorder()),
-                  items: const [
-                    DropdownMenuItem(value: 'DAILY', child: Text('يومي')),
-                    DropdownMenuItem(value: 'WEEKLY', child: Text('أسبوعي')),
-                    DropdownMenuItem(value: 'MONTHLY', child: Text('شهري')),
-                    DropdownMenuItem(value: 'QUARTERLY', child: Text('ربع سنوي')),
-                    DropdownMenuItem(value: 'YEARLY', child: Text('سنوي')),
+                  decoration: InputDecoration(
+                      labelText: l10n.frequency, border: const OutlineInputBorder()),
+                  items: [
+                    DropdownMenuItem(value: 'DAILY', child: Text(l10n.dailyFreq)),
+                    DropdownMenuItem(value: 'WEEKLY', child: Text(l10n.weeklyFreq)),
+                    DropdownMenuItem(value: 'MONTHLY', child: Text(l10n.monthlyFreq)),
+                    DropdownMenuItem(value: 'QUARTERLY', child: Text(l10n.quarterlyFreq)),
+                    DropdownMenuItem(value: 'YEARLY', child: Text(l10n.yearlyFreq)),
                   ],
                   onChanged: (v) {
                     if (v != null) setDialogState(() => frequency = v);
@@ -261,12 +269,12 @@ class _RecurringEntriesPageState extends State<RecurringEntriesPage> {
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
                   value: referenceType,
-                  decoration: const InputDecoration(
-                      labelText: 'نوع المرجع', border: OutlineInputBorder()),
-                  items: const [
-                    DropdownMenuItem(value: 'EXPENSE', child: Text('مصروف')),
-                    DropdownMenuItem(value: 'REVENUE', child: Text('إيراد')),
-                    DropdownMenuItem(value: 'CUSTOM', child: Text('مخصص')),
+                  decoration: InputDecoration(
+                      labelText: l10n.referenceType, border: const OutlineInputBorder()),
+                  items: [
+                    DropdownMenuItem(value: 'EXPENSE', child: Text(l10n.expenseType)),
+                    DropdownMenuItem(value: 'REVENUE', child: Text(l10n.revenueType)),
+                    DropdownMenuItem(value: 'CUSTOM', child: Text(l10n.customType)),
                   ],
                   onChanged: (v) {
                     if (v != null) setDialogState(() => referenceType = v);
@@ -274,7 +282,7 @@ class _RecurringEntriesPageState extends State<RecurringEntriesPage> {
                 ),
                 const SizedBox(height: 12),
                 ListTile(
-                  title: const Text('تاريخ البدء'),
+                  title: Text(l10n.startDate),
                   subtitle: Text(startDate.toString().substring(0, 10)),
                   trailing: const Icon(Icons.calendar_today),
                   onTap: () async {
@@ -295,13 +303,13 @@ class _RecurringEntriesPageState extends State<RecurringEntriesPage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('إلغاء'),
+              child: Text(l10n.cancel),
             ),
             ElevatedButton(
               onPressed: () async {
                 if (nameCtrl.text.isEmpty || amountCtrl.text.isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('يرجى ملء جميع الحقول المطلوبة')),
+                    SnackBar(content: Text(l10n.pleaseFillRequiredFields)),
                   );
                   return;
                 }
@@ -334,11 +342,11 @@ class _RecurringEntriesPageState extends State<RecurringEntriesPage> {
                 } catch (e) {
                   if (!mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('خطأ: $e')),
+                    SnackBar(content: Text(l10n.errorWithMessage(e.toString()))),
                   );
                 }
               },
-              child: const Text('حفظ'),
+              child: Text(l10n.save),
             ),
           ],
         ),
@@ -347,16 +355,17 @@ class _RecurringEntriesPageState extends State<RecurringEntriesPage> {
   }
 
   void _showExecutionHistory(BuildContext context, RecurringEntry entry) async {
+    final l10n = AppLocalizations.of(context)!;
     final history = await _service.getExecutionHistory(entry.id);
     if (!mounted) return;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('سجل التنفيذ - ${entry.name}'),
+        title: Text(l10n.executionHistoryFor(entry.name)),
         content: SizedBox(
           width: double.maxFinite,
           child: history.isEmpty
-              ? const Text('لا يوجد سجل تنفيذ')
+              ? Text(l10n.noExecutionHistory)
               : ListView.builder(
                   shrinkWrap: true,
                   itemCount: history.length,
@@ -383,7 +392,7 @@ class _RecurringEntriesPageState extends State<RecurringEntriesPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('إغلاق'),
+            child: Text(l10n.close),
           ),
         ],
       ),
@@ -391,15 +400,16 @@ class _RecurringEntriesPageState extends State<RecurringEntriesPage> {
   }
 
   void _confirmDelete(BuildContext context, RecurringEntry entry) {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('تأكيد الحذف'),
-        content: Text('هل أنت متأكد من حذف "${entry.name}"؟'),
+        title: Text(l10n.confirmDeleteTitle),
+        content: Text(l10n.confirmDeleteRecurringEntry(entry.name)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('إلغاء'),
+            child: Text(l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -408,7 +418,7 @@ class _RecurringEntriesPageState extends State<RecurringEntriesPage> {
               Navigator.pop(dialogContext);
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('حذف'),
+            child: Text(l10n.delete),
           ),
         ],
       ),

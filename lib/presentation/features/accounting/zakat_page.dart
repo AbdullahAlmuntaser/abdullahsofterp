@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:provider/provider.dart';
+import 'package:supermarket/l10n/app_localizations.dart';
 import 'package:supermarket/presentation/features/accounting/zakat_provider.dart';
 import 'package:supermarket/presentation/widgets/app_snack_bar.dart';
 
@@ -25,15 +26,16 @@ class _ZakatPageState extends State<ZakatPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final provider = context.watch<ZakatProvider>();
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('الزكاة'),
+        title: Text(l10n.zakat),
         actions: [
           IconButton(
             icon: const Icon(Icons.calculate),
-            tooltip: 'حساب زكاة جديد',
+            tooltip: l10n.calculateNewZakat,
             onPressed: () => _showCalculateDialog(context),
           ),
         ],
@@ -46,7 +48,7 @@ class _ZakatPageState extends State<ZakatPage> {
             child: provider.isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : provider.calculations.isEmpty
-                    ? const Center(child: Text('لا توجد حسابات زكاة'))
+                    ? Center(child: Text(l10n.noZakatCalculations))
                     : _buildCalculationsList(provider),
           ),
         ],
@@ -55,6 +57,7 @@ class _ZakatPageState extends State<ZakatPage> {
   }
 
   Widget _buildSummaryCards(ZakatProvider provider) {
+    final l10n = AppLocalizations.of(context)!;
     final summary = provider.summary;
     if (summary == null) return const SizedBox.shrink();
 
@@ -64,7 +67,7 @@ class _ZakatPageState extends State<ZakatPage> {
         children: [
           Expanded(
             child: _SummaryCard(
-              title: 'إجمالي الزكاة',
+              title: l10n.totalZakat,
               value: '${summary.totalZakat} ر.س',
               color: Colors.blue,
             ),
@@ -72,7 +75,7 @@ class _ZakatPageState extends State<ZakatPage> {
           const SizedBox(width: 8),
           Expanded(
             child: _SummaryCard(
-              title: 'المدفوعة',
+              title: l10n.paidZakat,
               value: '${summary.paidZakat} ر.س',
               color: Colors.green,
             ),
@@ -80,7 +83,7 @@ class _ZakatPageState extends State<ZakatPage> {
           const SizedBox(width: 8),
           Expanded(
             child: _SummaryCard(
-              title: 'المعلقة',
+              title: l10n.pendingZakat,
               value: '${summary.pendingZakat} ر.س',
               color: Colors.orange,
             ),
@@ -91,6 +94,7 @@ class _ZakatPageState extends State<ZakatPage> {
   }
 
   Widget _buildFilters() {
+    final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
@@ -98,9 +102,9 @@ class _ZakatPageState extends State<ZakatPage> {
           Expanded(
             child: DropdownButtonFormField<String>(
               value: _selectedPeriod,
-              decoration: const InputDecoration(
-                labelText: 'الفترة',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: l10n.period,
+                border: const OutlineInputBorder(),
                 isDense: true,
               ),
               items: List.generate(5, (i) {
@@ -120,14 +124,14 @@ class _ZakatPageState extends State<ZakatPage> {
           Expanded(
             child: DropdownButtonFormField<String>(
               value: _selectedType,
-              decoration: const InputDecoration(
-                labelText: 'نوع الحساب',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: l10n.calculationType,
+                border: const OutlineInputBorder(),
                 isDense: true,
               ),
-              items: const [
-                DropdownMenuItem(value: 'ANNUAL', child: Text('سنوي')),
-                DropdownMenuItem(value: 'QUARTERLY', child: Text('ربع سنوي')),
+              items: [
+                DropdownMenuItem(value: 'ANNUAL', child: Text(l10n.annual)),
+                DropdownMenuItem(value: 'QUARTERLY', child: Text(l10n.quarterly)),
               ],
               onChanged: (value) {
                 setState(() => _selectedType = value!);
@@ -140,6 +144,7 @@ class _ZakatPageState extends State<ZakatPage> {
   }
 
   Widget _buildCalculationsList(ZakatProvider provider) {
+    final l10n = AppLocalizations.of(context)!;
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: provider.calculations.length,
@@ -156,16 +161,16 @@ class _ZakatPageState extends State<ZakatPage> {
                 size: 20,
               ),
             ),
-            title: Text('فترة: ${calc.period}'),
+            title: Text(l10n.periodLabel(calc.period)),
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('الأصول: ${calc.totalAssets} ر.س | الخصوم: ${calc.totalLiabilities} ر.س'),
+                Text(l10n.assetsAndLiabilities(calc.totalAssets.toString(), calc.totalLiabilities.toString())),
                 Text(
-                  'الزكاة: ${calc.zakatAmount} ر.س',
+                  l10n.zakatAmount(calc.zakatAmount.toString()),
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
-                Text('الحالة: ${_statusText(calc.status)}'),
+                Text(l10n.statusWithValue(_statusText(calc.status, l10n))),
               ],
             ),
             isThreeLine: true,
@@ -173,11 +178,11 @@ class _ZakatPageState extends State<ZakatPage> {
               onSelected: (action) => _handleAction(context, action, calc),
               itemBuilder: (context) => [
                 if (calc.status == 'DRAFT') ...[
-                  const PopupMenuItem(value: 'file', child: Text('تقديم')),
-                  const PopupMenuItem(value: 'pay', child: Text('دفع')),
+                  PopupMenuItem(value: 'file', child: Text(l10n.file)),
+                  PopupMenuItem(value: 'pay', child: Text(l10n.pay)),
                 ],
                 if (calc.status == 'FILED')
-                  const PopupMenuItem(value: 'pay', child: Text('دفع')),
+                  PopupMenuItem(value: 'pay', child: Text(l10n.pay)),
               ],
             ),
           ),
@@ -187,6 +192,7 @@ class _ZakatPageState extends State<ZakatPage> {
   }
 
   void _showCalculateDialog(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final yearController = TextEditingController(
       text: DateTime.now().year.toString(),
     );
@@ -194,18 +200,18 @@ class _ZakatPageState extends State<ZakatPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('حساب الزكاة'),
+        title: Text(l10n.calculateZakat),
         content: TextField(
           controller: yearController,
-          decoration: const InputDecoration(
-            labelText: 'الفترة (السنة)',
-            border: OutlineInputBorder(),
+          decoration: InputDecoration(
+            labelText: l10n.periodYear,
+            border: const OutlineInputBorder(),
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('إلغاء'),
+            child: Text(l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -216,10 +222,10 @@ class _ZakatPageState extends State<ZakatPage> {
                 calculationType: _selectedType,
               );
               if (context.mounted) {
-                AppSnackBar.success(context, 'تم حساب الزكاة بنجاح');
+                AppSnackBar.success(context, l10n.zakatCalculatedSuccessfully);
               }
             },
-            child: const Text('حساب'),
+            child: Text(l10n.calculate),
           ),
         ],
       ),
@@ -227,15 +233,16 @@ class _ZakatPageState extends State<ZakatPage> {
   }
 
   void _handleAction(BuildContext context, String action, ZakatCalculation calc) {
+    final l10n = AppLocalizations.of(context)!;
     final provider = context.read<ZakatProvider>();
     switch (action) {
       case 'file':
         provider.markAsFiled(calc.id);
-        AppSnackBar.success(context, 'تم تقديم الزكاة');
+        AppSnackBar.success(context, l10n.zakatFiledSuccessfully);
         break;
       case 'pay':
         provider.markAsPaid(calc.id);
-        AppSnackBar.success(context, 'تم دفع الزكاة');
+        AppSnackBar.success(context, l10n.zakatPaidSuccessfully);
         break;
     }
   }
@@ -256,11 +263,11 @@ class _ZakatPageState extends State<ZakatPage> {
     }
   }
 
-  String _statusText(String status) {
+  String _statusText(String status, AppLocalizations l10n) {
     switch (status) {
-      case 'PAID': return 'مدفوعة';
-      case 'FILED': return 'مقدمة';
-      default: return 'مسودة';
+      case 'PAID': return l10n.paid;
+      case 'FILED': return l10n.filed;
+      default: return l10n.draft;
     }
   }
 }

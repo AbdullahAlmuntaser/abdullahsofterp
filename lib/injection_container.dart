@@ -207,8 +207,11 @@ Future<void> initServices() async {
     );
 
     debugPrint("DI: Registering providers...");
+    sl.registerLazySingleton<SecurityService>(
+      () => SecurityService(db),
+    );
     sl.registerLazySingleton<AuthProvider>(
-      () => AuthProvider(db, sl<PermissionService>()),
+      () => AuthProvider(db, sl<PermissionService>(), sl<SecurityService>()),
     );
     sl.registerLazySingleton<ThemeProvider>(() => ThemeProvider());
     sl.registerLazySingleton<LocaleProvider>(

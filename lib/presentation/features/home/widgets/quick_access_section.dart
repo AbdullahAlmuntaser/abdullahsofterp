@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:supermarket/core/constants/app_colors.dart';
 import 'package:supermarket/core/constants/app_dimensions.dart';
+import 'package:supermarket/l10n/app_localizations.dart';
 import 'package:supermarket/presentation/features/home/providers/command_center_provider.dart';
 
 class QuickAccessSection extends StatelessWidget {
@@ -11,6 +12,7 @@ class QuickAccessSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final operations = context.watch<CommandCenterProvider>().recentOperations;
+    final l10n = AppLocalizations.of(context)!;
 
     if (operations.isEmpty) return const SizedBox.shrink();
 
@@ -21,12 +23,12 @@ class QuickAccessSection extends StatelessWidget {
           children: [
             const Icon(Icons.history, size: 20, color: AppColors.info),
             const SizedBox(width: AppDimensions.sm),
-            const Text('الوصول السريع',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(l10n.quickAccess,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const Spacer(),
             TextButton(
               onPressed: () {},
-              child: const Text('مسح السجل', style: TextStyle(fontSize: 12)),
+              child: Text(l10n.clearHistory, style: const TextStyle(fontSize: 12)),
             ),
           ],
         ),
@@ -49,6 +51,7 @@ class QuickAccessSection extends StatelessWidget {
   }
 
   Widget _buildOperationChip(BuildContext context, RecentOperation op) {
+    final l10n = AppLocalizations.of(context)!;
     return InkWell(
       onTap: () => context.push(op.route),
       borderRadius: BorderRadius.circular(AppDimensions.radiusLg),
@@ -73,7 +76,7 @@ class QuickAccessSection extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             ),
             Text(
-              _timeAgo(op.timestamp),
+              _timeAgo(op.timestamp, l10n),
               style: TextStyle(fontSize: 9, color: Colors.grey[500]),
             ),
           ],
@@ -82,11 +85,11 @@ class QuickAccessSection extends StatelessWidget {
     );
   }
 
-  String _timeAgo(DateTime time) {
+  String _timeAgo(DateTime time, AppLocalizations l10n) {
     final diff = DateTime.now().difference(time);
-    if (diff.inMinutes < 1) return 'الآن';
-    if (diff.inMinutes < 60) return 'منذ ${diff.inMinutes} د';
-    if (diff.inHours < 24) return 'منذ ${diff.inHours} س';
-    return 'منذ ${diff.inDays} ي';
+    if (diff.inMinutes < 1) return l10n.now;
+    if (diff.inMinutes < 60) return l10n.minutesAgo(diff.inMinutes);
+    if (diff.inHours < 24) return l10n.hoursAgo(diff.inHours);
+    return l10n.daysAgo(diff.inDays);
   }
 }

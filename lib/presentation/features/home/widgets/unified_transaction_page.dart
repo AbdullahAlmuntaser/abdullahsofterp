@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supermarket/core/constants/app_colors.dart';
 import 'package:supermarket/core/constants/app_dimensions.dart';
+import 'package:supermarket/l10n/app_localizations.dart';
 
 enum TransactionType {
   sale,
@@ -43,7 +44,8 @@ class _UnifiedTransactionPageState extends State<UnifiedTransactionPage> {
 
   @override
   Widget build(BuildContext context) {
-    final fields = _getFieldsForType(_selectedType);
+    final l10n = AppLocalizations.of(context)!;
+    final fields = _getFieldsForType(_selectedType, l10n);
     final title = _getTitleForType(_selectedType);
 
     return Scaffold(
@@ -53,7 +55,7 @@ class _UnifiedTransactionPageState extends State<UnifiedTransactionPage> {
           IconButton(
             icon: const Icon(Icons.settings_outlined),
             onPressed: () {},
-            tooltip: 'إعدادات المعاملة',
+            tooltip: l10n.transactionSettings,
           ),
         ],
       ),
@@ -67,8 +69,8 @@ class _UnifiedTransactionPageState extends State<UnifiedTransactionPage> {
               children: [
                 const Icon(Icons.swap_horiz, size: 20),
                 const SizedBox(width: AppDimensions.sm),
-                const Text('نوع العملية:',
-                    style: TextStyle(fontWeight: FontWeight.w600)),
+                Text('${l10n.transactionType}:',
+                    style: const TextStyle(fontWeight: FontWeight.w600)),
                 const SizedBox(width: AppDimensions.md),
                 Expanded(
                   child: Container(
@@ -82,27 +84,27 @@ class _UnifiedTransactionPageState extends State<UnifiedTransactionPage> {
                       child: DropdownButton<TransactionType>(
                         value: _selectedType,
                         isExpanded: true,
-                        items: const [
+                        items: [
                           DropdownMenuItem(
-                              value: TransactionType.sale, child: Text('بيع')),
+                              value: TransactionType.sale, child: Text(l10n.sell)),
                           DropdownMenuItem(
                               value: TransactionType.purchase,
-                              child: Text('شراء')),
+                              child: Text(l10n.purchase)),
                           DropdownMenuItem(
                               value: TransactionType.saleReturn,
-                              child: Text('مرتجع بيع')),
+                              child: Text(l10n.salesReturns)),
                           DropdownMenuItem(
                               value: TransactionType.purchaseReturn,
-                              child: Text('مرتجع شراء')),
+                              child: Text(l10n.purchaseReturns)),
                           DropdownMenuItem(
                               value: TransactionType.quote,
-                              child: Text('عرض سعر')),
+                              child: Text(l10n.priceQuote)),
                           DropdownMenuItem(
                               value: TransactionType.purchaseOrder,
-                              child: Text('طلب شراء')),
+                              child: Text(l10n.purchaseOrder)),
                           DropdownMenuItem(
                               value: TransactionType.salesOrder,
-                              child: Text('طلبية عميل')),
+                              child: Text(l10n.customerOrder)),
                         ],
                         onChanged: (v) => setState(
                             () => _selectedType = v ?? TransactionType.sale),
@@ -209,7 +211,7 @@ class _UnifiedTransactionPageState extends State<UnifiedTransactionPage> {
               ? TextInputType.number
               : TextInputType.text,
           validator: field.required
-              ? (v) => (v == null || v.isEmpty) ? 'هذا الحقل مطلوب' : null
+              ? (v) => (v == null || v.isEmpty) ? AppLocalizations.of(context)!.thisFieldRequired : null
               : null,
         ),
       ],
@@ -217,13 +219,14 @@ class _UnifiedTransactionPageState extends State<UnifiedTransactionPage> {
   }
 
   Widget _buildActionButtons(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Row(
       children: [
         Expanded(
           child: OutlinedButton.icon(
             onPressed: () => Navigator.pop(context),
             icon: const Icon(Icons.close, size: 18),
-            label: const Text('إلغاء'),
+            label: Text(l10n.cancel),
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 14),
               shape: RoundedRectangleBorder(
@@ -238,15 +241,15 @@ class _UnifiedTransactionPageState extends State<UnifiedTransactionPage> {
             onPressed: () {
               if (_formKey.currentState?.validate() ?? false) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                      content: Text('تم حفظ المعاملة بنجاح'),
+                  SnackBar(
+                      content: Text(l10n.transactionSavedSuccessfully),
                       backgroundColor: AppColors.success),
                 );
                 Navigator.pop(context);
               }
             },
             icon: const Icon(Icons.check, size: 18),
-            label: const Text('حفظ'),
+            label: Text(l10n.save),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
@@ -263,25 +266,39 @@ class _UnifiedTransactionPageState extends State<UnifiedTransactionPage> {
   _TypeConfig _getConfigForType(TransactionType type) {
     switch (type) {
       case TransactionType.sale:
-        return const _TypeConfig('فاتورة بيع', 'إنشاء فاتورة بيع جديدة',
+        return _TypeConfig(
+            AppLocalizations.of(context)!.saleInvoice,
+            AppLocalizations.of(context)!.saleInvoiceDescription,
             Icons.point_of_sale, AppColors.opSales);
       case TransactionType.purchase:
-        return const _TypeConfig('فاتورة شراء', 'إنشاء فاتورة شراء جديدة',
+        return _TypeConfig(
+            AppLocalizations.of(context)!.purchaseInvoice,
+            AppLocalizations.of(context)!.purchaseInvoiceDescription,
             Icons.shopping_bag, AppColors.opPurchases);
       case TransactionType.saleReturn:
-        return const _TypeConfig('مرتجع بيع', 'إرجاع منتجات من فاتورة بيع',
+        return _TypeConfig(
+            AppLocalizations.of(context)!.salesReturns,
+            AppLocalizations.of(context)!.salesReturnDescription,
             Icons.assignment_return, AppColors.warning);
       case TransactionType.purchaseReturn:
-        return const _TypeConfig('مرتجع شراء', 'إرجاع منتجات لشركة شراء',
+        return _TypeConfig(
+            AppLocalizations.of(context)!.purchaseReturns,
+            AppLocalizations.of(context)!.purchaseReturnDescription,
             Icons.assignment_return, AppColors.error);
       case TransactionType.quote:
-        return const _TypeConfig('عرض سعر', 'إنشاء عرض سعر للعميل',
+        return _TypeConfig(
+            AppLocalizations.of(context)!.priceQuote,
+            AppLocalizations.of(context)!.priceQuoteDescription,
             Icons.request_quote, AppColors.info);
       case TransactionType.purchaseOrder:
-        return const _TypeConfig('طلب شراء', 'إنشاء طلب شراء من مورد',
+        return _TypeConfig(
+            AppLocalizations.of(context)!.purchaseOrder,
+            AppLocalizations.of(context)!.purchaseOrderDescription,
             Icons.receipt, AppColors.opPurchases);
       case TransactionType.salesOrder:
-        return const _TypeConfig('طلبية عميل', 'استلام طلبية من عميل',
+        return _TypeConfig(
+            AppLocalizations.of(context)!.customerOrder,
+            AppLocalizations.of(context)!.customerOrderDescription,
             Icons.shopping_cart_checkout, AppColors.opSales);
     }
   }
@@ -290,37 +307,37 @@ class _UnifiedTransactionPageState extends State<UnifiedTransactionPage> {
     return _getConfigForType(type).label;
   }
 
-  List<TransactionField> _getFieldsForType(TransactionType type) {
-    const customerField = TransactionField(
-        label: 'العميل',
-        hint: 'اختر العميل',
+  List<TransactionField> _getFieldsForType(TransactionType type, AppLocalizations l10n) {
+    final customerField = TransactionField(
+        label: l10n.selectCustomerField,
+        hint: l10n.selectCustomer,
         required: true,
         type: TransactionFieldType.search);
-    const supplierField = TransactionField(
-        label: 'المورد',
-        hint: 'اختر المورد',
+    final supplierField = TransactionField(
+        label: l10n.selectSupplierField,
+        hint: l10n.selectSupplier,
         required: true,
         type: TransactionFieldType.search);
-    const dateField = TransactionField(
-        label: 'التاريخ',
-        hint: 'تاريخ المعاملة',
+    final dateField = TransactionField(
+        label: l10n.dateField,
+        hint: l10n.transactionDate,
         required: true,
         type: TransactionFieldType.date);
-    const notesField = TransactionField(
-        label: 'ملاحظات',
-        hint: 'ملاحظات إضافية',
+    final notesField = TransactionField(
+        label: l10n.notesField,
+        hint: l10n.additionalNotes,
         type: TransactionFieldType.text);
-    const amountField = TransactionField(
-        label: 'المبلغ',
+    final amountField = TransactionField(
+        label: l10n.amountField,
         hint: '0.00',
         required: true,
         type: TransactionFieldType.amount);
-    const paymentField = TransactionField(
-        label: 'طريقة الدفع',
-        hint: 'اختر طريقة الدفع',
+    final paymentField = TransactionField(
+        label: l10n.paymentMethodField,
+        hint: l10n.selectPaymentMethod,
         required: true,
         type: TransactionFieldType.dropdown,
-        options: ['نقدي', 'بنكي', 'شيك']);
+        options: [l10n.cash, l10n.bank, l10n.check]);
 
     switch (type) {
       case TransactionType.sale:

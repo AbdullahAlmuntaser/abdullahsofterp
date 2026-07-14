@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
+import 'package:supermarket/l10n/app_localizations.dart';
 import 'package:supermarket/presentation/features/accounting/wht_provider.dart';
 import 'package:supermarket/presentation/widgets/app_snack_bar.dart';
 
@@ -59,14 +60,14 @@ class _WithholdingTaxPageState extends State<WithholdingTaxPage> {
     return NumberFormat('#,##0.00', 'ar_SA').format(num);
   }
 
-  String _statusLabel(String status) {
+  String _statusLabel(String status, AppLocalizations l10n) {
     switch (status) {
       case 'PENDING':
-        return 'معلق';
+        return l10n.pending;
       case 'FILED':
-        return 'مُقدَّم';
+        return l10n.filed;
       case 'PAID':
-        return 'مدفوع';
+        return l10n.paid;
       default:
         return status;
     }
@@ -85,57 +86,58 @@ class _WithholdingTaxPageState extends State<WithholdingTaxPage> {
     }
   }
 
-  String _whtTypeLabel(String type) {
+  String _whtTypeLabel(String type, AppLocalizations l10n) {
     switch (type) {
       case 'DIVIDENDS':
-        return 'أرباح';
+        return l10n.dividends;
       case 'INTEREST':
-        return 'فوائد';
+        return l10n.interest;
       case 'ROYALTIES':
-        return 'حقوق ملكية فكرية';
+        return l10n.royalties;
       case 'SERVICE_FEES':
-        return 'أتعاب خدمات';
+        return l10n.serviceFees;
       case 'TECHNICAL_FEES':
-        return 'أتعاب فنية';
+        return l10n.technicalFees;
       case 'COMMISSIONS':
-        return 'عمولات';
+        return l10n.commissions;
       case 'RENT':
-        return 'إيجار';
+        return l10n.rent;
       case 'INSURANCE':
-        return 'تأمين';
+        return l10n.insurance;
       default:
         return type;
     }
   }
 
   Future<void> _showMarkAsFiledDialog(WithholdingTaxEntry entry) async {
+    final l10n = AppLocalizations.of(context)!;
     final refController = TextEditingController();
     final result = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('تقديم الضريبة'),
+        title: Text(l10n.fileTax),
         content: TextField(
           controller: refController,
-          decoration: const InputDecoration(
-            labelText: 'رقم المرجع',
-            border: OutlineInputBorder(),
+          decoration: InputDecoration(
+            labelText: l10n.referenceNumber,
+            border: const OutlineInputBorder(),
           ),
           autofocus: true,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('إلغاء'),
+            child: Text(l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () {
               if (refController.text.trim().isEmpty) {
-                AppSnackBar.warning(ctx, 'أدخل رقم المرجع');
+                AppSnackBar.warning(ctx, l10n.enterReferenceNumber);
                 return;
               }
               Navigator.pop(ctx, true);
             },
-            child: const Text('تأكيد'),
+            child: Text(l10n.confirmGeneric),
           ),
         ],
       ),
@@ -146,25 +148,26 @@ class _WithholdingTaxPageState extends State<WithholdingTaxPage> {
             refController.text.trim(),
           );
       if (mounted) {
-        AppSnackBar.success(context, 'تم تقديم الضريبة بنجاح');
+        AppSnackBar.success(context, l10n.taxFiledSuccessfully);
       }
     }
   }
 
   Future<void> _confirmMarkAsPaid(WithholdingTaxEntry entry) async {
+    final l10n = AppLocalizations.of(context)!;
     final result = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('تأكيد الدفع'),
-        content: const Text('هل أنت متأكد من تسجيل الدفع لهذه الضريبة؟'),
+        title: Text(l10n.confirmPayment),
+        content: Text(l10n.confirmPaymentMessage),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('إلغاء'),
+            child: Text(l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('تأكيد'),
+            child: Text(l10n.confirmGeneric),
           ),
         ],
       ),
@@ -172,16 +175,17 @@ class _WithholdingTaxPageState extends State<WithholdingTaxPage> {
     if (result == true && mounted) {
       await context.read<WhtProvider>().markAsPaid(entry.id);
       if (mounted) {
-        AppSnackBar.success(context, 'تم تسجيل الدفع بنجاح');
+        AppSnackBar.success(context, l10n.paymentSuccess);
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('ضريبة المصدر'),
+        title: Text(l10n.withholdingTax),
         actions: [
           PopupMenuButton<String>(
             onSelected: (val) {
@@ -192,10 +196,10 @@ class _WithholdingTaxPageState extends State<WithholdingTaxPage> {
             },
             icon: const Icon(Icons.filter_list),
             itemBuilder: (context) => [
-              const PopupMenuItem(value: 'ALL', child: Text('الكل')),
-              const PopupMenuItem(value: 'PENDING', child: Text('معلق')),
-              const PopupMenuItem(value: 'FILED', child: Text('مُقدَّم')),
-              const PopupMenuItem(value: 'PAID', child: Text('مدفوع')),
+              PopupMenuItem(value: 'ALL', child: Text(l10n.all)),
+              PopupMenuItem(value: 'PENDING', child: Text(l10n.pending)),
+              PopupMenuItem(value: 'FILED', child: Text(l10n.filed)),
+              PopupMenuItem(value: 'PAID', child: Text(l10n.paid)),
             ],
           ),
         ],
@@ -221,12 +225,12 @@ class _WithholdingTaxPageState extends State<WithholdingTaxPage> {
                 const SizedBox(height: 8),
                 ...provider.entries.map(_buildEntryCard),
                 if (provider.entries.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 40),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 40),
                     child: Center(
                       child: Text(
-                        'لا توجد قيود ضريبية في هذا الفترة',
-                        style: TextStyle(color: Colors.grey, fontSize: 16),
+                        l10n.noTaxEntriesInPeriod,
+                        style: const TextStyle(color: Colors.grey, fontSize: 16),
                       ),
                     ),
                   ),
@@ -239,6 +243,7 @@ class _WithholdingTaxPageState extends State<WithholdingTaxPage> {
   }
 
   Widget _buildDateFilters() {
+    final l10n = AppLocalizations.of(context)!;
     final fmt = DateFormat('yyyy-MM-dd');
     return Card(
       child: Padding(
@@ -249,12 +254,12 @@ class _WithholdingTaxPageState extends State<WithholdingTaxPage> {
               child: InkWell(
                 onTap: () => _pickDate(isStart: true),
                 child: InputDecorator(
-                  decoration: const InputDecoration(
-                    labelText: 'من تاريخ',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: l10n.fromDate,
+                    border: const OutlineInputBorder(),
                     isDense: true,
                     contentPadding:
-                        EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   ),
                   child: Text(fmt.format(_startDate)),
                 ),
@@ -265,12 +270,12 @@ class _WithholdingTaxPageState extends State<WithholdingTaxPage> {
               child: InkWell(
                 onTap: () => _pickDate(isStart: false),
                 child: InputDecorator(
-                  decoration: const InputDecoration(
-                    labelText: 'إلى تاريخ',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: l10n.toDate,
+                    border: const OutlineInputBorder(),
                     isDense: true,
                     contentPadding:
-                        EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   ),
                   child: Text(fmt.format(_endDate)),
                 ),
@@ -283,6 +288,7 @@ class _WithholdingTaxPageState extends State<WithholdingTaxPage> {
   }
 
   Widget _buildSummaryCard(WhtProvider provider) {
+    final l10n = AppLocalizations.of(context)!;
     final summary = provider.summary;
     return Card(
       color: Theme.of(context).colorScheme.primaryContainer,
@@ -292,7 +298,7 @@ class _WithholdingTaxPageState extends State<WithholdingTaxPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'ملخص ضريبة المصدر',
+              l10n.withholdingTaxSummary,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -302,11 +308,11 @@ class _WithholdingTaxPageState extends State<WithholdingTaxPage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 _summaryItem(
-                  'عدد القيود',
+                  l10n.entryCount,
                   summary != null ? '${summary.entryCount}' : '0',
                 ),
                 _summaryItem(
-                  'إجمالي المبلغ',
+                  l10n.totalAmount,
                   summary != null ? _formatAmount(summary.totalGrossAmount) : '0.00',
                 ),
               ],
@@ -316,11 +322,11 @@ class _WithholdingTaxPageState extends State<WithholdingTaxPage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 _summaryItem(
-                  'ضريبة المصدر',
+                  l10n.withholdingTax,
                   summary != null ? _formatAmount(summary.totalTaxAmount) : '0.00',
                 ),
                 _summaryItem(
-                  'صافي المبلغ',
+                  l10n.netAmount,
                   summary != null ? _formatAmount(summary.totalNetAmount) : '0.00',
                 ),
               ],
@@ -349,6 +355,7 @@ class _WithholdingTaxPageState extends State<WithholdingTaxPage> {
   }
 
   Widget _buildRatesReference() {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(12),
@@ -360,17 +367,17 @@ class _WithholdingTaxPageState extends State<WithholdingTaxPage> {
                 Icon(Icons.info_outline,
                     size: 18, color: Colors.blue.shade700),
                 const SizedBox(width: 6),
-                const Text(
-                  'معدلات ضريبة المصدر',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                Text(
+                  l10n.withholdingTaxRates,
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                 ),
               ],
             ),
             const Divider(),
-            _rateRow('أرباح / فوائد', '5%'),
-            _rateRow('حقوق ملكية فكرية / خدمات', '15%'),
-            _rateRow('أتعاب فنية / عمولات / إيجار', '15%'),
-            _rateRow('تأمين', '5%'),
+            _rateRow(l10n.dividendsInterest, '5%'),
+            _rateRow(l10n.royaltiesServices, '15%'),
+            _rateRow(l10n.technicalFeesCommissionsRent, '15%'),
+            _rateRow(l10n.insurance, '5%'),
           ],
         ),
       ),
@@ -398,16 +405,17 @@ class _WithholdingTaxPageState extends State<WithholdingTaxPage> {
   }
 
   Widget _buildEntriesHeader(WhtProvider provider) {
+    final l10n = AppLocalizations.of(context)!;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
-          'القيود (${provider.entries.length})',
+          l10n.entriesCount(provider.entries.length.toString()),
           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
         ),
         if (_statusFilter != null)
           Chip(
-            label: Text(_statusLabel(_statusFilter!)),
+            label: Text(_statusLabel(_statusFilter!, l10n)),
             backgroundColor: _statusColor(_statusFilter!),
             labelStyle: const TextStyle(color: Colors.white, fontSize: 12),
             onDeleted: () {
@@ -420,6 +428,7 @@ class _WithholdingTaxPageState extends State<WithholdingTaxPage> {
   }
 
   Widget _buildEntryCard(WithholdingTaxEntry entry) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: Padding(
@@ -431,7 +440,7 @@ class _WithholdingTaxPageState extends State<WithholdingTaxPage> {
               children: [
                 Expanded(
                   child: Text(
-                    'دفعة: ${entry.paymentId}',
+                    l10n.paymentLabel(entry.paymentId),
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 13,
@@ -449,14 +458,14 @@ class _WithholdingTaxPageState extends State<WithholdingTaxPage> {
                   },
                   itemBuilder: (context) => [
                     if (entry.status == 'PENDING' || entry.status == 'FILED')
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: 'FILED',
-                        child: Text('تقديم الضريبة'),
+                        child: Text(l10n.fileTax),
                       ),
                     if (entry.status == 'FILED')
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: 'PAID',
-                        child: Text('تسجيل الدفع'),
+                        child: Text(l10n.recordPayment),
                       ),
                   ],
                 ),
@@ -465,21 +474,21 @@ class _WithholdingTaxPageState extends State<WithholdingTaxPage> {
             const SizedBox(height: 8),
             Row(
               children: [
-                _infoChip('المورد', entry.supplierId),
+                _infoChip(l10n.supplier, entry.supplierId),
                 const SizedBox(width: 8),
-                _infoChip('النوع', _whtTypeLabel(entry.paymentType)),
+                _infoChip(l10n.typeLabel, _whtTypeLabel(entry.paymentType, l10n)),
               ],
             ),
             const SizedBox(height: 8),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _amountColumn('المبلغ الإجمالي', _formatAmount(entry.grossAmount)),
+                _amountColumn(l10n.grossAmount, _formatAmount(entry.grossAmount)),
                 _amountColumn(
-                  'الضريبة (${entry.taxRate}%)',
+                  l10n.taxWithRate(entry.taxRate.toString()),
                   _formatAmount(entry.taxAmount),
                 ),
-                _amountColumn('الصافي', _formatAmount(entry.netAmount)),
+                _amountColumn(l10n.net, _formatAmount(entry.netAmount)),
               ],
             ),
             const SizedBox(height: 8),
@@ -498,7 +507,7 @@ class _WithholdingTaxPageState extends State<WithholdingTaxPage> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
-                    _statusLabel(entry.status),
+                    _statusLabel(entry.status, l10n),
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 12,

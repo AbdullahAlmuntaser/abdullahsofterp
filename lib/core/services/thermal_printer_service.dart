@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:typed_data';
 import 'package:esc_pos_utils_plus/esc_pos_utils_plus.dart';
 import 'package:intl/intl.dart';
@@ -6,17 +7,29 @@ import 'package:supermarket/data/datasources/local/app_database.dart';
 
 enum PrinterConnectionType { bluetooth, usb, network }
 
+class _NetworkPrinter {
+  String name;
+  String host;
+  int port;
+
+  _NetworkPrinter(this.name, this.host, this.port);
+}
+
 class ThermalPrinterService {
   static PrinterConnectionType _connectionType =
-      PrinterConnectionType.bluetooth;
+      PrinterConnectionType.network;
   static String? _connectedDeviceName;
   static bool _isConnected = false;
   static int _paperSize = 80;
+  static Socket? _socket;
+  static _NetworkPrinter? _networkPrinter;
 
   static bool get isConnected => _isConnected;
   static String? get connectedDeviceName => _connectedDeviceName;
   static PrinterConnectionType get connectionType => _connectionType;
   static int get paperSize => _paperSize;
+  static String? get connectedHost => _networkPrinter?.host;
+  static int? get connectedPort => _networkPrinter?.port;
 
   static void setConnectionType(PrinterConnectionType type) {
     _connectionType = type;
@@ -28,15 +41,29 @@ class ThermalPrinterService {
 
   static Future<bool> connectToDevice({
     required String deviceName,
-    PrinterConnectionType type = PrinterConnectionType.bluetooth,
+    PrinterConnectionType type = PrinterConnectionType.network,
+    String? host,
+    int port = 9100,
   }) async {
     try {
+      await disconnect();
       _connectionType = type;
       _connectedDeviceName = deviceName;
+
+      if (type == PrinterConnectionType.network) {
+        if (host == null) return false;
+        _socket = await Socket.connect(host, port,
+            timeout: const Duration(seconds: 5));
+        _networkPrinter = _NetworkPrinter(deviceName, host, port);
+      }
+
       _isConnected = true;
       return true;
     } catch (e) {
       _isConnected = false;
+      _connectedDeviceName = null;
+      _socket = null;
+      _networkPrinter = null;
       return false;
     }
   }
@@ -44,14 +71,24 @@ class ThermalPrinterService {
   static Future<void> disconnect() async {
     _isConnected = false;
     _connectedDeviceName = null;
+    _networkPrinter = null;
+    try {
+      await _socket?.close();
+    } catch (_) {}
+    _socket = null;
   }
 
   static Future<List<Map<String, String>>> getAvailableDevices() async {
     return [
       {
-        'name': 'طابعة تجريبية',
-        'address': '00:00:00:00:00:00',
-        'type': 'bluetooth'
+        'name': 'Network Printer (port 9100)',
+        'address': '192.168.1.100:9100',
+        'type': 'network',
+      },
+      {
+        'name': 'Network Printer (port 9100)',
+        'address': '192.168.1.101:9100',
+        'type': 'network',
       },
     ];
   }
@@ -218,8 +255,22 @@ class ThermalPrinterService {
 
   static Future<void> _sendToPrinter(Uint8List bytes) async {
     try {
-      await Future.delayed(const Duration(milliseconds: 100));
+      switch (_connectionType) {
+        case PrinterConnectionType.network:
+          if (_socket != null) {
+            _socket!.add(bytes);
+            await _socket!.flush();
+          } else {
+            throw Exception('Socket not connected');
+          }
+          break;
+        case PrinterConnectionType.bluetooth:
+        case PrinterConnectionType.usb:
+          throw UnimplementedError(
+              '$_connectionType requires flutter_bluetooth_serial or native USB plugin');
+      }
     } catch (e) {
+      if (e is UnimplementedError) rethrow;
       throw Exception('فشل في إرسال البيانات للطابعة: $e');
     }
   }

@@ -1335,4 +1335,1984 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noUnmatchedTransactions => 'No unmatched transactions';
+
+  @override
+  String get accountingPeriods => 'Accounting Periods';
+
+  @override
+  String get autoGenerate => 'Auto Generate';
+
+  @override
+  String get cancelAutoGeneration => 'Cancel Auto Generation';
+
+  @override
+  String get periodName => 'Period Name';
+
+  @override
+  String get examplePeriodName => 'Example: January 2026';
+
+  @override
+  String get startDate => 'Start Date';
+
+  @override
+  String get endDate => 'End Date';
+
+  @override
+  String get selectDate => 'Select Date';
+
+  @override
+  String get existingPeriods => 'Existing Periods';
+
+  @override
+  String get noAccountingPeriods => 'No Accounting Periods';
+
+  @override
+  String get closePeriod => 'Close Period';
+
+  @override
+  String get openPeriod => 'Open Period';
+
+  @override
+  String get pleaseFillAllFields => 'Please fill all fields';
+
+  @override
+  String get periodAddedSuccessfully => 'Period added successfully';
+
+  @override
+  String get confirmClosePeriod => 'Confirm Close Period';
+
+  @override
+  String get closePeriodMessage => 'Profits will be transferred to retained earnings.';
+
+  @override
+  String get confirmGeneric => 'Confirm';
+
+  @override
+  String get failedToClosePeriod => 'Failed to close period';
+
+  @override
+  String get failedToReopenPeriod => 'Failed to reopen period';
+
+  @override
+  String get cannotDeleteClosedPeriod => 'Cannot delete a closed period';
+
+  @override
+  String get cannotDeletePeriodWithEntries => 'Cannot delete period: GL entries exist in this period';
+
+  @override
+  String get periodDeleted => 'Period deleted';
+
+  @override
+  String get createAutoPeriods => 'Create Auto Periods';
+
+  @override
+  String get year => 'Year';
+
+  @override
+  String get periodType => 'Period Type';
+
+  @override
+  String get monthly => 'Monthly (12 periods)';
+
+  @override
+  String get quarterly => 'Quarterly (4 periods)';
+
+  @override
+  String get yearly => 'Yearly (1 period)';
+
+  @override
+  String get autoPeriodInfo => 'Periods will be created automatically based on selection.';
+
+  @override
+  String periodsCreated(Object count) {
+    return '$count accounting periods created successfully';
+  }
+
+  @override
+  String failedToCreatePeriods(Object error) {
+    return 'Failed to create periods: $error';
+  }
+
+  @override
+  String get reopenPeriod => 'Reopen Period';
+
+  @override
+  String get addPeriod => 'Add Period';
+
+  @override
+  String get addManualPeriod => 'Add Manual Period';
+
+  @override
+  String get manualJournalEntry => 'Manual Journal Entry';
+
+  @override
+  String get addAccountToEntry => 'Add Account to Entry';
+
+  @override
+  String get entryDescription => 'Entry Description';
+
+  @override
+  String get entryDate => 'Entry Date';
+
+  @override
+  String get account => 'Account';
+
+  @override
+  String get amount => 'Amount';
+
+  @override
+  String get costCenter => 'Cost Center';
+
+  @override
+  String get noCostCenter => 'No Cost Center';
+
+  @override
+  String get saveAndPost => 'Save & Post';
+
+  @override
+  String get entryNotBalanced => 'Entry Not Balanced';
+
+  @override
+  String get pleaseEnterDescription => 'Please enter the entry description';
+
+  @override
+  String get cannotPostToClosedPeriod => 'Cannot post to a closed accounting period';
+
+  @override
+  String pleaseSelectAccountForLine(Object lineNumber) {
+    return 'Please select an account for line $lineNumber';
+  }
+
+  @override
+  String lineCannotHaveDebitAndCredit(Object lineNumber) {
+    return 'Line $lineNumber cannot have both debit and credit';
+  }
+
+  @override
+  String lineHasAccountWithoutAmount(Object lineNumber) {
+    return 'Line $lineNumber has an account without a debit or credit value';
+  }
+
+  @override
+  String get entrySavedAndPosted => 'Entry saved and posted successfully';
+
+  @override
+  String failedToSaveEntry(Object error) {
+    return 'Failed to save entry: $error';
+  }
+
+  @override
+  String get recurringEntries => 'Recurring Entries';
+
+  @override
+  String get executeDueEntries => 'Execute Due Entries';
+
+  @override
+  String get addRecurringEntry => 'Add Recurring Entry';
+
+  @override
+  String get noRecurringEntries => 'No recurring entries';
+
+  @override
+  String get tapToAddRecurringEntry => 'Tap + to add a new recurring entry';
+
+  @override
+  String get dailyFreq => 'Daily';
+
+  @override
+  String get weeklyFreq => 'Weekly';
+
+  @override
+  String get biweeklyFreq => 'Biweekly';
+
+  @override
+  String get monthlyFreq => 'Monthly';
+
+  @override
+  String get quarterlyFreq => 'Quarterly';
+
+  @override
+  String get yearlyFreq => 'Yearly';
+
+  @override
+  String get statusActive => 'Active';
+
+  @override
+  String get statusPaused => 'Paused';
+
+  @override
+  String get statusCompleted => 'Completed';
+
+  @override
+  String get statusUnknown => 'Unknown';
+
+  @override
+  String fromToAccounts(Object creditAccount, Object debitAccount) {
+    return 'From: $debitAccount To: $creditAccount';
+  }
+
+  @override
+  String nextExecutionDate(Object date) {
+    return 'Next execution: $date';
+  }
+
+  @override
+  String executedCount(Object count, Object total) {
+    return 'Executed: $count/$total';
+  }
+
+  @override
+  String executedCountNoLimit(Object count) {
+    return 'Executed: $count';
+  }
+
+  @override
+  String get pause => 'Pause';
+
+  @override
+  String get resume => 'Resume';
+
+  @override
+  String get executeNow => 'Execute Now';
+
+  @override
+  String get executionHistory => 'Execution History';
+
+  @override
+  String get confirmDeleteTitle => 'Confirm Delete';
+
+  @override
+  String confirmDeleteRecurringEntry(Object entryName) {
+    return 'Are you sure you want to delete \"$entryName\"?';
+  }
+
+  @override
+  String get entryName => 'Entry Name';
+
+  @override
+  String get debitAccountCode => 'Debit Account Code';
+
+  @override
+  String get creditAccountCode => 'Credit Account Code';
+
+  @override
+  String get frequency => 'Frequency';
+
+  @override
+  String get referenceType => 'Reference Type';
+
+  @override
+  String get expenseType => 'Expense';
+
+  @override
+  String get revenueType => 'Revenue';
+
+  @override
+  String get customType => 'Custom';
+
+  @override
+  String get close => 'Close';
+
+  @override
+  String executionHistoryFor(Object name) {
+    return 'Execution History - $name';
+  }
+
+  @override
+  String get noExecutionHistory => 'No execution history';
+
+  @override
+  String get entryExecutedSuccessfully => 'Entry executed successfully';
+
+  @override
+  String get pleaseFillRequiredFields => 'Please fill all required fields';
+
+  @override
+  String executionResult(Object fail, Object success) {
+    return 'Executed: $success succeeded, $fail failed';
+  }
+
+  @override
+  String errorWithMessage(Object error) {
+    return 'Error: $error';
+  }
+
+  @override
+  String get cashReceiptVoucher => 'Cash Receipt Voucher';
+
+  @override
+  String get cashPaymentVoucher => 'Cash Payment Voucher';
+
+  @override
+  String get receiptIn => 'Receipt (In)';
+
+  @override
+  String get paymentOut => 'Payment (Out)';
+
+  @override
+  String get creditAccountSource => 'Credit Account (Source)';
+
+  @override
+  String get debitAccountEntity => 'Debit Account (Entity)';
+
+  @override
+  String get categoryHint => 'Category (e.g. Rent, Salaries)';
+
+  @override
+  String get requiredField => 'Required';
+
+  @override
+  String get voucherSavedSuccessfully => 'Voucher saved successfully';
+
+  @override
+  String get saveReceiptVoucher => 'Save Receipt Voucher';
+
+  @override
+  String get savePaymentVoucher => 'Save Payment Voucher';
+
+  @override
+  String get checkManagement => 'Check Management';
+
+  @override
+  String get checkType => 'Check Type';
+
+  @override
+  String get receivedChecks => 'Received Checks (from customers)';
+
+  @override
+  String get issuedChecks => 'Issued Checks (to suppliers)';
+
+  @override
+  String get checkNumber => 'Check Number';
+
+  @override
+  String get bankName => 'Bank Name';
+
+  @override
+  String get customer => 'Customer';
+
+  @override
+  String get paymentCollectionAccount => 'Payment/Collection Account';
+
+  @override
+  String get saveCheck => 'Save Check';
+
+  @override
+  String get noChecks => 'No checks.';
+
+  @override
+  String checkInfo(Object bank, Object number) {
+    return 'Check No: $number - $bank';
+  }
+
+  @override
+  String checkDetails(Object amount, Object dueDate, Object status) {
+    return 'Amount: $amount - Due: $dueDate\nStatus: $status';
+  }
+
+  @override
+  String get collect => 'Collect';
+
+  @override
+  String get reject => 'Reject/Bounce';
+
+  @override
+  String checkCollected(Object checkNumber) {
+    return 'Collection of check: $checkNumber';
+  }
+
+  @override
+  String checkBounced(Object checkNumber) {
+    return 'Bounced check: $checkNumber';
+  }
+
+  @override
+  String checkStatusUpdated(Object status) {
+    return 'Check status updated to $status';
+  }
+
+  @override
+  String get fixedAssetsManagement => 'Fixed Assets Management';
+
+  @override
+  String get confirmDepreciation => 'Are you sure you want to run monthly depreciation for all assets? This will happen in the background.';
+
+  @override
+  String get run => 'Run';
+
+  @override
+  String get depreciationCompleted => 'Depreciation calculation completed successfully.';
+
+  @override
+  String get calculateMonthlyDepreciation => 'Calculate Monthly Depreciation';
+
+  @override
+  String get noFixedAssets => 'No fixed assets registered yet.';
+
+  @override
+  String get startAddingAsset => 'Start by adding a new asset from the button below.';
+
+  @override
+  String get addAsset => 'Add Asset';
+
+  @override
+  String get purchaseDate => 'Purchase Date';
+
+  @override
+  String get originalCost => 'Original Cost';
+
+  @override
+  String get usefulLife => 'Useful Life';
+
+  @override
+  String years(Object years) {
+    return '$years years';
+  }
+
+  @override
+  String get salvageValue => 'Salvage Value';
+
+  @override
+  String get accumulatedDepreciation => 'Accumulated Depreciation';
+
+  @override
+  String get netBookValue => 'Net Book Value';
+
+  @override
+  String get accountOptional => 'Accounting Account (Optional)';
+
+  @override
+  String get active => 'Active';
+
+  @override
+  String get additionalNotes => 'Additional notes...';
+
+  @override
+  String get actual => 'Actual';
+
+  @override
+  String autoReconcileCount(Object count) {
+    return '$count transaction(s) auto-reconciled';
+  }
+
+  @override
+  String autoReconcileError(Object error) {
+    return 'Auto reconcile error: $error';
+  }
+
+  @override
+  String get bankAccount => 'Bank Account';
+
+  @override
+  String get bankTransfer => 'Bank Transfer';
+
+  @override
+  String get budgetCreated => 'Budget created successfully';
+
+  @override
+  String get budgetList => 'Budget List';
+
+  @override
+  String get budgetName => 'Budget Name';
+
+  @override
+  String get budgeted => 'Budgeted';
+
+  @override
+  String get budgetedAmount => 'Budgeted Amount';
+
+  @override
+  String get budgets => 'Budgets';
+
+  @override
+  String get cashOverShortNotFound => 'Cash or cash over/short account not found';
+
+  @override
+  String get check => 'Check';
+
+  @override
+  String checkDueDate(Object date) {
+    return 'Check Due Date: $date';
+  }
+
+  @override
+  String get closed => 'Closed';
+
+  @override
+  String get commission => 'Commission';
+
+  @override
+  String get confirmAndRecordReconciliation => 'Confirm and Record Reconciliation';
+
+  @override
+  String consumedPercent(Object percent) {
+    return '$percent% consumed';
+  }
+
+  @override
+  String get costCenterOptional => 'Cost Center (Optional)';
+
+  @override
+  String get createBudget => 'Create Budget';
+
+  @override
+  String get createBudgetHint => 'Create a new budget from the second tab';
+
+  @override
+  String get creating => 'Creating...';
+
+  @override
+  String get description => 'Description';
+
+  @override
+  String get enterAmountPrompt => 'Please enter an amount';
+
+  @override
+  String get enterBudgetNameError => 'Please enter a budget name';
+
+  @override
+  String errorLoadingTransactions(Object error) {
+    return 'Error loading transactions: $error';
+  }
+
+  @override
+  String get fromAccount => 'From Account';
+
+  @override
+  String get fromDate => 'From Date';
+
+  @override
+  String get general => 'General';
+
+  @override
+  String get noBudgetsFound => 'No budgets found';
+
+  @override
+  String get payTo => 'Pay To';
+
+  @override
+  String get paymentVoucher => 'Payment Voucher';
+
+  @override
+  String get paymentVoucherSaved => 'Payment voucher saved successfully';
+
+  @override
+  String periodLabel(Object period) {
+    return 'Period: $period';
+  }
+
+  @override
+  String get q1 => 'Q1';
+
+  @override
+  String get q2 => 'Q2';
+
+  @override
+  String get q3 => 'Q3';
+
+  @override
+  String get q4 => 'Q4';
+
+  @override
+  String get receiptVoucher => 'Receipt Voucher';
+
+  @override
+  String get receiptVoucherSaved => 'Receipt voucher saved successfully';
+
+  @override
+  String get receiveFrom => 'Receive From';
+
+  @override
+  String reconcileAllConfirm(Object count) {
+    return 'Do you want to reconcile all $count unmatched transactions?';
+  }
+
+  @override
+  String reconcileAllSuccess(Object count) {
+    return 'All $count transactions reconciled successfully';
+  }
+
+  @override
+  String reconcileSuccessCount(Object count) {
+    return '$count transaction(s) reconciled successfully';
+  }
+
+  @override
+  String reconciliationDescription(Object note) {
+    return 'Reconciliation: $note';
+  }
+
+  @override
+  String reconciliationError(Object error) {
+    return 'Reconciliation error: $error';
+  }
+
+  @override
+  String get reconciliationNotes => 'Reconciliation Notes';
+
+  @override
+  String get reconciliationNotesHint => 'Reconciliation notes...';
+
+  @override
+  String get reconciliationSuccess => 'Reconciliation recorded successfully';
+
+  @override
+  String get recordTransfer => 'Record Transfer';
+
+  @override
+  String get reference => 'Reference';
+
+  @override
+  String get refresh => 'Refresh';
+
+  @override
+  String saveFailed(Object error) {
+    return 'Save failed: $error';
+  }
+
+  @override
+  String get search => 'Search';
+
+  @override
+  String get selectAccountsError => 'Please select accounts';
+
+  @override
+  String get selectBankAccountPrompt => 'Select a bank account to start reconciliation';
+
+  @override
+  String get selectCustomerOrSupplier => 'Please select a customer or supplier';
+
+  @override
+  String get selectedTransactions => 'Selected Transactions';
+
+  @override
+  String get toAccount => 'To Account';
+
+  @override
+  String get toDate => 'To Date';
+
+  @override
+  String get transferCompany => 'Transfer Company';
+
+  @override
+  String transferItem(Object amount) {
+    return 'Transfer: $amount';
+  }
+
+  @override
+  String get transferSuccess => 'Transfer completed successfully';
+
+  @override
+  String get transferType => 'Transfer Type';
+
+  @override
+  String get transfers => 'Financial Transfers';
+
+  @override
+  String get variance => 'Variance';
+
+  @override
+  String get customizeDashboard => 'Customize Dashboard';
+
+  @override
+  String get dragToReorderHint => 'Drag to reorder, tap the eye to show/hide section';
+
+  @override
+  String get favorites => 'Favorites';
+
+  @override
+  String get tapStarToPin => 'Tap ⭐ on any screen to pin it here';
+
+  @override
+  String favoriteItems(Object count) {
+    return '$count items';
+  }
+
+  @override
+  String get sell => 'Sell';
+
+  @override
+  String get saleInvoice => 'Sale Invoice';
+
+  @override
+  String get saleInvoiceDescription => 'Create a new sale invoice';
+
+  @override
+  String get priceQuote => 'Price Quote';
+
+  @override
+  String get priceQuoteDescription => 'Create a price quote for customer';
+
+  @override
+  String get customerOrder => 'Customer Order';
+
+  @override
+  String get customerOrderDescription => 'Receive an order from customer';
+
+  @override
+  String get purchaseInvoice => 'Purchase Invoice';
+
+  @override
+  String get purchaseInvoiceDescription => 'Create a new purchase invoice';
+
+  @override
+  String get purchaseOrder => 'Purchase Order';
+
+  @override
+  String get purchaseOrderDescription => 'Create a purchase order from supplier';
+
+  @override
+  String get newOperation => 'New Operation';
+
+  @override
+  String get inventory => 'Inventory';
+
+  @override
+  String get cashboxes => 'Cash Boxes';
+
+  @override
+  String get stockTake => 'Stock Take';
+
+  @override
+  String get inventoryTransfer => 'Inventory Transfer';
+
+  @override
+  String get printBarcode => 'Print Barcode';
+
+  @override
+  String get deposit => 'Deposit';
+
+  @override
+  String get withdraw => 'Withdraw';
+
+  @override
+  String get transfer => 'Transfer';
+
+  @override
+  String get salesReport => 'Sales Report';
+
+  @override
+  String get purchasesReport => 'Purchases Report';
+
+  @override
+  String get profitReport => 'Profit Report';
+
+  @override
+  String get inventoryReport => 'Inventory Report';
+
+  @override
+  String get quickAccess => 'Quick Access';
+
+  @override
+  String get clearHistory => 'Clear History';
+
+  @override
+  String get now => 'Now';
+
+  @override
+  String minutesAgo(Object minutes) {
+    return '${minutes}m ago';
+  }
+
+  @override
+  String hoursAgo(Object hours) {
+    return '${hours}h ago';
+  }
+
+  @override
+  String daysAgo(Object days) {
+    return '${days}d ago';
+  }
+
+  @override
+  String get todaysBusiness => 'Today\'s Business';
+
+  @override
+  String get todayPurchases => 'Today\'s Purchases';
+
+  @override
+  String get invoiceCount => 'Invoice Count';
+
+  @override
+  String get newCustomers => 'New Customers';
+
+  @override
+  String get profit => 'Profit';
+
+  @override
+  String get productsSold => 'Products Sold';
+
+  @override
+  String get thisWeekSales => 'This Week\'s Sales';
+
+  @override
+  String get thisWeekPurchases => 'This Week\'s Purchases';
+
+  @override
+  String get transactionSettings => 'Transaction Settings';
+
+  @override
+  String get transactionType => 'Transaction Type';
+
+  @override
+  String get thisFieldRequired => 'This field is required';
+
+  @override
+  String get transactionSavedSuccessfully => 'Transaction saved successfully';
+
+  @override
+  String get selectPaymentMethod => 'Select Payment Method';
+
+  @override
+  String get quickPos => 'Quick POS';
+
+  @override
+  String get sellMode => 'Sell Mode';
+
+  @override
+  String get retailMode => 'Retail Mode';
+
+  @override
+  String get wholesaleModeDescription => 'Wholesale Mode';
+
+  @override
+  String get holdSale => 'Hold Sale';
+
+  @override
+  String get saleHeld => 'Sale held';
+
+  @override
+  String get recallSale => 'Recall Held Sale';
+
+  @override
+  String get heldSales => 'Held Sales';
+
+  @override
+  String itemsCount(Object count) {
+    return '$count items';
+  }
+
+  @override
+  String get currencySar => 'SAR';
+
+  @override
+  String get checkoutSuccess => 'Sale completed successfully';
+
+  @override
+  String get cashCustomer => 'Cash Customer';
+
+  @override
+  String get howToSendInvoice => 'How would you like to send the invoice?';
+
+  @override
+  String get later => 'Later';
+
+  @override
+  String get print => 'Print';
+
+  @override
+  String get share => 'Share';
+
+  @override
+  String get returnSuccessTitle => 'Return Processed Successfully';
+
+  @override
+  String returnId(Object id) {
+    return 'Return ID: $id';
+  }
+
+  @override
+  String originalInvoice(Object id) {
+    return 'Original Invoice: $id';
+  }
+
+  @override
+  String returnAmount(Object amount) {
+    return 'Return Amount: $amount SAR';
+  }
+
+  @override
+  String get salesReturnDescription => 'Return products from a sale invoice';
+
+  @override
+  String get purchaseReturnDescription => 'Return products to a supplier';
+
+  @override
+  String get saleInvoiceLabel => 'Sale Invoice';
+
+  @override
+  String get purchaseInvoiceLabel => 'Purchase Invoice';
+
+  @override
+  String get salesReturnLabel => 'Sales Return';
+
+  @override
+  String get purchaseReturnLabel => 'Purchase Return';
+
+  @override
+  String get priceQuoteLabel => 'Price Quote';
+
+  @override
+  String get purchaseOrderLabel => 'Purchase Order';
+
+  @override
+  String get customerOrderLabel => 'Customer Order';
+
+  @override
+  String get transactionDate => 'Transaction date';
+
+  @override
+  String get bank => 'Bank';
+
+  @override
+  String get cashCustomerFallback => 'Cash Customer';
+
+  @override
+  String invoiceNo(Object id) {
+    return 'Invoice No: #$id';
+  }
+
+  @override
+  String totalAmountWithCurrency(Object amount) {
+    return 'Total: $amount SAR';
+  }
+
+  @override
+  String customerNameLabel(Object customer) {
+    return 'Customer: $customer';
+  }
+
+  @override
+  String get thankYouForShopping => 'Thank you for shopping with us!';
+
+  @override
+  String get supplierStatement => 'Supplier Statement';
+
+  @override
+  String get todaySalesKpi => 'Today\'s Sales';
+
+  @override
+  String get todayPurchasesKpi => 'Today\'s Purchases';
+
+  @override
+  String get freshCustomers => 'New Customers';
+
+  @override
+  String get itemsSold => 'Products Sold';
+
+  @override
+  String get selectCustomerField => 'Customer';
+
+  @override
+  String get selectSupplierField => 'Supplier';
+
+  @override
+  String get dateField => 'Date';
+
+  @override
+  String get notesField => 'Notes';
+
+  @override
+  String get amountField => 'Amount';
+
+  @override
+  String get paymentMethodField => 'Payment Method';
+
+  @override
+  String get accessDenied => 'Access Denied';
+
+  @override
+  String get accessDeniedMessage => 'Sorry, you do not have permission to access this page.';
+
+  @override
+  String get backToHome => 'Back to Home';
+
+  @override
+  String get noTransactionsToPrint => 'No transactions to print';
+
+  @override
+  String get customerNotFound => 'Customer not found';
+
+  @override
+  String get totalPayments => 'Total Payments';
+
+  @override
+  String get remainingBalance => 'Remaining Balance';
+
+  @override
+  String get noFinancialMovements => 'No financial movements for this customer';
+
+  @override
+  String get statementLabel => 'Statement';
+
+  @override
+  String payInvoicesFor(Object name) {
+    return 'Pay Invoices for $name';
+  }
+
+  @override
+  String get selectAtLeastOneInvoice => 'Please select at least one invoice';
+
+  @override
+  String invoiceHash(Object id) {
+    return 'Invoice #$id';
+  }
+
+  @override
+  String get amountPaidLabel => 'Amount Paid';
+
+  @override
+  String get netProfit => 'Net Profit';
+
+  @override
+  String get pendingOrders => 'Pending Orders';
+
+  @override
+  String get stockAlerts => 'Stock Alerts';
+
+  @override
+  String get creditExceeded => 'Credit Exceeded';
+
+  @override
+  String get sat => 'Sat';
+
+  @override
+  String get sun => 'Sun';
+
+  @override
+  String get mon => 'Mon';
+
+  @override
+  String get tue => 'Tue';
+
+  @override
+  String get wed => 'Wed';
+
+  @override
+  String get thu => 'Thu';
+
+  @override
+  String get fri => 'Fri';
+
+  @override
+  String get topSellingToday => 'Top Selling Today';
+
+  @override
+  String qtyLabel(Object qty) {
+    return 'Qty: $qty';
+  }
+
+  @override
+  String remainingLabel(Object amount) {
+    return 'Remaining: $amount';
+  }
+
+  @override
+  String get productCategories => 'Product Categories';
+
+  @override
+  String get retry => 'Retry';
+
+  @override
+  String get noData => 'No Data';
+
+  @override
+  String errorLabel(Object error) {
+    return 'Error: $error';
+  }
+
+  @override
+  String get cashBalance => 'Cash Balance';
+
+  @override
+  String get lowStockSupply => 'Low Stock';
+
+  @override
+  String get newOperationDesc => 'Sale, Purchase, Return, Voucher, or any other operation';
+
+  @override
+  String get quickOperations => 'Quick Operations';
+
+  @override
+  String get buyAction => 'Buy';
+
+  @override
+  String get customerAction => 'Customer';
+
+  @override
+  String get productAction => 'Product';
+
+  @override
+  String get supplierAction => 'Supplier';
+
+  @override
+  String get reportAction => 'Report';
+
+  @override
+  String get mainSections => 'Main Sections';
+
+  @override
+  String get operationsSection => 'Operations';
+
+  @override
+  String get accountingSection => 'Accounting';
+
+  @override
+  String get partiesSection => 'Parties';
+
+  @override
+  String get adminSection => 'Admin';
+
+  @override
+  String get newLabel => 'New';
+
+  @override
+  String get menuLabel => 'Menu';
+
+  @override
+  String get advancedSearch => 'Advanced Search';
+
+  @override
+  String get attentionCenter => 'Attention Center';
+
+  @override
+  String get noAlerts => 'No alerts currently';
+
+  @override
+  String get timelineLabel => 'Timeline';
+
+  @override
+  String get timelineEmpty => 'No operations yet';
+
+  @override
+  String get allocateAmountToInvoices => 'Allocate Amount to Invoices';
+
+  @override
+  String allocated(Object amount) {
+    return 'Allocated: $amount';
+  }
+
+  @override
+  String get annual => 'Annual';
+
+  @override
+  String get approvalWorkflow => 'Approval Workflow';
+
+  @override
+  String get approve => 'Approve';
+
+  @override
+  String get approved => 'Approved';
+
+  @override
+  String get assetName => 'Asset Name';
+
+  @override
+  String assetsAndLiabilities(Object assets, Object liabilities) {
+    return 'Assets: $assets | Liabilities: $liabilities';
+  }
+
+  @override
+  String get autoAllocateOldestFirst => 'Auto-Allocate (Oldest First)';
+
+  @override
+  String byUser(Object user) {
+    return 'by $user';
+  }
+
+  @override
+  String get calculate => 'Calculate';
+
+  @override
+  String get calculateNewZakat => 'Calculate New Zakat';
+
+  @override
+  String get calculateZakat => 'Calculate Zakat';
+
+  @override
+  String get calculationType => 'Calculation Type';
+
+  @override
+  String get change => 'Change';
+
+  @override
+  String closeDate(Object date) {
+    return 'Close Date: $date';
+  }
+
+  @override
+  String closeFailed(Object error) {
+    return 'Close failed: $error';
+  }
+
+  @override
+  String get closeYearDescription => 'All revenue and expense balances will be transferred to retained earnings, and temporary accounts will be zeroed for the new year.';
+
+  @override
+  String get commissions => 'Commissions';
+
+  @override
+  String get confirmClose => 'Confirm Close';
+
+  @override
+  String get confirmPayment => 'Confirm Payment';
+
+  @override
+  String get confirmPaymentMessage => 'Are you sure you want to record payment for this tax?';
+
+  @override
+  String get cost => 'Cost';
+
+  @override
+  String get createRevaluationEntry => 'Create Revaluation Entry';
+
+  @override
+  String get demoRequest => 'Demo Request';
+
+  @override
+  String get demoRequestNote => 'Demo request to activate the approval workflow until it is linked to purchase forms.';
+
+  @override
+  String get dividends => 'Dividends';
+
+  @override
+  String get dividendsInterest => 'Dividends / Interest';
+
+  @override
+  String get editAsset => 'Edit Asset';
+
+  @override
+  String get enterReferenceNumber => 'Enter reference number';
+
+  @override
+  String entriesCount(Object count) {
+    return 'Entries ($count)';
+  }
+
+  @override
+  String get entryCount => 'Entry Count';
+
+  @override
+  String errorLoadingApprovalRequests(Object error) {
+    return 'Error loading approval requests: $error';
+  }
+
+  @override
+  String failedToAddAsset(Object error) {
+    return 'Failed to add asset: $error';
+  }
+
+  @override
+  String failedToCalculateDepreciation(Object error) {
+    return 'Failed to calculate depreciation: $error';
+  }
+
+  @override
+  String failedToLoadAssets(Object error) {
+    return 'Failed to load assets: $error';
+  }
+
+  @override
+  String failedToUpdateAsset(Object error) {
+    return 'Failed to update asset: $error';
+  }
+
+  @override
+  String failedToUpdateRequest(Object error) {
+    return 'Failed to update approval request: $error';
+  }
+
+  @override
+  String get file => 'File';
+
+  @override
+  String get fileTax => 'File Tax';
+
+  @override
+  String get filed => 'Filed';
+
+  @override
+  String get grossAmount => 'Gross Amount';
+
+  @override
+  String get insurance => 'Insurance';
+
+  @override
+  String get interest => 'Interest';
+
+  @override
+  String get invoiceAlreadyApproved => 'Approved Invoice: Cannot Edit';
+
+  @override
+  String get invoiceApprovedMessage => 'This invoice has been approved. Would you like to make a correction?';
+
+  @override
+  String invoiceWithId(Object id) {
+    return 'Invoice #$id';
+  }
+
+  @override
+  String get largePurchaseRequest => 'Large Purchase Request';
+
+  @override
+  String manualJournalEntryAudit(Object description, Object total) {
+    return 'Manual entry: $description, Total: $total';
+  }
+
+  @override
+  String get net => 'Net';
+
+  @override
+  String get netAmount => 'Net Amount';
+
+  @override
+  String get newAsset => 'New Asset';
+
+  @override
+  String get noApprovalRequests => 'No approval requests at this time';
+
+  @override
+  String get noOutstandingInvoices => 'No outstanding invoices for this customer.';
+
+  @override
+  String get noTaxEntriesInPeriod => 'No tax entries in this period';
+
+  @override
+  String get noZakatCalculations => 'No zakat calculations';
+
+  @override
+  String get paid => 'Paid';
+
+  @override
+  String get paidZakat => 'Paid Zakat';
+
+  @override
+  String get pay => 'Pay';
+
+  @override
+  String paymentLabel(Object paymentId) {
+    return 'Payment: $paymentId';
+  }
+
+  @override
+  String get pendingZakat => 'Pending Zakat';
+
+  @override
+  String get periodYear => 'Period (Year)';
+
+  @override
+  String get pleaseEnterValidNumber => 'Please enter a valid number';
+
+  @override
+  String purchaseDateLabel(Object date) {
+    return 'Purchase Date: $date';
+  }
+
+  @override
+  String get recordPayment => 'Record Payment';
+
+  @override
+  String get referenceNumber => 'Reference Number';
+
+  @override
+  String get rejected => 'Rejected';
+
+  @override
+  String remainingToAllocate(Object amount) {
+    return 'Remaining to allocate: $amount';
+  }
+
+  @override
+  String get rent => 'Rent';
+
+  @override
+  String get revaluationReason => 'Payment revaluation';
+
+  @override
+  String get requestApproved => 'Request approved';
+
+  @override
+  String get requestRejected => 'Request rejected';
+
+  @override
+  String get royalties => 'Royalties';
+
+  @override
+  String get royaltiesServices => 'Royalties / Services';
+
+  @override
+  String get saveChanges => 'Save Changes';
+
+  @override
+  String get serviceFees => 'Service Fees';
+
+  @override
+  String statusWithValue(Object status) {
+    return 'Status: $status';
+  }
+
+  @override
+  String get taxFiledSuccessfully => 'Tax filed successfully';
+
+  @override
+  String taxWithRate(Object rate) {
+    return 'Tax ($rate%)';
+  }
+
+  @override
+  String get technicalFees => 'Technical Fees';
+
+  @override
+  String get technicalFeesCommissionsRent => 'Technical Fees / Commissions / Rent';
+
+  @override
+  String totalAndBalance(Object balance, Object total) {
+    return 'Total: $total | Remaining: $balance';
+  }
+
+  @override
+  String get totalZakat => 'Total Zakat';
+
+  @override
+  String get typeLabel => 'Type';
+
+  @override
+  String unbalancedEntryError(Object credit, Object debit) {
+    return 'Entry is not balanced. Debit: $debit, Credit: $credit';
+  }
+
+  @override
+  String get unifiedStatement => 'Unified Statement';
+
+  @override
+  String get usefulLifeYears => 'Useful Life (Years)';
+
+  @override
+  String get withholdingTax => 'Withholding Tax';
+
+  @override
+  String get withholdingTaxRates => 'Withholding Tax Rates';
+
+  @override
+  String get withholdingTaxSummary => 'Withholding Tax Summary';
+
+  @override
+  String get yearClosedSuccessfully => 'Financial year closed successfully';
+
+  @override
+  String get zakat => 'Zakat';
+
+  @override
+  String zakatAmount(Object amount) {
+    return 'Zakat: $amount';
+  }
+
+  @override
+  String get zakatCalculatedSuccessfully => 'Zakat calculated successfully';
+
+  @override
+  String get zakatFiledSuccessfully => 'Zakat filed successfully';
+
+  @override
+  String get zakatPaidSuccessfully => 'Zakat paid successfully';
+
+  @override
+  String get serialNumbers => 'Serial Numbers';
+
+  @override
+  String get history => 'History';
+
+  @override
+  String get noSerialNumbers => 'No serial numbers';
+
+  @override
+  String get inStock => 'In Stock';
+
+  @override
+  String get soldStatus => 'Sold';
+
+  @override
+  String get reservedStatus => 'Reserved';
+
+  @override
+  String get returnedStatus => 'Returned';
+
+  @override
+  String productWithName(Object name) {
+    return 'Product: $name';
+  }
+
+  @override
+  String warehouseWithName(Object name) {
+    return 'Warehouse: $name';
+  }
+
+  @override
+  String batchWithName(Object name) {
+    return 'Batch: $name';
+  }
+
+  @override
+  String receivedDateWithDate(Object date) {
+    return 'Received Date: $date';
+  }
+
+  @override
+  String get reserve => 'Reserve';
+
+  @override
+  String get restock => 'Restock';
+
+  @override
+  String get addSerialNumber => 'Add Serial Number';
+
+  @override
+  String get serialNumberLabel => 'Serial Number';
+
+  @override
+  String get serialNumberAdded => 'Serial number added successfully';
+
+  @override
+  String get bulkRegister => 'Add Multiple Serial Numbers';
+
+  @override
+  String get serialNumbersOnePerLine => 'Serial numbers (one per line)';
+
+  @override
+  String get registerAll => 'Register All';
+
+  @override
+  String get enterAtLeastOneSerial => 'Please enter at least one serial number';
+
+  @override
+  String serialBulkRegistered(Object count, Object total) {
+    return 'Registered $count of $total serial numbers';
+  }
+
+  @override
+  String get reserveSerialNumber => 'Reserve Serial Number';
+
+  @override
+  String get salesOrderNumber => 'Sales Order Number';
+
+  @override
+  String get enterSalesOrderNumber => 'Please enter the sales order number';
+
+  @override
+  String get serialReserved => 'Serial number reserved';
+
+  @override
+  String get registerSerialSale => 'Register Serial Sale';
+
+  @override
+  String get saleNumber => 'Sale Number';
+
+  @override
+  String get enterSaleNumber => 'Please enter the sale number';
+
+  @override
+  String get saleRegistered => 'Sale registered successfully';
+
+  @override
+  String get registerSale => 'Register Sale';
+
+  @override
+  String get confirmReturn => 'Confirm Return';
+
+  @override
+  String confirmReturnMessage(Object serialNumber) {
+    return 'Do you want to mark serial number \"$serialNumber\" as returned?';
+  }
+
+  @override
+  String get returnRegistered => 'Return registered successfully';
+
+  @override
+  String get serialNumberHistory => 'Serial Number History';
+
+  @override
+  String get viewHistory => 'View History';
+
+  @override
+  String get shiftReport => 'Shift Report';
+
+  @override
+  String get noShiftsYet => 'No shifts yet';
+
+  @override
+  String get openStatus => 'Open';
+
+  @override
+  String get closedStatus => 'Closed';
+
+  @override
+  String userWithId(Object userId) {
+    return 'User: $userId';
+  }
+
+  @override
+  String openingCashAmount(Object amount) {
+    return 'Opening Cash: $amount';
+  }
+
+  @override
+  String closingCashAmount(Object amount) {
+    return 'Closing Cash: $amount';
+  }
+
+  @override
+  String noteWithText(Object note) {
+    return 'Note: $note';
+  }
+
+  @override
+  String get viewReport => 'View Report';
+
+  @override
+  String get shiftStart => 'Shift Start';
+
+  @override
+  String get shiftEnd => 'Shift End';
+
+  @override
+  String get durationLabel => 'Duration';
+
+  @override
+  String expectedCashAmount(Object amount) {
+    return 'Expected Cash: $amount';
+  }
+
+  @override
+  String differenceAmount(Object amount) {
+    return 'Difference: $amount';
+  }
+
+  @override
+  String get cashTotal => 'Cash';
+
+  @override
+  String get cardTotal => 'Card';
+
+  @override
+  String shiftNotes(Object note) {
+    return 'Notes: $note';
+  }
+
+  @override
+  String get stockTakeTitle => 'Stock Take';
+
+  @override
+  String get selectWarehouseToStart => 'Please select a warehouse to start stock take';
+
+  @override
+  String get addItem => 'Add Item';
+
+  @override
+  String get targetWarehouse => 'Target Warehouse';
+
+  @override
+  String get startStockTakeSession => 'Start New Stock Take Session';
+
+  @override
+  String get noItemsInSession => 'No items in this session yet';
+
+  @override
+  String get expectedSystem => 'Expected (System)';
+
+  @override
+  String get actualQtyDiscovered => 'Actual Quantity Discovered';
+
+  @override
+  String get varianceLabel => 'Variance';
+
+  @override
+  String get finalNotes => 'Final Stock Take Notes';
+
+  @override
+  String get approveAndCloseStockTake => 'Approve and Close Stock Take';
+
+  @override
+  String get stockTakeCompleted => 'Stock take completed, inventory and accounting entries updated successfully';
+
+  @override
+  String stockTakeError(Object error) {
+    return 'Error completing stock take: $error';
+  }
+
+  @override
+  String get addProductToStockTake => 'Add Product to Stock Take';
+
+  @override
+  String get searchProduct => 'Search Product';
+
+  @override
+  String get noResults => 'No results';
+
+  @override
+  String qtyOfProduct(Object name) {
+    return 'Quantity of $name';
+  }
+
+  @override
+  String get actualQtyNow => 'Current Actual Quantity';
+
+  @override
+  String get addToStockTake => 'Add to Stock Take';
+
+  @override
+  String get warehouseManagement => 'Warehouse Management';
+
+  @override
+  String get noWarehousesAdded => 'No warehouses added';
+
+  @override
+  String get noLocation => 'No location';
+
+  @override
+  String get defaultLabel => 'Default';
+
+  @override
+  String get setAsDefault => 'Set as Default';
+
+  @override
+  String get addNewWarehouse => 'Add New Warehouse';
+
+  @override
+  String get locationLabel => 'Location';
+
+  @override
+  String get warehouseNameRequired => 'Warehouse name is required';
+
+  @override
+  String get warehouseCreated => 'Warehouse created successfully';
+
+  @override
+  String warehouseCreateFailed(Object error) {
+    return 'Failed to create warehouse: $error';
+  }
+
+  @override
+  String get editWarehouse => 'Edit Warehouse';
+
+  @override
+  String get update => 'Update';
+
+  @override
+  String get warehouseUpdated => 'Warehouse updated successfully';
+
+  @override
+  String warehouseUpdateFailed(Object error) {
+    return 'Failed to update warehouse: $error';
+  }
+
+  @override
+  String get confirmDelete => 'Confirm Delete';
+
+  @override
+  String get confirmDeleteWarehouse => 'Are you sure you want to delete this warehouse?';
+
+  @override
+  String warehouseDeleteFailed(Object error) {
+    return 'Failed to delete warehouse: $error';
+  }
+
+  @override
+  String get cannotDeleteWarehouseWithStock => 'Cannot delete warehouse because it contains stock.';
+
+  @override
+  String get warehouseDeleted => 'Warehouse deleted successfully';
+
+  @override
+  String get warehouseManager => 'Warehouse Manager';
+
+  @override
+  String codeJobTitle(Object code, Object jobTitle) {
+    return 'Code: $code | Job: $jobTitle';
+  }
+
+  @override
+  String get notSpecified => 'Not Specified';
+
+  @override
+  String get editPurchaseInvoice => 'Edit Purchase Invoice';
+
+  @override
+  String get purchaseInvoiceTitle => 'Purchase Invoice';
+
+  @override
+  String get periodClosedMessage => 'The accounting period is closed. Invoices cannot be posted until a new period is opened.';
+
+  @override
+  String get lockedInvoiceMessage => 'This invoice is not a draft, so it cannot be edited directly. Use a correction document or return instead.';
+
+  @override
+  String get paymentMethodLabel => 'Payment Method';
+
+  @override
+  String get currencyLabel => 'Currency';
+
+  @override
+  String get representativeLabel => 'Representative';
+
+  @override
+  String get generalRepresentative => 'General Representative';
+
+  @override
+  String get selectProduct => 'Select Product';
+
+  @override
+  String get subtotalLabel => 'Subtotal';
+
+  @override
+  String get taxLabel => 'Tax';
+
+  @override
+  String get discountLabel => 'Discount';
+
+  @override
+  String get shippingLabel => 'Shipping';
+
+  @override
+  String get otherExpensesLabel => 'Other Expenses';
+
+  @override
+  String get totalLabel => 'Total';
+
+  @override
+  String get optional => 'Optional';
+
+  @override
+  String get needTaxPermission => 'You need tax edit permission';
+
+  @override
+  String get addExistingItem => 'Add Existing Item';
+
+  @override
+  String get addNewItem => 'Add New Item';
+
+  @override
+  String get cannotEditNonDraftItems => 'Cannot edit items of a non-draft purchase invoice';
+
+  @override
+  String get fixFinancialFields => 'Please fix the financial fields before saving';
+
+  @override
+  String get noTaxPermission => 'You do not have permission to edit tax';
+
+  @override
+  String get pleaseSelectSupplier => 'Please select a supplier';
+
+  @override
+  String get pleaseSelectWarehouse => 'Please select a warehouse';
+
+  @override
+  String get pleaseAddItems => 'Please add items';
+
+  @override
+  String get quantityMustBeGreaterThanZero => 'Quantity must be greater than zero';
+
+  @override
+  String get priceMustBeNonNegative => 'Price must be greater than or equal to zero';
+
+  @override
+  String get cannotEditNonDraftInvoice => 'Cannot edit a non-draft purchase invoice. Use a correction document or return instead.';
+
+  @override
+  String newPurchaseInvoiceValue(Object amount) {
+    return 'New purchase invoice worth $amount';
+  }
+
+  @override
+  String invoiceModifiedValue(Object amount) {
+    return 'Invoice modified to $amount';
+  }
+
+  @override
+  String get invoicePosted => 'Invoice posted';
+
+  @override
+  String get purchaseSavedAndPosted => 'Purchase saved, posted, and inventory updated successfully';
+
+  @override
+  String get invoiceModifiedSuccessfully => 'Invoice modified successfully';
+
+  @override
+  String get draftSavedSuccessfully => 'Draft saved successfully';
+
+  @override
+  String errorSavingInvoice(Object error) {
+    return 'Error saving invoice: $error';
+  }
+
+  @override
+  String get unexpectedError => 'An unexpected error occurred while saving.';
+
+  @override
+  String get foreignKeyError => 'Link error: please verify the selected data (warehouse, supplier, or items).';
+
+  @override
+  String get uniqueConstraintError => 'Duplicate error: invoice number or other data already exists.';
+
+  @override
+  String get periodClosedCannotPost => 'The accounting period is closed. Cannot post.';
+
+  @override
+  String get purchaseOrders => 'Purchase Orders';
+
+  @override
+  String get noPurchaseOrders => 'No purchase orders';
+
+  @override
+  String purchaseOrderTitle(Object number) {
+    return 'Purchase Order: $number';
+  }
+
+  @override
+  String supplierStatus(Object name, Object status) {
+    return 'Supplier: $name | Status: $status';
+  }
+
+  @override
+  String get confirmTitle => 'Confirm';
+
+  @override
+  String convertOrderToInvoice(Object number) {
+    return 'Convert purchase order $number to invoice?';
+  }
+
+  @override
+  String get convert => 'Convert';
+
+  @override
+  String get conversionSuccess => 'Conversion successful';
+
+  @override
+  String get generateAutoOrders => 'Generate Auto Purchase Orders';
+
+  @override
+  String get ordersGenerated => 'Purchase orders generated successfully';
+
+  @override
+  String get supplierPerformance => 'Supplier Performance Report';
+
+  @override
+  String invoiceCountLabel(Object count) {
+    return 'Invoices: $count';
+  }
+
+  @override
+  String totalPurchasesLabel(Object amount) {
+    return 'Total: $amount';
+  }
+
+  @override
+  String averageInvoiceLabel(Object amount) {
+    return 'Avg Invoice: $amount';
+  }
+
+  @override
+  String get priceQuotes => 'Price Quotes';
+
+  @override
+  String get noPriceQuotes => 'No price quotes';
 }

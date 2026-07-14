@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supermarket/core/constants/app_colors.dart';
 import 'package:supermarket/core/constants/app_dimensions.dart';
+import 'package:supermarket/l10n/app_localizations.dart';
 import 'package:supermarket/presentation/features/home/providers/command_center_provider.dart';
 
 class DashboardSectionConfig extends StatelessWidget {
@@ -21,6 +22,7 @@ class DashboardSectionConfig extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<CommandCenterProvider>();
+    final l10n = AppLocalizations.of(context)!;
     final sections = provider.sections;
 
     return Container(
@@ -36,10 +38,10 @@ class DashboardSectionConfig extends StatelessWidget {
                 borderRadius: BorderRadius.circular(2)),
           ),
           const SizedBox(height: AppDimensions.md),
-          const Text('تخصيص الداشبورد',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          Text(l10n.customizeDashboard,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: AppDimensions.sm),
-          Text('اسحب لإعادة الترتيب، واضغط على العين لإخفاء/إظهار القسم',
+          Text(l10n.dragToReorderHint,
               style: TextStyle(fontSize: 12, color: Colors.grey[500])),
           const SizedBox(height: AppDimensions.md),
           ReorderableListView.builder(

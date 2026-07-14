@@ -275,8 +275,8 @@ class CommandCenterProvider extends ChangeNotifier {
     for (final p in lowStock.take(5)) {
       _alerts.add(AlertItem(
         id: 'low_stock_${p.id}',
-        title: 'مخزون منخفض',
-        message: '${p.name} - المخزون الحالي: ${p.stock}',
+        title: 'Low Stock',
+        message: '${p.name} - Current stock: ${p.stock}',
         icon: Icons.inventory_2_outlined,
         color: Colors.orange,
         route: '/low-stock',
@@ -290,8 +290,8 @@ class CommandCenterProvider extends ChangeNotifier {
     for (final c in overdueCustomers.take(3)) {
       _alerts.add(AlertItem(
         id: 'overdue_${c.id}',
-        title: 'عميل متأخر',
-        message: '${c.name} - رصيد: ${c.balance}',
+        title: 'Overdue Customer',
+        message: '${c.name} - Balance: ${c.balance}',
         icon: Icons.person_off_outlined,
         color: Colors.red,
         route: '/accounting/customer-ledger',
@@ -353,27 +353,27 @@ class CommandCenterProvider extends ChangeNotifier {
 
     final defaults = [
       const DashboardSection(
-          id: 'today', title: 'أعمال اليوم', icon: Icons.today, order: 0),
+          id: 'today', title: 'Today\'s Business', icon: Icons.today, order: 0),
       const DashboardSection(
           id: 'attention',
-          title: 'مركز الانتباه',
+          title: 'Attention Center',
           icon: Icons.notifications_active,
           order: 1),
       const DashboardSection(
           id: 'operations',
-          title: 'عمليات سريعة',
+          title: 'Quick Operations',
           icon: Icons.flash_on,
           order: 2),
       const DashboardSection(
-          id: 'favorites', title: 'المفضلة', icon: Icons.star, order: 3),
+          id: 'favorites', title: 'Favorites', icon: Icons.star, order: 3),
       const DashboardSection(
           id: 'quick_access',
-          title: 'الوصول السريع',
+          title: 'Quick Access',
           icon: Icons.history,
           order: 4),
       const DashboardSection(
           id: 'timeline',
-          title: 'الجدول الزمني',
+          title: 'Timeline',
           icon: Icons.timeline,
           order: 5),
     ];

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supermarket/core/constants/app_colors.dart';
 import 'package:supermarket/core/constants/app_dimensions.dart';
+import 'package:supermarket/l10n/app_localizations.dart';
 import 'package:supermarket/presentation/features/home/providers/command_center_provider.dart';
 
 class TodaysBusinessSection extends StatelessWidget {
@@ -10,11 +11,12 @@ class TodaysBusinessSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final stats = context.watch<CommandCenterProvider>().todayStats;
+    final l10n = AppLocalizations.of(context)!;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSectionTitle(context, 'أعمال اليوم', Icons.today),
+        _buildSectionTitle(context, l10n.todaysBusiness, Icons.today),
         const SizedBox(height: AppDimensions.md),
         LayoutBuilder(
           builder: (context, constraints) {
@@ -32,7 +34,7 @@ class TodaysBusinessSection extends StatelessWidget {
               childAspectRatio: 2.2,
               children: [
                 _buildKPICard(
-                  title: 'مبيعات اليوم',
+                  title: l10n.todaySalesKpi,
                   value: stats.sales.toStringAsFixed(0),
                   trend: stats.salesTrend,
                   icon: Icons.trending_up,
@@ -40,7 +42,7 @@ class TodaysBusinessSection extends StatelessWidget {
                   lightColor: AppColors.cardSales,
                 ),
                 _buildKPICard(
-                  title: 'مشتريات اليوم',
+                  title: l10n.todayPurchasesKpi,
                   value: stats.purchases.toStringAsFixed(0),
                   trend: stats.purchasesTrend,
                   icon: Icons.shopping_bag,
@@ -48,7 +50,7 @@ class TodaysBusinessSection extends StatelessWidget {
                   lightColor: AppColors.cardPurchases,
                 ),
                 _buildKPICard(
-                  title: 'عدد الفواتير',
+                  title: l10n.invoiceCount,
                   value: stats.invoiceCount.toString(),
                   trend: 0,
                   icon: Icons.receipt_long,
@@ -56,7 +58,7 @@ class TodaysBusinessSection extends StatelessWidget {
                   lightColor: AppColors.cardInventory,
                 ),
                 _buildKPICard(
-                  title: 'العملاء الجدد',
+                  title: l10n.freshCustomers,
                   value: '${stats.newCustomers}',
                   trend: 0,
                   icon: Icons.person_add,
@@ -65,7 +67,7 @@ class TodaysBusinessSection extends StatelessWidget {
                   lightColor: AppColors.cardCustomers,
                 ),
                 _buildKPICard(
-                  title: 'الأرباح',
+                  title: l10n.profit,
                   value: stats.profit.toStringAsFixed(0),
                   trend: 0,
                   icon: Icons.show_chart,
@@ -74,7 +76,7 @@ class TodaysBusinessSection extends StatelessWidget {
                   lightColor: AppColors.cardCash,
                 ),
                 _buildKPICard(
-                  title: 'المنتجات المباعة',
+                  title: l10n.itemsSold,
                   value: '${stats.productsSold}',
                   trend: 0,
                   icon: Icons.inventory_2,
@@ -82,7 +84,7 @@ class TodaysBusinessSection extends StatelessWidget {
                   lightColor: AppColors.cardAlert,
                 ),
                 _buildKPICard(
-                  title: 'مبيعات هذا الأسبوع',
+                  title: l10n.thisWeekSales,
                   value: stats.weekSales.toStringAsFixed(0),
                   trend: 0,
                   icon: Icons.date_range,
@@ -91,7 +93,7 @@ class TodaysBusinessSection extends StatelessWidget {
                   lightColor: AppColors.sectionBg,
                 ),
                 _buildKPICard(
-                  title: 'مشتريات هذا الأسبوع',
+                  title: l10n.thisWeekPurchases,
                   value: stats.weekPurchases.toStringAsFixed(0),
                   trend: 0,
                   icon: Icons.calendar_today,

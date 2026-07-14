@@ -38,6 +38,7 @@ class PosBloc extends Bloc<PosEvent, PosState> {
         final maxDiscount =
             Decimal.tryParse(maxStr ?? '') ?? Decimal.fromInt(20);
         if (event.discount > maxDiscount) {
+          // TODO: localize - pass l10n from UI or use a localization service
           emit(PosError(
               'الخصم يتجاوز الحد المسموح به (${maxDiscount.toStringAsFixed(0)}%)'));
           return;
@@ -112,6 +113,7 @@ class PosBloc extends Bloc<PosEvent, PosState> {
             .getSingleOrNull();
 
         if (sale == null) {
+          // TODO: localize
           emit(const PosError('الفاتورة الأصلية غير موجودة'));
           emit(state);
           return;
@@ -148,6 +150,7 @@ class PosBloc extends Bloc<PosEvent, PosState> {
           returnItems: returnItems,
         ));
       } catch (e) {
+        // TODO: localize
         emit(PosError('خطأ في البحث عن الفاتورة: $e'));
       }
     }
@@ -193,6 +196,7 @@ class PosBloc extends Bloc<PosEvent, PosState> {
           .where((i) => i.quantity > Decimal.zero)
           .toList();
       if (itemsToReturn.isEmpty) {
+        // TODO: localize
         emit(const PosError('لم يتم تحديد أي أصناف للمرتجع'));
         return;
       }
@@ -233,6 +237,7 @@ class PosBloc extends Bloc<PosEvent, PosState> {
 
         emit(PosReturnSuccess(returnId, originalSale, totalRefund));
       } catch (e) {
+        // TODO: localize
         emit(PosError('خطأ في معالجة المرتجع: $e'));
         emit(currentState.copyWith(isProcessingCheckout: false));
       }
@@ -482,11 +487,13 @@ class PosBloc extends Bloc<PosEvent, PosState> {
       }
 
       if (product == null) {
+        // TODO: localize
         emit(const PosError("المنتج غير موجود"));
         return;
       }
 
       if (product.stock <= Decimal.zero && !product.isService) {
+        // TODO: localize
         emit(PosError("المنتج ${product.name} نفد من المخزون"));
         return;
       }
@@ -539,6 +546,7 @@ class PosBloc extends Bloc<PosEvent, PosState> {
 
       emit(currentState.copyWith(cart: newCart));
     } catch (e) {
+      // TODO: localize
       emit(PosError("خطأ عند إضافة المنتج: $e"));
       emit(currentState);
     }
@@ -558,6 +566,7 @@ class PosBloc extends Bloc<PosEvent, PosState> {
 
     if (!item.product.isService &&
         (event.quantity * item.unitFactor) > item.product.stock) {
+      // TODO: localize
       emit(PosError(
           "الكمية المطلوبة (${event.quantity}) تتجاوز المخزون المتاح (${item.product.stock})"));
       return;
@@ -682,6 +691,7 @@ class PosBloc extends Bloc<PosEvent, PosState> {
                 (s) => s.userId.equals(event.userId!) & s.isOpen.equals(true)))
           .getSingleOrNull();
       if (activeShift == null) {
+        // TODO: localize
         emit(const PosError('يجب فتح وردية عمل قبل إجراء عملية بيع نقدي'));
         return;
       }
@@ -693,6 +703,7 @@ class PosBloc extends Bloc<PosEvent, PosState> {
       if (customer != null && customer.creditLimit > Decimal.zero) {
         final newBalance = customer.balance + currentState.total;
         if (newBalance > customer.creditLimit) {
+          // TODO: localize
           emit(const PosError('العميل تجاوز الحد الائتماني المسموح به'));
           return;
         }
@@ -812,6 +823,7 @@ class PosBloc extends Bloc<PosEvent, PosState> {
           await loyaltyService!.awardPoints(
             customerId: event.customerId!,
             amount: total.toDouble(),
+            // TODO: localize
             reason: 'مشتريات من نقطة بيع',
           );
         } catch (e) {

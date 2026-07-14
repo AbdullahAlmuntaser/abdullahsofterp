@@ -513,24 +513,11 @@ class FinancialControlService {
       }
     }
 
-    // Fallback if no original entry found: create simple reversal
     if (reverseLines.isEmpty) {
-      final cashAccount = await db.accountingDao.getAccountByCode('1010');
-      if (cashAccount == null) {
-        throw Exception('حساب الصندوق غير موجود');
-      }
-      reverseLines.add(GLLinesCompanion.insert(
-        entryId: entryId,
-        accountId: cashAccount.id,
-        debit: Value(Decimal.parse(amount.toString())),
-        credit: Value(Decimal.zero),
-      ));
-      reverseLines.add(GLLinesCompanion.insert(
-        entryId: entryId,
-        accountId: cashAccount.id,
-        debit: Value(Decimal.zero),
-        credit: Value(Decimal.parse(amount.toString())),
-      ));
+      throw Exception(
+        'لا يمكن إنشاء قيد عكسي: لم يتم العثور على القيد الأصلي للمرجع $referenceId. '
+        'يجب إلغاء المعاملة يدويًا عبر قيد يومية يدوي.',
+      );
     }
 
     final entry = GLEntriesCompanion.insert(

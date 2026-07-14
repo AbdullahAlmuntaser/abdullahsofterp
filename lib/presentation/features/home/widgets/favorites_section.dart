@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:supermarket/core/constants/app_colors.dart';
 import 'package:supermarket/core/constants/app_dimensions.dart';
 import 'package:supermarket/core/auth/auth_provider.dart';
+import 'package:supermarket/l10n/app_localizations.dart';
 import 'package:supermarket/presentation/features/home/providers/command_center_provider.dart';
 import 'package:supermarket/core/services/fast_access_service.dart';
 
@@ -13,6 +14,7 @@ class FavoritesSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<CommandCenterProvider>();
+    final l10n = AppLocalizations.of(context)!;
     final fastAccess = context.watch<FastAccessService>();
     final auth = context.read<AuthProvider>();
     final userId = auth.currentUser?.id ?? 'default';
@@ -25,12 +27,12 @@ class FavoritesSection extends StatelessWidget {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
-              Icon(Icons.star_border, size: 20, color: AppColors.warning),
-              SizedBox(width: AppDimensions.sm),
-              Text('المفضلة',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const Icon(Icons.star_border, size: 20, color: AppColors.warning),
+              const SizedBox(width: AppDimensions.sm),
+              Text(l10n.favorites,
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             ],
           ),
           const SizedBox(height: AppDimensions.md),
@@ -46,7 +48,7 @@ class FavoritesSection extends StatelessWidget {
               children: [
                 Icon(Icons.star_outline, color: Colors.grey[400], size: 32),
                 const SizedBox(height: AppDimensions.sm),
-                Text('اضغط على ⭐ في أي شاشة لتثبيتها هنا',
+                Text(l10n.tapStarToPin,
                     style: TextStyle(color: Colors.grey[500], fontSize: 13)),
               ],
             ),
@@ -62,10 +64,10 @@ class FavoritesSection extends StatelessWidget {
           children: [
             const Icon(Icons.star, size: 20, color: AppColors.warning),
             const SizedBox(width: AppDimensions.sm),
-            const Text('المفضلة',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(l10n.favorites,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const Spacer(),
-            Text('${favoriteItems.length} عناصر',
+            Text(l10n.favoriteItems(favoriteItems.length),
                 style: TextStyle(fontSize: 12, color: Colors.grey[500])),
           ],
         ),

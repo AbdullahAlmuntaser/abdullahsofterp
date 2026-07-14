@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:supermarket/core/services/accounting_service.dart';
 import 'package:supermarket/presentation/widgets/money_form_field.dart';
 import 'package:supermarket/presentation/widgets/app_snack_bar.dart';
+import 'package:supermarket/l10n/app_localizations.dart';
 
 class ChecksPage extends StatefulWidget {
   const ChecksPage({super.key});
@@ -69,6 +70,7 @@ class _ChecksPageState extends State<ChecksPage> {
   }
 
   Future<void> _saveCheck() async {
+    final l10n = AppLocalizations.of(context)!;
     if (!_formKey.currentState!.validate()) return;
 
     final db = context.read<AppDatabase>();
@@ -90,16 +92,17 @@ class _ChecksPageState extends State<ChecksPage> {
     await db.into(db.checks).insert(check);
     _clearForm();
     if (mounted) {
-      AppSnackBar.success(context, 'تم حفظ الشيك بنجاح');
+      AppSnackBar.success(context, l10n.checkStatusUpdated('SAVED'));
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final db = context.watch<AppDatabase>();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('إدارة الشيكات')),
+      appBar: AppBar(title: Text(l10n.checkManagement)),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -111,18 +114,18 @@ class _ChecksPageState extends State<ChecksPage> {
                   children: [
                     DropdownButtonFormField<String>(
                       value: _selectedType,
-                      decoration: const InputDecoration(
-                        labelText: 'نوع الشيك',
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        labelText: l10n.checkType,
+                        border: const OutlineInputBorder(),
                       ),
-                      items: const [
+                      items: [
                         DropdownMenuItem(
                           value: 'RECEIVED',
-                          child: Text('شيكات مستلمة (من العملاء)'),
+                          child: Text(l10n.receivedChecks),
                         ),
                         DropdownMenuItem(
                           value: 'ISSUED',
-                          child: Text('شيكات صادرة (للموردين)'),
+                          child: Text(l10n.issuedChecks),
                         ),
                       ],
                       onChanged: (val) => setState(() {
@@ -131,71 +134,71 @@ class _ChecksPageState extends State<ChecksPage> {
                       }),
                     ),
                     const SizedBox(height: 16),
-                    _buildPartnerSelector(db),
+                    _buildPartnerSelector(db, l10n),
                     const SizedBox(height: 16),
-                    _buildAccountSelector(db),
+                    _buildAccountSelector(db, l10n),
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _checkNumberController,
-                      decoration: const InputDecoration(
-                        labelText: 'رقم الشيك',
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        labelText: l10n.checkNumber,
+                        border: const OutlineInputBorder(),
                       ),
-                      validator: (v) => v!.isEmpty ? 'مطلوب' : null,
+                      validator: (v) => v!.isEmpty ? l10n.requiredField : null,
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _bankNameController,
-                      decoration: const InputDecoration(
-                        labelText: 'اسم البنك',
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        labelText: l10n.bankName,
+                        border: const OutlineInputBorder(),
                       ),
-                      validator: (v) => v!.isEmpty ? 'مطلوب' : null,
+                      validator: (v) => v!.isEmpty ? l10n.requiredField : null,
                     ),
                     const SizedBox(height: 16),
                     MoneyFormField(
                       controller: _amountController,
-                      label: 'المبلغ',
+                      label: l10n.amount,
                       required: true,
                       allowZero: false,
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _dueDateController,
-                      decoration: const InputDecoration(
-                        labelText: 'تاريخ الاستحقاق',
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        labelText: l10n.dueDate,
+                        border: const OutlineInputBorder(),
                       ),
                       readOnly: true,
                       onTap: _presentDatePicker,
-                      validator: (v) => v!.isEmpty ? 'مطلوب' : null,
+                      validator: (v) => v!.isEmpty ? l10n.requiredField : null,
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _noteController,
-                      decoration: const InputDecoration(
-                        labelText: 'ملاحظات',
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        labelText: l10n.notes,
+                        border: const OutlineInputBorder(),
                       ),
                     ),
                     const SizedBox(height: 20),
                     ElevatedButton(
                       onPressed: _saveCheck,
-                      child: const Text('حفظ الشيك'),
+                      child: Text(l10n.saveCheck),
                     ),
                   ],
                 ),
               ),
             ),
             const Divider(),
-            SizedBox(height: 400, child: _buildChecksList(db)),
+            SizedBox(height: 400, child: _buildChecksList(db, l10n)),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildPartnerSelector(AppDatabase db) {
+  Widget _buildPartnerSelector(AppDatabase db, AppLocalizations l10n) {
     if (_selectedType == 'RECEIVED') {
       return StreamBuilder<List<Customer>>(
         stream: db.select(db.customers).watch(),
@@ -203,15 +206,15 @@ class _ChecksPageState extends State<ChecksPage> {
           final customers = snapshot.data ?? [];
           return DropdownButtonFormField<String>(
             value: _selectedPartnerId,
-            decoration: const InputDecoration(
-              labelText: 'العميل',
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              labelText: l10n.customer,
+              border: const OutlineInputBorder(),
             ),
             items: customers
                 .map((c) => DropdownMenuItem(value: c.id, child: Text(c.name)))
                 .toList(),
             onChanged: (val) => setState(() => _selectedPartnerId = val),
-            validator: (v) => v == null ? 'مطلوب' : null,
+            validator: (v) => v == null ? l10n.requiredField : null,
           );
         },
       );
@@ -222,22 +225,22 @@ class _ChecksPageState extends State<ChecksPage> {
           final suppliers = snapshot.data ?? [];
           return DropdownButtonFormField<String>(
             value: _selectedPartnerId,
-            decoration: const InputDecoration(
-              labelText: 'المورد',
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              labelText: l10n.supplier,
+              border: const OutlineInputBorder(),
             ),
             items: suppliers
                 .map((s) => DropdownMenuItem(value: s.id, child: Text(s.name)))
                 .toList(),
             onChanged: (val) => setState(() => _selectedPartnerId = val),
-            validator: (v) => v == null ? 'مطلوب' : null,
+            validator: (v) => v == null ? l10n.requiredField : null,
           );
         },
       );
     }
   }
 
-  Widget _buildAccountSelector(AppDatabase db) {
+  Widget _buildAccountSelector(AppDatabase db, AppLocalizations l10n) {
     return StreamBuilder<List<GLAccount>>(
       stream: (db.select(db.gLAccounts)
             ..where(
@@ -250,21 +253,21 @@ class _ChecksPageState extends State<ChecksPage> {
         final accounts = snapshot.data ?? [];
         return DropdownButtonFormField<String>(
           value: _selectedAccountId,
-          decoration: const InputDecoration(
-            labelText: 'حساب الدفع/التحصيل',
-            border: OutlineInputBorder(),
+          decoration: InputDecoration(
+            labelText: l10n.paymentCollectionAccount,
+            border: const OutlineInputBorder(),
           ),
           items: accounts
               .map((a) => DropdownMenuItem(value: a.id, child: Text(a.name)))
               .toList(),
           onChanged: (val) => setState(() => _selectedAccountId = val),
-          validator: (v) => v == null ? 'مطلوب' : null,
+          validator: (v) => v == null ? l10n.requiredField : null,
         );
       },
     );
   }
 
-  Widget _buildChecksList(AppDatabase db) {
+  Widget _buildChecksList(AppDatabase db, AppLocalizations l10n) {
     final checksStream = (db.select(
       db.checks,
     )..where((c) => c.type.equals(_selectedType)))
@@ -277,7 +280,7 @@ class _ChecksPageState extends State<ChecksPage> {
           return const Center(child: CircularProgressIndicator());
         }
         final checks = snapshot.data ?? [];
-        if (checks.isEmpty) return const Center(child: Text('لا يوجد شيكات.'));
+        if (checks.isEmpty) return Center(child: Text(l10n.noChecks));
 
         return ListView.builder(
           itemCount: checks.length,
@@ -287,21 +290,21 @@ class _ChecksPageState extends State<ChecksPage> {
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: ListTile(
                 title: Text(
-                  'رقم الشيك: ${check.checkNumber} - ${check.bankName}',
+                  l10n.checkInfo(check.bankName, check.checkNumber),
                 ),
                 subtitle: Text(
-                  'المبلغ: ${check.amount} - الاستحقاق: ${DateFormat('yyyy-MM-dd').format(check.dueDate)}\nالحالة: ${check.status}',
+                  l10n.checkDetails(check.amount, DateFormat('yyyy-MM-dd').format(check.dueDate), check.status),
                 ),
                 trailing: PopupMenuButton<String>(
                   onSelected: (val) => _updateCheckStatus(db, check, val),
                   itemBuilder: (context) => [
                     if (check.status == 'PENDING')
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: 'COLLECTED',
-                        child: Text('تحصيل'),
+                        child: Text(l10n.collect),
                       ),
                     if (check.status == 'PENDING')
-                      const PopupMenuItem(value: 'BOUNCED', child: Text('رفض')),
+                      PopupMenuItem(value: 'BOUNCED', child: Text(l10n.reject)),
                   ],
                 ),
               ),
@@ -317,6 +320,7 @@ class _ChecksPageState extends State<ChecksPage> {
     Check check,
     String newStatus,
   ) async {
+    final l10n = AppLocalizations.of(context)!;
     await (db.update(db.checks)..where((c) => c.id.equals(check.id))).write(
       ChecksCompanion(status: drift.Value(newStatus)),
     );
@@ -364,7 +368,7 @@ class _ChecksPageState extends State<ChecksPage> {
         await db.accountingDao.createEntry(
           GLEntriesCompanion.insert(
             id: drift.Value(entryId),
-            description: 'تحصيل شيك: ${check.checkNumber}',
+            description: l10n.checkCollected(check.checkNumber),
             date: drift.Value(DateTime.now()),
             referenceType: const drift.Value('CHECK'),
             referenceId: drift.Value(check.id),
@@ -417,7 +421,7 @@ class _ChecksPageState extends State<ChecksPage> {
         await db.accountingDao.createEntry(
           GLEntriesCompanion.insert(
             id: drift.Value(entryId),
-            description: 'ارتداد شيك: ${check.checkNumber}',
+            description: l10n.checkBounced(check.checkNumber),
             date: drift.Value(DateTime.now()),
             referenceType: const drift.Value('CHECK'),
             referenceId: drift.Value(check.id),
@@ -464,7 +468,7 @@ class _ChecksPageState extends State<ChecksPage> {
     }
 
     if (mounted) {
-      AppSnackBar.success(context, 'تم تحديث حالة الشيك إلى $newStatus');
+      AppSnackBar.success(context, l10n.checkStatusUpdated(newStatus));
     }
   }
 }

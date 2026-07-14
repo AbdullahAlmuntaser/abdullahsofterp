@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
+import 'package:http/http.dart' as http;
+import 'package:supermarket/core/services/audit_log_service.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:drift/drift.dart';
 
@@ -10,16 +12,31 @@ enum ConflictStrategy { serverWins, clientWins, lastWriteWins, manual }
 
 class SyncService {
   final AppDatabase db;
+  final AuditLogService? auditLogService;
+  final http.Client _httpClient;
   Timer? _syncTimer;
   bool _isSyncing = false;
   SyncDirection _direction = SyncDirection.both;
   ConflictStrategy _conflictStrategy = ConflictStrategy.lastWriteWins;
+  String _serverUrl = '';
+  String? _authToken;
+  DateTime? _lastSyncTime;
 
   bool get isSyncing => _isSyncing;
   SyncDirection get direction => _direction;
   ConflictStrategy get conflictStrategy => _conflictStrategy;
+  String get serverUrl => _serverUrl;
+  bool get isConfigured => _serverUrl.isNotEmpty;
 
-  SyncService(this.db);
+  SyncService(this.db, {this.auditLogService, http.Client? httpClient})
+      : _httpClient = httpClient ?? http.Client();
+
+  void configure(String serverUrl, {String? authToken}) {
+    _serverUrl = serverUrl.endsWith('/')
+        ? serverUrl.substring(0, serverUrl.length - 1)
+        : serverUrl;
+    _authToken = authToken;
+  }
 
   void setDirection(SyncDirection dir) => _direction = dir;
   void setConflictStrategy(ConflictStrategy strategy) =>
@@ -110,6 +127,23 @@ class SyncService {
         lastError: Value(null),
       ),
     );
+    if (auditLogService != null) {
+      final item = await (db.select(db.syncQueue)
+            ..where((t) => t.id.equals(queueId)))
+          .getSingleOrNull();
+      if (item != null) {
+        await auditLogService!.logAction(
+          userId: 'system',
+          action: 'SYNC_PUSH_SUCCESS',
+          logTableName: item.entityTable,
+          recordId: item.entityId,
+          newValues: {
+            'operation': item.operation,
+            'queueId': item.id,
+          },
+        );
+      }
+    }
   }
 
   Future<void> markAsFailed(String queueId, String error) async {
@@ -126,6 +160,19 @@ class SyncService {
         lastError: Value(error),
       ),
     );
+    if (auditLogService != null) {
+      await auditLogService!.logAction(
+        userId: 'system',
+        action: 'SYNC_PUSH_FAILED',
+        logTableName: item.entityTable,
+        recordId: item.entityId,
+        newValues: {
+          'operation': item.operation,
+          'error': error,
+          'retryCount': newRetryCount,
+        },
+      );
+    }
   }
 
   Future<void> retryFailed() async {
@@ -146,6 +193,7 @@ class SyncService {
 
   Future<Map<String, dynamic>> syncWithCloud() async {
     if (_isSyncing) return {'status': 'already_syncing'};
+    if (!isConfigured) return {'status': 'not_configured'};
 
     _isSyncing = true;
     final results = <String, dynamic>{
@@ -198,29 +246,129 @@ class SyncService {
     return results;
   }
 
+  Map<String, String> get _headers {
+    final headers = <String, String>{
+      'Content-Type': 'application/json',
+    };
+    if (_authToken != null) {
+      headers['Authorization'] = 'Bearer $_authToken';
+    }
+    return headers;
+  }
+
   Future<void> _pushToServer(SyncQueueData item) async {
-    await Future.delayed(const Duration(milliseconds: 50));
+    if (!isConfigured) return;
+    final payload = jsonDecode(item.payload) as Map<String, dynamic>;
+    final body = jsonEncode({
+      'table': item.entityTable,
+      'entityId': item.entityId,
+      'operation': item.operation,
+      'version': item.version,
+      'deviceId': item.deviceId,
+      'payload': payload,
+    });
+    final response = await _httpClient.post(
+      Uri.parse('$_serverUrl/api/sync/push'),
+      headers: _headers,
+      body: body,
+    );
+    if (response.statusCode == 409) {
+      throw Exception('CONFLICT: ${response.body}');
+    }
+    if (response.statusCode != 200) {
+      throw Exception('HTTP ${response.statusCode}: ${response.body}');
+    }
   }
 
   Future<int> _pullFromServer() async {
-    await Future.delayed(const Duration(milliseconds: 50));
-    return 0;
+    if (!isConfigured) return 0;
+    final since = _lastSyncTime?.toIso8601String() ?? '';
+    final uri = Uri.parse('$_serverUrl/api/sync/pull')
+        .replace(queryParameters: {'since': since});
+    final response = await _httpClient.get(uri, headers: _headers);
+    if (response.statusCode != 200) {
+      throw Exception('HTTP ${response.statusCode}: ${response.body}');
+    }
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    final changes = data['changes'] as List<dynamic>? ?? [];
+    for (final change in changes) {
+      final c = change as Map<String, dynamic>;
+      await db.transaction(() async {
+        final table = c['table'] as String;
+        final entityId = c['entityId'] as String;
+        final operation = c['operation'] as String;
+        final payload = c['payload'] as Map<String, dynamic>;
+        await addToQueue(
+          table: table,
+          entityId: entityId,
+          operation: operation,
+          payload: payload,
+        );
+      });
+    }
+    _lastSyncTime = DateTime.now();
+    return changes.length;
   }
 
   Future<void> _resolveConflict(SyncQueueData item, String error) async {
     switch (_conflictStrategy) {
       case ConflictStrategy.serverWins:
+        await _pullAndOverwrite(item);
         await markAsSynced(item.id);
         break;
       case ConflictStrategy.clientWins:
+        await _pushToServer(item);
         await markAsSynced(item.id);
         break;
       case ConflictStrategy.lastWriteWins:
+        final serverVersion = await _fetchServerVersion(item);
+        if (serverVersion > item.version) {
+          await _pullAndOverwrite(item);
+        } else {
+          await _pushToServer(item);
+        }
         await markAsSynced(item.id);
         break;
       case ConflictStrategy.manual:
         await markAsFailed(item.id, 'CONFLICT: $error');
         break;
+    }
+  }
+
+  Future<int> _fetchServerVersion(SyncQueueData item) async {
+    if (!isConfigured) return 0;
+    final uri = Uri.parse('$_serverUrl/api/sync/version')
+        .replace(queryParameters: {
+      'table': item.entityTable,
+      'entityId': item.entityId,
+    });
+    final response = await _httpClient.get(uri, headers: _headers);
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      return data['version'] as int? ?? 0;
+    }
+    return 0;
+  }
+
+  Future<void> _pullAndOverwrite(SyncQueueData item) async {
+    if (!isConfigured) return;
+    final uri = Uri.parse('$_serverUrl/api/sync/entity')
+        .replace(queryParameters: {
+      'table': item.entityTable,
+      'entityId': item.entityId,
+    });
+    final response = await _httpClient.get(uri, headers: _headers);
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      final payload = data['payload'] as Map<String, dynamic>?;
+      if (payload != null) {
+        await addToQueue(
+          table: item.entityTable,
+          entityId: item.entityId,
+          operation: 'OVERWRITE',
+          payload: payload,
+        );
+      }
     }
   }
 

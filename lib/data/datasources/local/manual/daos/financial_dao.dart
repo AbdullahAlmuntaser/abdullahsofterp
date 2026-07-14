@@ -27,17 +27,19 @@ class FinancialDao {
   }
 
   Future<Decimal> getCashboxBalance({String? userId}) async {
-    String sql = '''
-      SELECT COALESCE(SUM(CASE WHEN type = 'IN' THEN CAST(amount AS REAL) ELSE -CAST(amount AS REAL) END), 0) AS balance
-      FROM cashbox_transactions
-    ''';
+    final buffer = StringBuffer('SELECT type, amount FROM cashbox_transactions');
     final params = <Object?>[];
     if (userId != null) {
-      sql += ' WHERE user_id = ?';
+      buffer.write(' WHERE user_id = ?');
       params.add(userId);
     }
-    final rows = _db.query(sql, params);
-    return Decimal.parse(rows.first['balance'].toString());
+    final rows = _db.query(buffer.toString(), params);
+    Decimal balance = Decimal.zero;
+    for (final row in rows) {
+      final amount = Decimal.tryParse(row['amount']?.toString() ?? '0') ?? Decimal.zero;
+      balance += row['type'] == 'IN' ? amount : -amount;
+    }
+    return balance;
   }
 
   // ==================== FINANCIAL TRANSFERS ====================

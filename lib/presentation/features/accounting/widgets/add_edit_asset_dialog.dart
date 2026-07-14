@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:drift/drift.dart' hide Column;
+import 'package:supermarket/l10n/app_localizations.dart';
 import 'package:supermarket/presentation/features/accounting/asset_provider.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
 
@@ -81,9 +82,9 @@ class _AddEditAssetDialogState extends State<AddEditAssetDialog> {
       );
 
       if (_isEditing) {
-        // widget.assetProvider.updateAsset(companion);
+        // widget.assetProvider.updateAsset(context, companion);
       } else {
-        widget.assetProvider.addAsset(companion);
+        widget.assetProvider.addAsset(context, companion);
       }
       Navigator.of(context).pop();
     }
@@ -91,8 +92,9 @@ class _AddEditAssetDialogState extends State<AddEditAssetDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return AlertDialog(
-      title: Text(_isEditing ? 'تعديل أصل' : 'إضافة أصل جديد'),
+      title: Text(_isEditing ? l10n.editAsset : l10n.newAsset),
       content: Form(
         key: _formKey,
         child: SingleChildScrollView(
@@ -101,27 +103,27 @@ class _AddEditAssetDialogState extends State<AddEditAssetDialog> {
             children: [
               TextFormField(
                 controller: _nameController,
-                decoration: const InputDecoration(
-                  labelText: 'اسم الأصل',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: l10n.assetName,
+                  border: const OutlineInputBorder(),
                 ),
                 validator: (value) =>
-                    (value?.isEmpty ?? true) ? 'هذا الحقل مطلوب' : null,
+                    (value?.isEmpty ?? true) ? l10n.thisFieldRequired : null,
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _costController,
-                decoration: const InputDecoration(
-                  labelText: 'التكلفة',
-                  prefixIcon: Icon(Icons.monetization_on),
+                decoration: InputDecoration(
+                  labelText: l10n.cost,
+                  prefixIcon: const Icon(Icons.monetization_on),
                 ),
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),
                 validator: (value) {
-                  if (value == null || value.isEmpty) return 'هذا الحقل مطلوب';
+                  if (value == null || value.isEmpty) return l10n.thisFieldRequired;
                   if (double.tryParse(value) == null) {
-                    return 'الرجاء إدخال رقم صحيح';
+                    return l10n.pleaseEnterValidNumber;
                   }
                   return null;
                 },
@@ -129,15 +131,15 @@ class _AddEditAssetDialogState extends State<AddEditAssetDialog> {
               const SizedBox(height: 12),
               TextFormField(
                 controller: _lifeController,
-                decoration: const InputDecoration(
-                  labelText: 'العمر الافتراضي (سنوات)',
-                  prefixIcon: Icon(Icons.hourglass_bottom),
+                decoration: InputDecoration(
+                  labelText: l10n.usefulLifeYears,
+                  prefixIcon: const Icon(Icons.hourglass_bottom),
                 ),
                 keyboardType: TextInputType.number,
                 validator: (value) {
-                  if (value == null || value.isEmpty) return 'هذا الحقل مطلوب';
+                  if (value == null || value.isEmpty) return l10n.thisFieldRequired;
                   if (int.tryParse(value) == null) {
-                    return 'الرجاء إدخال رقم صحيح';
+                    return l10n.pleaseEnterValidNumber;
                   }
                   return null;
                 },
@@ -145,17 +147,17 @@ class _AddEditAssetDialogState extends State<AddEditAssetDialog> {
               const SizedBox(height: 12),
               TextFormField(
                 controller: _salvageController,
-                decoration: const InputDecoration(
-                  labelText: 'قيمة الخردة',
-                  prefixIcon: Icon(Icons.recycling),
+                decoration: InputDecoration(
+                  labelText: l10n.salvageValue,
+                  prefixIcon: const Icon(Icons.recycling),
                 ),
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),
                 validator: (value) {
-                  if (value == null || value.isEmpty) return 'هذا الحقل مطلوب';
+                  if (value == null || value.isEmpty) return l10n.thisFieldRequired;
                   if (double.tryParse(value) == null) {
-                    return 'الرجاء إدخال رقم صحيح';
+                    return l10n.pleaseEnterValidNumber;
                   }
                   return null;
                 },
@@ -166,10 +168,10 @@ class _AddEditAssetDialogState extends State<AddEditAssetDialog> {
                   const Icon(Icons.calendar_today, color: Colors.grey),
                   const SizedBox(width: 12),
                   Text(
-                    'تاريخ الشراء: ${DateFormat('yyyy-MM-dd').format(_purchaseDate)}',
+                    l10n.purchaseDateLabel(DateFormat('yyyy-MM-dd').format(_purchaseDate)),
                   ),
                   const Spacer(),
-                  TextButton(onPressed: _pickDate, child: const Text('تغيير')),
+                  TextButton(onPressed: _pickDate, child: Text(l10n.change)),
                 ],
               ),
             ],
@@ -179,11 +181,11 @@ class _AddEditAssetDialogState extends State<AddEditAssetDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('إلغاء'),
+          child: Text(l10n.cancel),
         ),
         ElevatedButton(
           onPressed: _submit,
-          child: Text(_isEditing ? 'حفظ التعديلات' : 'إضافة'),
+          child: Text(_isEditing ? l10n.saveChanges : l10n.add),
         ),
       ],
     );

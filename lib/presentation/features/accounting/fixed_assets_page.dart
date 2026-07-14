@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:supermarket/presentation/features/accounting/asset_provider.dart';
 import 'package:supermarket/presentation/features/accounting/widgets/add_edit_asset_dialog.dart';
+import 'package:supermarket/l10n/app_localizations.dart';
 
 class FixedAssetsPage extends StatefulWidget {
   const FixedAssetsPage({super.key});
@@ -16,12 +17,13 @@ class _FixedAssetsPageState extends State<FixedAssetsPage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<AssetProvider>().loadAssets();
+      context.read<AssetProvider>().loadAssets(context);
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final provider = context.watch<AssetProvider>();
     final theme = Theme.of(context);
     final currencyFormat = NumberFormat.currency(
@@ -31,7 +33,7 @@ class _FixedAssetsPageState extends State<FixedAssetsPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('إدارة الأصول الثابتة'),
+        title: Text(l10n.fixedAssetsManagement),
         actions: [
           IconButton(
             icon: const Icon(Icons.calculate),
@@ -39,35 +41,33 @@ class _FixedAssetsPageState extends State<FixedAssetsPage> {
               final confirmed = await showDialog<bool>(
                 context: context,
                 builder: (ctx) => AlertDialog(
-                  title: const Text('تأكيد'),
-                  content: const Text(
-                    'هل تريد بالتأكيد تشغيل الإهلاك الشهري لجميع الأصول؟ ستتم العملية في الخلفية.',
-                  ),
+                  title: Text(l10n.confirmGeneric),
+                  content: Text(l10n.confirmDepreciation),
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.of(ctx).pop(false),
-                      child: const Text('إلغاء'),
+                      child: Text(l10n.cancel),
                     ),
                     ElevatedButton(
                       onPressed: () => Navigator.of(ctx).pop(true),
-                      child: const Text('تشغيل'),
+                      child: Text(l10n.run),
                     ),
                   ],
                 ),
               );
               if (confirmed ?? false) {
-                await provider.runDepreciation();
+                await provider.runDepreciation(context);
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('تمت عملية حساب الإهلاك بنجاح.'),
+                    SnackBar(
+                      content: Text(l10n.depreciationCompleted),
                       backgroundColor: Colors.green,
                     ),
                   );
                 }
               }
             },
-            tooltip: 'حساب الإهلاك الشهري',
+            tooltip: l10n.calculateMonthlyDepreciation,
           ),
         ],
       ),
@@ -85,12 +85,12 @@ class _FixedAssetsPageState extends State<FixedAssetsPage> {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'لا توجد أصول ثابتة مسجلة حالياً.',
+                        l10n.noFixedAssets,
                         style: theme.textTheme.titleMedium,
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'ابدأ بإضافة أصل جديد من الزر أدناه.',
+                        l10n.startAddingAsset,
                         style: theme.textTheme.bodyMedium,
                       ),
                     ],
@@ -124,7 +124,7 @@ class _FixedAssetsPageState extends State<FixedAssetsPage> {
                             const Divider(height: 20),
                             _buildInfoRow(
                               icon: Icons.calendar_today,
-                              label: 'تاريخ الشراء',
+                              label: l10n.purchaseDate,
                               value: DateFormat(
                                 'yyyy-MM-dd',
                               ).format(asset.purchaseDate),
@@ -132,25 +132,25 @@ class _FixedAssetsPageState extends State<FixedAssetsPage> {
                             const SizedBox(height: 8),
                             _buildInfoRow(
                               icon: Icons.monetization_on,
-                              label: 'التكلفة الأصلية',
+                              label: l10n.originalCost,
                               value: currencyFormat.format(asset.cost),
                             ),
                             const SizedBox(height: 8),
                             _buildInfoRow(
                               icon: Icons.hourglass_bottom,
-                              label: 'العمر الافتراضي',
-                              value: '${asset.usefulLifeYears} سنوات',
+                              label: l10n.usefulLife,
+                              value: l10n.years(asset.usefulLifeYears),
                             ),
                             const SizedBox(height: 8),
                             _buildInfoRow(
                               icon: Icons.recycling,
-                              label: 'قيمة الخردة',
+                              label: l10n.salvageValue,
                               value: currencyFormat.format(asset.salvageValue),
                             ),
                             const SizedBox(height: 8),
                             _buildInfoRow(
                               icon: Icons.trending_down,
-                              label: 'الإهلاك المتراكم',
+                              label: l10n.accumulatedDepreciation,
                               value: currencyFormat.format(
                                 asset.accumulatedDepreciation,
                               ),
@@ -159,7 +159,7 @@ class _FixedAssetsPageState extends State<FixedAssetsPage> {
                             const Divider(height: 20),
                             _buildInfoRow(
                               icon: Icons.book,
-                              label: 'صافي القيمة الدفترية',
+                              label: l10n.netBookValue,
                               value: currencyFormat.format(bookValue),
                               isTotal: true,
                             ),
@@ -174,7 +174,7 @@ class _FixedAssetsPageState extends State<FixedAssetsPage> {
           context: context,
           builder: (ctx) => AddEditAssetDialog(assetProvider: provider),
         ),
-        label: const Text('إضافة أصل'),
+        label: Text(l10n.addAsset),
         icon: const Icon(Icons.add),
       ),
     );

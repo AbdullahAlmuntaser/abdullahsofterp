@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:supermarket/l10n/app_localizations.dart';
 import 'package:supermarket/presentation/features/accounting/accounting_provider.dart';
 
 class CloseFinancialYearDialog extends StatefulWidget {
@@ -16,19 +17,20 @@ class _CloseFinancialYearDialogState extends State<CloseFinancialYearDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return AlertDialog(
-      title: const Text('إغلاق السنة المالية'),
+      title: Text(l10n.closeFinancialYear),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text(
-            'سيتم ترحيل جميع أرصدة الإيرادات والمصاريف إلى حساب الأرباح المحتجزة، وتصفير الحسابات المؤقتة للسنة الجديدة.',
-            style: TextStyle(color: Colors.redAccent),
+          Text(
+            l10n.closeYearDescription,
+            style: const TextStyle(color: Colors.redAccent),
           ),
           const SizedBox(height: 20),
           ListTile(
             title: Text(
-              'تاريخ الإغلاق: ${_selectedDate.toLocal().toString().split(' ')[0]}',
+              l10n.closeDate(_selectedDate.toLocal().toString().split(' ')[0]),
             ),
             trailing: const Icon(Icons.calendar_today),
             onTap: () async {
@@ -46,7 +48,7 @@ class _CloseFinancialYearDialogState extends State<CloseFinancialYearDialog> {
       actions: [
         TextButton(
           onPressed: _isClosing ? null : () => Navigator.pop(context),
-          child: const Text('إلغاء'),
+          child: Text(l10n.cancel),
         ),
         ElevatedButton(
           style: ElevatedButton.styleFrom(
@@ -66,15 +68,15 @@ class _CloseFinancialYearDialogState extends State<CloseFinancialYearDialog> {
                     if (mounted) {
                       navigator.pop();
                       scaffoldMessenger.showSnackBar(
-                        const SnackBar(
-                          content: Text('تم إغلاق السنة المالية بنجاح'),
+                        SnackBar(
+                          content: Text(l10n.yearClosedSuccessfully),
                         ),
                       );
                     }
                   } catch (e) {
                     if (mounted) {
                       scaffoldMessenger.showSnackBar(
-                        SnackBar(content: Text('فشل الإغلاق: $e')),
+                        SnackBar(content: Text(l10n.closeFailed(e.toString()))),
                       );
                     }
                   } finally {
@@ -87,7 +89,7 @@ class _CloseFinancialYearDialogState extends State<CloseFinancialYearDialog> {
                   height: 20,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
-              : const Text('تأكيد الإغلاق'),
+              : Text(l10n.confirmClose),
         ),
       ],
     );

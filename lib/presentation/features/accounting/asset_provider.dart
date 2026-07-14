@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supermarket/core/services/asset_service.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
+import 'package:supermarket/l10n/app_localizations.dart';
 import 'package:drift/drift.dart' show Insertable;
 
 class AssetProvider with ChangeNotifier {
@@ -15,56 +16,60 @@ class AssetProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
 
-  Future<void> loadAssets() async {
+  Future<void> loadAssets(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
     _isLoading = true;
     _error = null;
     notifyListeners();
     try {
       _assets = await _service.getAllAssets();
     } catch (e) {
-      _error = 'فشل في تحميل الأصول: $e';
+      _error = l10n.failedToLoadAssets(e.toString());
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  Future<bool> addAsset(Insertable<FixedAsset> asset) async {
+  Future<bool> addAsset(BuildContext context, Insertable<FixedAsset> asset) async {
+    final l10n = AppLocalizations.of(context)!;
     _error = null;
     try {
       await _service.addAsset(asset);
-      await loadAssets(); // Reload to get the updated list
+      await loadAssets(context);
       return true;
     } catch (e) {
-      _error = 'فشل في إضافة الأصل: $e';
+      _error = l10n.failedToAddAsset(e.toString());
       notifyListeners();
       return false;
     }
   }
 
-  Future<bool> updateAsset(Insertable<FixedAsset> asset) async {
+  Future<bool> updateAsset(BuildContext context, Insertable<FixedAsset> asset) async {
+    final l10n = AppLocalizations.of(context)!;
     _error = null;
     try {
       await _service.updateAsset(asset);
-      await loadAssets(); // Reload to get the updated list
+      await loadAssets(context);
       return true;
     } catch (e) {
-      _error = 'فشل في تحديث الأصل: $e';
+      _error = l10n.failedToUpdateAsset(e.toString());
       notifyListeners();
       return false;
     }
   }
 
-  Future<bool> runDepreciation() async {
+  Future<bool> runDepreciation(BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
     _isLoading = true;
     _error = null;
     notifyListeners();
     try {
       await _service.processDepreciation();
-      await loadAssets();
+      await loadAssets(context);
       return true;
     } catch (e) {
-      _error = 'فشل في حساب الإهلاك: $e';
+      _error = l10n.failedToCalculateDepreciation(e.toString());
       _isLoading = false;
       notifyListeners();
       return false;

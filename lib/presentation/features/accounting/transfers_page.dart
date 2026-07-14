@@ -6,6 +6,7 @@ import 'package:supermarket/presentation/widgets/shared/account_selector_widget.
 import 'package:intl/intl.dart' as intl;
 import 'package:supermarket/presentation/widgets/app_snack_bar.dart';
 import 'package:supermarket/presentation/widgets/money_form_field.dart';
+import 'package:supermarket/l10n/app_localizations.dart';
 
 class TransfersPage extends StatefulWidget {
   const TransfersPage({super.key});
@@ -27,11 +28,12 @@ class _TransfersPageState extends State<TransfersPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final db = Provider.of<AppDatabase>(context);
     final transferService = Provider.of<TransferService>(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('الحوالات المالية')),
+      appBar: AppBar(title: Text(l10n.transfers)),
       body: Column(
         children: [
           Padding(
@@ -44,7 +46,7 @@ class _TransfersPageState extends State<TransfersPage> {
                     children: [
                       Expanded(
                         child: AccountSelectorWidget(
-                          label: 'من حساب',
+                          label: l10n.fromAccount,
                           selectedAccountId: _senderAccountId,
                           onSelected: (acc) =>
                               setState(() => _senderAccountId = acc?.id),
@@ -53,7 +55,7 @@ class _TransfersPageState extends State<TransfersPage> {
                       const SizedBox(width: 10),
                       Expanded(
                         child: AccountSelectorWidget(
-                          label: 'إلى حساب',
+                          label: l10n.toAccount,
                           selectedAccountId: _receiverAccountId,
                           onSelected: (acc) =>
                               setState(() => _receiverAccountId = acc?.id),
@@ -67,7 +69,7 @@ class _TransfersPageState extends State<TransfersPage> {
                       Expanded(
                         child: MoneyFormField(
                           controller: _amountController,
-                          label: 'المبلغ',
+                          label: l10n.amount,
                           required: true,
                           allowZero: false,
                         ),
@@ -76,7 +78,7 @@ class _TransfersPageState extends State<TransfersPage> {
                       Expanded(
                         child: MoneyFormField(
                           controller: _commissionController,
-                          label: 'العمولة',
+                          label: l10n.commission,
                         ),
                       ),
                     ],
@@ -87,16 +89,16 @@ class _TransfersPageState extends State<TransfersPage> {
                       Expanded(
                         child: DropdownButtonFormField<String>(
                           value: _transferType,
-                          decoration: const InputDecoration(
-                              labelText: 'نوع التحويل',
-                              border: OutlineInputBorder()),
-                          items: const [
+                          decoration: InputDecoration(
+                              labelText: l10n.transferType,
+                              border: const OutlineInputBorder()),
+                          items: [
                             DropdownMenuItem(
-                                value: 'CASH', child: Text('نقدي')),
+                                value: 'CASH', child: Text(l10n.cash)),
                             DropdownMenuItem(
-                                value: 'BANK', child: Text('بنكي')),
+                                value: 'BANK', child: Text(l10n.bankTransfer)),
                             DropdownMenuItem(
-                                value: 'CHECK', child: Text('شيك')),
+                                value: 'CHECK', child: Text(l10n.check)),
                           ],
                           onChanged: (v) => setState(() => _transferType = v!),
                         ),
@@ -105,9 +107,9 @@ class _TransfersPageState extends State<TransfersPage> {
                       Expanded(
                         child: TextFormField(
                           controller: _companyController,
-                          decoration: const InputDecoration(
-                              labelText: 'شركة التحويل',
-                              border: OutlineInputBorder()),
+                          decoration: InputDecoration(
+                              labelText: l10n.transferCompany,
+                              border: const OutlineInputBorder()),
                         ),
                       ),
                     ],
@@ -115,8 +117,8 @@ class _TransfersPageState extends State<TransfersPage> {
                   const SizedBox(height: 10),
                   TextFormField(
                     controller: _noteController,
-                    decoration: const InputDecoration(
-                        labelText: 'ملاحظات', border: OutlineInputBorder()),
+                    decoration: InputDecoration(
+                        labelText: l10n.notes, border: const OutlineInputBorder()),
                   ),
                   const SizedBox(height: 20),
                   ElevatedButton(
@@ -124,7 +126,7 @@ class _TransfersPageState extends State<TransfersPage> {
                       if (_formKey.currentState!.validate()) {
                         if (_senderAccountId == null ||
                             _receiverAccountId == null) {
-                          AppSnackBar.warning(context, 'يرجى اختيار الحسابات');
+                          AppSnackBar.warning(context, l10n.selectAccountsError);
                           return;
                         }
                         try {
@@ -139,7 +141,7 @@ class _TransfersPageState extends State<TransfersPage> {
                             note: _noteController.text,
                           );
                           if (!context.mounted) return;
-                          AppSnackBar.success(context, 'تم التحويل بنجاح');
+                          AppSnackBar.success(context, l10n.transferSuccess);
                           _formKey.currentState!.reset();
                           setState(() {
                             _senderAccountId = null;
@@ -147,11 +149,11 @@ class _TransfersPageState extends State<TransfersPage> {
                           });
                         } catch (e) {
                           if (!context.mounted) return;
-                          AppSnackBar.error(context, 'خطأ: $e');
+                          AppSnackBar.error(context, l10n.errorWithMessage(e.toString()));
                         }
                       }
                     },
-                    child: const Text('تسجيل التحويل'),
+                    child: Text(l10n.recordTransfer),
                   ),
                 ],
               ),
@@ -171,7 +173,7 @@ class _TransfersPageState extends State<TransfersPage> {
                   itemBuilder: (context, index) {
                     final t = transfers[index];
                     return ListTile(
-                      title: Text('تحويل: ${t.amount}'),
+                      title: Text(l10n.transferItem(t.amount.toString())),
                       subtitle: Text(
                           '${intl.DateFormat('yyyy-MM-dd').format(t.date)} - ${t.note ?? ""}'),
                       trailing: Text(t.status),

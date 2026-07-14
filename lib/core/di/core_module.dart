@@ -13,6 +13,7 @@ import 'package:supermarket/core/services/transaction_engine.dart';
 import 'package:supermarket/core/services/security_service.dart';
 import 'package:supermarket/core/services/permission_service.dart';
 import 'package:supermarket/core/services/advanced_permission_service.dart';
+import 'package:supermarket/core/services/audit_log_service.dart';
 import 'package:supermarket/core/services/approval_workflow_service.dart';
 import 'package:supermarket/core/services/reconciliation_service.dart';
 import 'package:supermarket/core/services/report_engine_service.dart';
@@ -65,10 +66,10 @@ void registerCoreModule(GetIt sl) {
   sl.registerLazySingleton<SecurityService>(() => SecurityService(db));
   sl.registerLazySingleton<PermissionService>(() => PermissionService(db));
   sl.registerLazySingleton<AdvancedPermissionService>(
-    () => AdvancedPermissionService(db),
+    () => AdvancedPermissionService(db, auditLogService: sl<AuditLogService>()),
   );
   sl.registerLazySingleton<ApprovalWorkflowService>(
-    () => ApprovalWorkflowService(sl<AppConfigService>()),
+    () => ApprovalWorkflowService(db, auditLogService: sl<AuditLogService>()),
   );
   sl.registerLazySingleton<ReconciliationService>(
     () => ReconciliationService(db),

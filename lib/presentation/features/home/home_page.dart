@@ -6,6 +6,7 @@ import 'package:supermarket/core/constants/app_dimensions.dart';
 import 'package:supermarket/core/services/notification_service.dart';
 import 'package:supermarket/core/auth/auth_provider.dart';
 import 'package:supermarket/core/auth/user_role.dart';
+import 'package:supermarket/l10n/app_localizations.dart';
 import 'package:supermarket/presentation/widgets/main_drawer.dart';
 import 'package:supermarket/presentation/widgets/notification_tray.dart';
 import 'package:supermarket/presentation/features/home/providers/command_center_provider.dart';
@@ -60,13 +61,14 @@ class _HomePageState extends State<HomePage> {
   }
 
   PreferredSizeWidget _buildAppBar(BuildContext context, UserRole role) {
+    final l10n = AppLocalizations.of(context)!;
     return AppBar(
       title: const Text('ERP Command Center',
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
       actions: [
         IconButton(
           icon: const Icon(Icons.dashboard_customize_outlined, size: 20),
-          tooltip: 'تخصيص الداشبورد',
+          tooltip: l10n.customizeDashboard,
           onPressed: () => DashboardSectionConfig.show(context),
         ),
         Builder(
@@ -149,6 +151,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildNewOperationBanner(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return InkWell(
       onTap: () => NewOperationSheet.show(context),
       borderRadius: BorderRadius.circular(AppDimensions.radiusXl),
@@ -167,25 +170,25 @@ class _HomePageState extends State<HomePage> {
             ),
           ],
         ),
-        child: const Row(
+        child: Row(
           children: [
-            Icon(Icons.add_circle_outline, color: Colors.white, size: 28),
-            SizedBox(width: AppDimensions.md),
+            const Icon(Icons.add_circle_outline, color: Colors.white, size: 28),
+            const SizedBox(width: AppDimensions.md),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('إنشاء عملية جديدة',
-                      style: TextStyle(
+                  Text(l10n.newOperation,
+                      style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
                           fontSize: 16)),
-                  Text('بيع، شراء، مرتجع، سند، أو أي عملية أخرى',
-                      style: TextStyle(color: Colors.white70, fontSize: 12)),
+                  Text(l10n.newOperationDesc,
+                      style: const TextStyle(color: Colors.white70, fontSize: 12)),
                 ],
               ),
             ),
-            Icon(Icons.arrow_back_ios_new, color: Colors.white54, size: 16),
+            const Icon(Icons.arrow_back_ios_new, color: Colors.white54, size: 16),
           ],
         ),
       ),
@@ -193,15 +196,16 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildQuickOperations(BuildContext context, UserRole role) {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Row(
+        Row(
           children: [
-            Icon(Icons.flash_on, size: 20, color: AppColors.warning),
-            SizedBox(width: AppDimensions.sm),
-            Text('عمليات سريعة',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Icon(Icons.flash_on, size: 20, color: AppColors.warning),
+            const SizedBox(width: AppDimensions.sm),
+            Text(l10n.quickOperations,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           ],
         ),
         const SizedBox(height: AppDimensions.md),
@@ -209,31 +213,31 @@ class _HomePageState extends State<HomePage> {
           spacing: AppDimensions.sm,
           runSpacing: AppDimensions.sm,
           children: [
-            _buildQuickOpChip(context, 'بيع', Icons.point_of_sale,
+            _buildQuickOpChip(context, l10n.sell, Icons.point_of_sale,
                 AppColors.opSales, '/pos', role),
-            _buildQuickOpChip(context, 'شراء', Icons.shopping_bag,
+            _buildQuickOpChip(context, l10n.buyAction, Icons.shopping_bag,
                 AppColors.opPurchases, '/purchases/new', role),
             _buildQuickOpChip(
                 context,
-                'سند قبض',
+                l10n.receiptVoucher,
                 Icons.receipt,
                 AppColors.opCashbox,
                 '/accounting/manual-voucher?receipt=true',
                 role),
             _buildQuickOpChip(
                 context,
-                'سند صرف',
+                l10n.paymentVoucher,
                 Icons.payment,
                 AppColors.error,
                 '/accounting/manual-voucher?receipt=false',
                 role),
-            _buildQuickOpChip(context, 'عميل', Icons.person_add,
+            _buildQuickOpChip(context, l10n.customerAction, Icons.person_add,
                 AppColors.opCustomers, '/customers', role),
-            _buildQuickOpChip(context, 'منتج', Icons.add_box,
+            _buildQuickOpChip(context, l10n.productAction, Icons.add_box,
                 AppColors.opInventory, '/products', role),
-            _buildQuickOpChip(context, 'مورد', Icons.local_shipping,
+            _buildQuickOpChip(context, l10n.supplierAction, Icons.local_shipping,
                 AppColors.opSuppliers, '/suppliers', role),
-            _buildQuickOpChip(context, 'تقرير', Icons.assessment,
+            _buildQuickOpChip(context, l10n.reportAction, Icons.assessment,
                 AppColors.opReports, '/reports/sales', role),
           ],
         ),
@@ -253,11 +257,12 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildWorkspacesSection(BuildContext context, UserRole role) {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('الأقسام الرئيسية',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        Text(l10n.mainSections,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         const SizedBox(height: AppDimensions.md),
         LayoutBuilder(
           builder: (context, constraints) {
@@ -276,22 +281,22 @@ class _HomePageState extends State<HomePage> {
               children: [
                 _buildWorkspaceTile(
                     context,
-                    'العمليات',
+                    l10n.operationsSection,
                     Icons.settings_input_component,
                     AppColors.opSales,
                     '/workspace/operations',
                     role),
-                _buildWorkspaceTile(context, 'الحسابات', Icons.account_balance,
+                _buildWorkspaceTile(context, l10n.accountingSection, Icons.account_balance,
                     AppColors.opCustomers, '/workspace/accounting', role),
-                _buildWorkspaceTile(context, 'المخزون', Icons.inventory_2,
+                _buildWorkspaceTile(context, l10n.inventory, Icons.inventory_2,
                     AppColors.opInventory, '/workspace/inventory', role),
-                _buildWorkspaceTile(context, 'الأطراف', Icons.people,
+                _buildWorkspaceTile(context, l10n.partiesSection, Icons.people,
                     AppColors.opSuppliers, '/workspace/parties', role),
-                _buildWorkspaceTile(context, 'التقارير', Icons.assessment,
+                _buildWorkspaceTile(context, l10n.reports, Icons.assessment,
                     AppColors.opReports, '/workspace/reports', role),
                 _buildWorkspaceTile(
                     context,
-                    'الإدارة',
+                    l10n.adminSection,
                     Icons.admin_panel_settings,
                     AppColors.secondary,
                     '/workspace/admin',
@@ -365,6 +370,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildBottomNav(BuildContext context, UserRole role) {
+    final l10n = AppLocalizations.of(context)!;
     return BottomNavigationBar(
       currentIndex: _currentIndex,
       type: BottomNavigationBarType.fixed,
@@ -380,12 +386,12 @@ class _HomePageState extends State<HomePage> {
           if (scaffold.hasDrawer) scaffold.openDrawer();
         }
       },
-      items: const [
-        BottomNavigationBarItem(icon: Icon(Icons.home), label: 'الرئيسية'),
-        BottomNavigationBarItem(icon: Icon(Icons.point_of_sale), label: 'POS'),
+      items: [
+        BottomNavigationBarItem(icon: const Icon(Icons.home), label: l10n.home),
+        const BottomNavigationBarItem(icon: Icon(Icons.point_of_sale), label: 'POS'),
         BottomNavigationBarItem(
-            icon: Icon(Icons.add_circle_outline), label: 'جديد'),
-        BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'القائمة'),
+            icon: const Icon(Icons.add_circle_outline), label: l10n.newLabel),
+        BottomNavigationBarItem(icon: const Icon(Icons.menu), label: l10n.menuLabel),
       ],
     );
   }

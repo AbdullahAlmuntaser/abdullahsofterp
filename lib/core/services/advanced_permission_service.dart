@@ -1,4 +1,6 @@
+import 'dart:collection';
 import 'package:supermarket/data/datasources/local/app_database.dart';
+import 'package:supermarket/core/services/audit_log_service.dart';
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
@@ -39,12 +41,34 @@ class ExtendedPermissionCode {
   static const String viewAuditLog = 'AUDIT_VIEW';
 }
 
+class _CacheEntry {
+  final bool value;
+  final DateTime expiresAt;
+
+  _CacheEntry(this.value, {Duration ttl = const Duration(minutes: 5)})
+      : expiresAt = DateTime.now().add(ttl);
+
+  bool get isExpired => DateTime.now().isAfter(expiresAt);
+}
+
 class AdvancedPermissionService {
   final AppDatabase db;
+  final AuditLogService? auditLogService;
+  final HashMap<String, _CacheEntry> _cache = HashMap();
+  static const Duration _defaultTtl = Duration(minutes: 5);
 
-  AdvancedPermissionService(this.db);
+  AdvancedPermissionService(this.db, {this.auditLogService});
 
-  Future<bool> hasPermission(String userId, String permissionCode) async {
+  void _invalidateCache({String? role}) {
+    if (role != null) {
+      _cache.remove(role);
+    } else {
+      _cache.clear();
+    }
+  }
+
+  Future<bool> hasPermission(String userId, String permissionCode,
+      {Duration? cacheTtl}) async {
     try {
       final user = await (db.select(db.users)
             ..where((u) => u.id.equals(userId)))
@@ -52,11 +76,19 @@ class AdvancedPermissionService {
       if (user == null) return false;
       if (user.role.toLowerCase() == 'admin') return true;
 
+      final cacheKey = '${user.role}:$permissionCode';
+      final cached = _cache[cacheKey];
+      if (cached != null && !cached.isExpired) {
+        return cached.value;
+      }
+
       final permission = await (db.select(db.rolePermissions)
             ..where((rp) => rp.role.equals(user.role))
             ..where((rp) => rp.permissionCode.equals(permissionCode)))
           .getSingleOrNull();
-      return permission != null;
+      final result = permission != null;
+      _cache[cacheKey] = _CacheEntry(result, ttl: cacheTtl ?? _defaultTtl);
+      return result;
     } catch (e) {
       return false;
     }
@@ -77,6 +109,7 @@ class AdvancedPermissionService {
     required String role,
     required String permissionCode,
     String? description,
+    String? changedByUserId,
   }) async {
     final existing = await (db.select(db.rolePermissions)
           ..where((rp) => rp.role.equals(role))
@@ -90,17 +123,40 @@ class AdvancedPermissionService {
               permissionCode: permissionCode,
             ),
           );
+
+      if (changedByUserId != null && auditLogService != null) {
+        await auditLogService!.logAction(
+          userId: changedByUserId,
+          action: 'ASSIGN_PERMISSION',
+          logTableName: 'role_permissions',
+          recordId: permissionCode,
+          newValues: {'role': role, 'permissionCode': permissionCode},
+        );
+      }
     }
+    _invalidateCache(role: role);
   }
 
   Future<void> removePermissionFromRole({
     required String role,
     required String permissionCode,
+    String? changedByUserId,
   }) async {
     await (db.delete(db.rolePermissions)
           ..where((rp) => rp.role.equals(role))
           ..where((rp) => rp.permissionCode.equals(permissionCode)))
         .go();
+
+    if (changedByUserId != null && auditLogService != null) {
+      await auditLogService!.logAction(
+        userId: changedByUserId,
+        action: 'REMOVE_PERMISSION',
+        logTableName: 'role_permissions',
+        recordId: permissionCode,
+        oldValues: {'role': role, 'permissionCode': permissionCode},
+      );
+    }
+    _invalidateCache(role: role);
   }
 
   Future<List<RolePermission>> getPermissionsForRole(String role) async {

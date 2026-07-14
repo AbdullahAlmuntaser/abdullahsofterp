@@ -1,5 +1,9 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:path/path.dart' as path;
+import 'package:supermarket/data/datasources/local/app_database.dart';
+import 'package:drift/drift.dart';
+import 'package:uuid/uuid.dart';
 
 enum ImportType { products, customers, suppliers, inventory }
 
@@ -21,8 +25,42 @@ class ImportResult {
 }
 
 class DataImportService {
+  final AppDatabase? db;
+
+  DataImportService({this.db});
+
+  Future<String> _readFileContent(String filePath) async {
+    final file = File(filePath);
+    final bytes = await file.readAsBytes();
+
+    // 2.23: Detect and strip UTF-8 BOM
+    int start = 0;
+    if (bytes.length >= 3 && bytes[0] == 0xEF && bytes[1] == 0xBB && bytes[2] == 0xBF) {
+      start = 3;
+    }
+
+    // Try UTF-8 first, fall back to Windows-1252 / Latin-1
+    try {
+      return utf8.decode(bytes.sublist(start));
+    } catch (_) {
+      return latin1.decode(bytes.sublist(start));
+    }
+  }
+
   Future<ImportResult> importFromCsv(String filePath, ImportType type) async {
     try {
+      final ext = path.extension(filePath).toLowerCase();
+      if (ext == '.xlsx' || ext == '.xls') {
+        return ImportResult(
+          successCount: 0,
+          failureCount: 0,
+          errors: [
+            'XLSX/XLS format not supported directly. Please save as CSV first.'
+          ],
+          importedData: [],
+        );
+      }
+
       final file = File(filePath);
       if (!await file.exists()) {
         return ImportResult(
@@ -33,7 +71,7 @@ class DataImportService {
         );
       }
 
-      final content = await file.readAsString();
+      final content = await _readFileContent(filePath);
       final lines =
           content.split('\n').where((l) => l.trim().isNotEmpty).toList();
 
@@ -56,7 +94,7 @@ class DataImportService {
         try {
           final values = _parseCsvLine(lines[i]);
           if (values.length != headers.length) {
-            errors.add('Row $i: Column count mismatch');
+            errors.add('Row $i: Column count mismatch (expected ${headers.length}, got ${values.length})');
             failureCount++;
             continue;
           }
@@ -81,6 +119,12 @@ class DataImportService {
         }
       }
 
+      // 2.22: Persist imported data to database if available
+      if (db != null && data.isNotEmpty) {
+        final persistErrors = await _persistData(data, type);
+        errors.addAll(persistErrors);
+      }
+
       return ImportResult(
         successCount: successCount,
         failureCount: failureCount,
@@ -97,6 +141,64 @@ class DataImportService {
     }
   }
 
+  Future<List<String>> _persistData(
+      List<Map<String, dynamic>> data, ImportType type) async {
+    final errors = <String>[];
+    final database = db!;
+
+    for (int i = 0; i < data.length; i++) {
+      try {
+        final row = data[i];
+        switch (type) {
+          case ImportType.products:
+            final decSell = Decimal.tryParse(row['sell_price']?.toString() ?? '0') ?? Decimal.zero;
+            final decBuy = Decimal.tryParse(row['buy_price']?.toString() ?? '0') ?? Decimal.zero;
+            await database.into(database.products).insert(
+              ProductsCompanion.insert(
+                name: row['name']?.toString() ?? '',
+                sku: row['sku']?.toString() ?? const Uuid().v4(),
+                sellPrice: Value(decSell),
+                buyPrice: Value(decBuy),
+                barcode: Value<String?>(row['barcode']?.toString()),
+                unit: Value(row['unit']?.toString() ?? 'pcs'),
+              ),
+            );
+            break;
+          case ImportType.customers:
+            final creditLimit = Decimal.tryParse(row['credit_limit']?.toString() ?? '0') ?? Decimal.zero;
+            await database.into(database.customers).insert(
+              CustomersCompanion.insert(
+                name: row['name']?.toString() ?? '',
+                phone: Value(row['phone']?.toString()),
+                email: Value(row['email']?.toString()),
+                address: Value(row['address']?.toString()),
+                taxNumber: Value(row['tax_number']?.toString()),
+                creditLimit: Value(creditLimit),
+              ),
+            );
+            break;
+          case ImportType.suppliers:
+            await database.into(database.suppliers).insert(
+              SuppliersCompanion.insert(
+                name: row['name']?.toString() ?? '',
+                phone: Value(row['phone']?.toString()),
+                email: Value(row['email']?.toString()),
+                address: Value(row['address']?.toString()),
+                taxNumber: Value(row['tax_number']?.toString()),
+              ),
+            );
+            break;
+          case ImportType.inventory:
+            // Inventory imports just validate; updates handled by stock movements
+            break;
+        }
+      } catch (e) {
+        errors.add('Row ${i + 1}: Failed to persist: $e');
+      }
+    }
+    return errors;
+  }
+
   List<String> _parseCsvLine(String line) {
     final result = <String>[];
     var current = StringBuffer();
@@ -106,7 +208,13 @@ class DataImportService {
       final char = line[i];
 
       if (char == '"') {
-        inQuotes = !inQuotes;
+        // 2.24: Handle "" inside quoted fields (escaped quotes)
+        if (inQuotes && i + 1 < line.length && line[i + 1] == '"') {
+          current.write('"');
+          i++;
+        } else {
+          inQuotes = !inQuotes;
+        }
       } else if (char == ',' && !inQuotes) {
         result.add(current.toString());
         current = StringBuffer();

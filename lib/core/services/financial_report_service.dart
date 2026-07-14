@@ -93,6 +93,7 @@ class FinancialReportService {
     final List<BalanceSheetItem> equity = [];
 
     for (final node in _flattenTree(tree)) {
+      if (node.account.isHeader) continue;
       final balance = node.treeBalance;
       if (balance == Decimal.zero) continue;
       if (node.account.type == 'ASSET') {

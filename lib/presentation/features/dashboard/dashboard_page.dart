@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:drift/drift.dart' hide Column;
 import 'package:supermarket/data/datasources/local/app_database.dart';
+import 'package:supermarket/l10n/app_localizations.dart';
 import 'dashboard_provider.dart';
 import 'package:supermarket/injection_container.dart';
 
@@ -13,9 +14,10 @@ class DashboardPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('لوحة التحكم'),
+        title: Text(l10n.dashboard),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -36,17 +38,17 @@ class DashboardPage extends StatelessWidget {
                 children: [
                   const Icon(Icons.error_outline, size: 48, color: Colors.red),
                   const SizedBox(height: 16),
-                  Text('خطأ: ${provider.error}'),
+                  Text(l10n.errorLabel(provider.error!)),
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: provider.refreshData,
-                    child: const Text('إعادة المحاولة'),
+                    child: Text(l10n.retry),
                   ),
                 ],
               ),
             );
           }
-          if (data == null) return const Center(child: Text('لا توجد بيانات'));
+          if (data == null) return Center(child: Text(l10n.noData));
 
           return RefreshIndicator(
             onRefresh: provider.refreshData,
@@ -55,14 +57,14 @@ class DashboardPage extends StatelessWidget {
               children: [
                 _buildKPISection(context, data),
                 const SizedBox(height: 16),
-                _buildWeeklySalesChart(),
+                _buildWeeklySalesChart(context),
                 const SizedBox(height: 16),
                 if (data.topProducts.isNotEmpty) ...[
-                  _buildTopProductsSection(data.topProducts),
+                  _buildTopProductsSection(context, data.topProducts),
                   const SizedBox(height: 16),
                 ],
                 if (data.categoryBreakdown.isNotEmpty) ...[
-                  _buildCategoryBreakdownChart(data.categoryBreakdown),
+                  _buildCategoryBreakdownChart(context, data.categoryBreakdown),
                   const SizedBox(height: 16),
                 ],
                 _buildQuickActions(context),
@@ -75,6 +77,7 @@ class DashboardPage extends StatelessWidget {
   }
 
   Widget _buildKPISection(BuildContext context, DashboardData data) {
+    final l10n = AppLocalizations.of(context)!;
     return GridView.count(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -84,54 +87,55 @@ class DashboardPage extends StatelessWidget {
       childAspectRatio: 1.5,
       children: [
         _buildStatCard(
-            'مبيعات اليوم',
-            '${data.totalSalesToday.toStringAsFixed(2)} ر.س',
+            l10n.todaySalesKpi,
+            '${data.totalSalesToday.toStringAsFixed(2)} ${l10n.currencySymbol}',
             Icons.shopping_cart,
             Colors.green),
         _buildStatCard(
-            'مشتريات اليوم',
-            '${data.totalPurchasesToday.toStringAsFixed(2)} ر.س',
+            l10n.todayPurchasesKpi,
+            '${data.totalPurchasesToday.toStringAsFixed(2)} ${l10n.currencySymbol}',
             Icons.shopping_bag,
             Colors.blue),
         _buildStatCard(
-            'صافي الربح',
-            '${data.netProfitToday.toStringAsFixed(2)} ر.س',
+            l10n.netProfit,
+            '${data.netProfitToday.toStringAsFixed(2)} ${l10n.currencySymbol}',
             Icons.attach_money,
             Colors.teal),
         _buildStatCard(
-            'قيمة المخزون',
-            '${data.inventoryValue.toStringAsFixed(2)} ر.س',
+            l10n.inventoryValue,
+            '${data.inventoryValue.toStringAsFixed(2)} ${l10n.currencySymbol}',
             Icons.inventory,
             Colors.orange),
         _buildStatCard(
-            'العملاء', '${data.totalCustomers}', Icons.people, Colors.indigo),
+            l10n.customers, '${data.totalCustomers}', Icons.people, Colors.indigo),
         _buildStatCard(
-            'الموردين', '${data.totalSuppliers}', Icons.business, Colors.brown),
+            l10n.suppliers, '${data.totalSuppliers}', Icons.business, Colors.brown),
         _buildStatCard(
-            'الصناديق',
-            '${data.cashboxBalance.toStringAsFixed(2)} ر.س',
+            l10n.cashboxes,
+            '${data.cashboxBalance.toStringAsFixed(2)} ${l10n.currencySymbol}',
             Icons.payments,
             Colors.purple,
             onTap: () => context.push('/accounting/cashbox')),
-        _buildStatCard('طلبيات معلقة', '${data.pendingOrdersCount}',
+        _buildStatCard(l10n.pendingOrders, '${data.pendingOrdersCount}',
             Icons.pending_actions, Colors.amber),
-        _buildStatCard('تنبيهات المخزون', '${data.lowStockCount}',
+        _buildStatCard(l10n.stockAlerts, '${data.lowStockCount}',
             Icons.warning, Colors.red),
-        _buildStatCard('تجاوز ائتمان', '${data.creditLimitExceededCount}',
+        _buildStatCard(l10n.creditExceeded, '${data.creditLimitExceededCount}',
             Icons.account_balance_wallet, Colors.pink),
       ],
     );
   }
 
-  Widget _buildWeeklySalesChart() {
+  Widget _buildWeeklySalesChart(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('مبيعات الأسبوع',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            Text(l10n.thisWeekSales,
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
             SizedBox(
               height: 200,
@@ -143,7 +147,7 @@ class DashboardPage extends StatelessWidget {
                   }
                   final spots = snapshot.data ?? [];
                   if (spots.isEmpty) {
-                    return const Center(child: Text('لا توجد بيانات'));
+                    return Center(child: Text(l10n.noData));
                   }
                   return LineChart(
                     LineChartData(
@@ -158,13 +162,13 @@ class DashboardPage extends StatelessWidget {
                             reservedSize: 30,
                             getTitlesWidget: (value, meta) {
                               final days = [
-                                'سبت',
-                                'أحد',
-                                'اثنين',
-                                'ثلاثاء',
-                                'أربعاء',
-                                'خميس',
-                                'جمعة'
+                                l10n.sat,
+                                l10n.sun,
+                                l10n.mon,
+                                l10n.tue,
+                                l10n.wed,
+                                l10n.thu,
+                                l10n.fri
                               ];
                               final index = value.toInt();
                               if (index >= 0 && index < 7) {
@@ -228,28 +232,29 @@ class DashboardPage extends StatelessWidget {
   }
 
   Widget _buildQuickActions(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('إجراءات سريعة',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            Text(l10n.quickActions,
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
             Wrap(
               spacing: 8,
               runSpacing: 8,
               children: [
                 _actionButton(
-                    context, 'نقطة البيع', Icons.point_of_sale, '/pos'),
+                    context, l10n.pos, Icons.point_of_sale, '/pos'),
                 _actionButton(
-                    context, 'المبيعات', Icons.receipt_long, '/sales'),
+                    context, l10n.sales, Icons.receipt_long, '/sales'),
                 _actionButton(
-                    context, 'المنتجات', Icons.inventory_2, '/products'),
-                _actionButton(context, 'التقارير', Icons.analytics, '/reports'),
-                _actionButton(context, 'العملاء', Icons.people, '/customers'),
-                _actionButton(context, 'المخزون', Icons.warehouse,
+                    context, l10n.products, Icons.inventory_2, '/products'),
+                _actionButton(context, l10n.reports, Icons.analytics, '/reports'),
+                _actionButton(context, l10n.customers, Icons.people, '/customers'),
+                _actionButton(context, l10n.inventory, Icons.warehouse,
                     '/inventory/warehouses'),
               ],
             ),
@@ -268,15 +273,16 @@ class DashboardPage extends StatelessWidget {
     );
   }
 
-  Widget _buildTopProductsSection(List<Map<String, dynamic>> topProducts) {
+  Widget _buildTopProductsSection(BuildContext context, List<Map<String, dynamic>> topProducts) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('الأكثر مبيعاً اليوم',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            Text(l10n.topSellingToday,
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
             ...topProducts.asMap().entries.map((entry) {
               final index = entry.key;
@@ -291,9 +297,9 @@ class DashboardPage extends StatelessWidget {
                 title: Text(product['name'] as String,
                     style: const TextStyle(fontSize: 13)),
                 subtitle: Text(
-                    'الكمية: ${(product['quantity'] as double).toStringAsFixed(0)}'),
+                    l10n.qtyLabel((product['quantity'] as double).toStringAsFixed(0))),
                 trailing: Text(
-                  '${(product['revenue'] as double).toStringAsFixed(2)} ر.س',
+                  '${(product['revenue'] as double).toStringAsFixed(2)} ${l10n.currencySymbol}',
                   style: const TextStyle(
                       fontWeight: FontWeight.bold, fontSize: 12),
                 ),
@@ -306,7 +312,8 @@ class DashboardPage extends StatelessWidget {
   }
 
   Widget _buildCategoryBreakdownChart(
-      List<Map<String, dynamic>> categoryBreakdown) {
+      BuildContext context, List<Map<String, dynamic>> categoryBreakdown) {
+    final l10n = AppLocalizations.of(context)!;
     final colors = [
       Colors.blue,
       Colors.green,
@@ -322,8 +329,8 @@ class DashboardPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('تصنيفات المنتجات',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            Text(l10n.productCategories,
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
             SizedBox(
               height: 200,

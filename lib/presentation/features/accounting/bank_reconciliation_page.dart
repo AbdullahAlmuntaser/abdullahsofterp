@@ -5,6 +5,7 @@ import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:supermarket/core/services/bank_reconciliation_service.dart';
 import 'package:supermarket/core/services/accounting_service.dart';
 import 'package:intl/intl.dart';
+import 'package:supermarket/l10n/app_localizations.dart';
 
 class BankReconciliationPage extends StatefulWidget {
   const BankReconciliationPage({super.key});
@@ -46,13 +47,14 @@ class _BankReconciliationPageState extends State<BankReconciliationPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('تسوية البنك'),
+        title: Text(l10n.bankReconciliation),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            tooltip: 'تحديث',
+            tooltip: l10n.refresh,
             onPressed: _loadTransactions,
           ),
         ],
@@ -68,11 +70,11 @@ class _BankReconciliationPageState extends State<BankReconciliationPage> {
               const SizedBox(height: 16),
               _buildTransactionList(),
             ] else
-              const Expanded(
+              Expanded(
                 child: Center(
                   child: Text(
-                    'اختر حساب بنك للبدء بالتسوية',
-                    style: TextStyle(fontSize: 16, color: Colors.grey),
+                    l10n.selectBankAccountPrompt,
+                    style: const TextStyle(fontSize: 16, color: Colors.grey),
                   ),
                 ),
               ),
@@ -83,6 +85,7 @@ class _BankReconciliationPageState extends State<BankReconciliationPage> {
   }
 
   Widget _buildFilterRow() {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(12.0),
@@ -107,9 +110,9 @@ class _BankReconciliationPageState extends State<BankReconciliationPage> {
                       final accounts = snapshot.data!;
                       return DropdownButtonFormField<String>(
                         value: _selectedAccountId,
-                        decoration: const InputDecoration(
-                          labelText: 'حساب البنك',
-                          border: OutlineInputBorder(),
+                        decoration: InputDecoration(
+                          labelText: l10n.bankAccount,
+                          border: const OutlineInputBorder(),
                           isDense: true,
                         ),
                         items: accounts
@@ -134,7 +137,7 @@ class _BankReconciliationPageState extends State<BankReconciliationPage> {
                 Expanded(
                   flex: 2,
                   child: _buildDateField(
-                    label: 'من تاريخ',
+                    label: l10n.fromDate,
                     date: _fromDate,
                     onChanged: (d) => setState(() => _fromDate = d),
                   ),
@@ -143,7 +146,7 @@ class _BankReconciliationPageState extends State<BankReconciliationPage> {
                 Expanded(
                   flex: 2,
                   child: _buildDateField(
-                    label: 'إلى تاريخ',
+                    label: l10n.toDate,
                     date: _toDate,
                     onChanged: (d) => setState(() => _toDate = d),
                   ),
@@ -156,9 +159,9 @@ class _BankReconciliationPageState extends State<BankReconciliationPage> {
                 Expanded(
                   child: TextField(
                     controller: _actualBalanceController,
-                    decoration: const InputDecoration(
-                      labelText: 'الرصيد الفعلي (كشف البنك)',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: l10n.actualBalance,
+                      border: const OutlineInputBorder(),
                       isDense: true,
                     ),
                     keyboardType: TextInputType.number,
@@ -170,9 +173,9 @@ class _BankReconciliationPageState extends State<BankReconciliationPage> {
                   width: 120,
                   child: TextField(
                     controller: _toleranceController,
-                    decoration: const InputDecoration(
-                      labelText: 'التحمّل',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: l10n.tolerance,
+                      border: const OutlineInputBorder(),
                       isDense: true,
                     ),
                     keyboardType: TextInputType.number,
@@ -185,7 +188,7 @@ class _BankReconciliationPageState extends State<BankReconciliationPage> {
                   child: ElevatedButton.icon(
                     onPressed: _loadTransactions,
                     icon: const Icon(Icons.search, size: 18),
-                    label: const Text('بحث'),
+                    label: Text(l10n.search),
                   ),
                 ),
               ],
@@ -224,6 +227,7 @@ class _BankReconciliationPageState extends State<BankReconciliationPage> {
   }
 
   Widget _buildBalanceSummary() {
+    final l10n = AppLocalizations.of(context)!;
     final actual = double.tryParse(_actualBalanceController.text) ?? 0.0;
     final diff = actual - _bookBalance;
 
@@ -233,12 +237,12 @@ class _BankReconciliationPageState extends State<BankReconciliationPage> {
         padding: const EdgeInsets.all(16.0),
         child: Row(
           children: [
-            _summaryItem('الرصيد الدفتري', _bookBalance, Colors.blue),
+            _summaryItem(l10n.bookBalance, _bookBalance, Colors.blue),
             const SizedBox(width: 24),
-            _summaryItem('الرصيد الفعلي', actual, Colors.green),
+            _summaryItem(l10n.actualBalance, actual, Colors.green),
             const SizedBox(width: 24),
             _summaryItem(
-              'الفارق',
+              l10n.difference,
               diff,
               diff == 0
                   ? Colors.green
@@ -248,7 +252,7 @@ class _BankReconciliationPageState extends State<BankReconciliationPage> {
             ),
             const SizedBox(width: 24),
             _summaryItem(
-              'المعاملات المحددة',
+              l10n.selectedTransactions,
               _selectedTxIds.length.toDouble(),
               Colors.purple,
               isCount: true,
@@ -261,13 +265,14 @@ class _BankReconciliationPageState extends State<BankReconciliationPage> {
 
   Widget _summaryItem(String label, double value, Color color,
       {bool isCount = false}) {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
         const SizedBox(height: 4),
         Text(
-          isCount ? '${value.toInt()}' : '${value.toStringAsFixed(2)} ر.س',
+          isCount ? '${value.toInt()}' : '${value.toStringAsFixed(2)} ${l10n.currencySymbol}',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
@@ -279,6 +284,7 @@ class _BankReconciliationPageState extends State<BankReconciliationPage> {
   }
 
   Widget _buildTransactionList() {
+    final l10n = AppLocalizations.of(context)!;
     return Expanded(
       child: Card(
         child: Column(
@@ -288,11 +294,11 @@ class _BankReconciliationPageState extends State<BankReconciliationPage> {
             if (_isLoading)
               const Expanded(child: Center(child: CircularProgressIndicator()))
             else if (_transactions.isEmpty)
-              const Expanded(
+              Expanded(
                 child: Center(
                   child: Text(
-                    'لا توجد معاملات غير مسوّاة',
-                    style: TextStyle(color: Colors.grey),
+                    l10n.noUnmatchedTransactions,
+                    style: const TextStyle(color: Colors.grey),
                   ),
                 ),
               )
@@ -315,6 +321,7 @@ class _BankReconciliationPageState extends State<BankReconciliationPage> {
   }
 
   Widget _buildListHeader() {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       color: Theme.of(context).colorScheme.surfaceContainerHighest,
@@ -336,25 +343,25 @@ class _BankReconciliationPageState extends State<BankReconciliationPage> {
               },
             ),
           ),
-          const Expanded(
+          Expanded(
             flex: 2,
-            child: Text('التاريخ',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+            child: Text(l10n.date,
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
           ),
-          const Expanded(
+          Expanded(
             flex: 3,
-            child: Text('الوصف',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+            child: Text(l10n.description,
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
           ),
-          const Expanded(
+          Expanded(
             flex: 2,
-            child: Text('المرجع',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+            child: Text(l10n.reference,
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
           ),
-          const Expanded(
+          Expanded(
             flex: 2,
-            child: Text('المبلغ',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+            child: Text(l10n.amount,
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
           ),
         ],
       ),
@@ -362,6 +369,7 @@ class _BankReconciliationPageState extends State<BankReconciliationPage> {
   }
 
   Widget _buildTransactionRow(UnmatchedTransaction tx, bool isSelected) {
+    final l10n = AppLocalizations.of(context)!;
     return InkWell(
       onTap: () {
         setState(() {
@@ -425,7 +433,7 @@ class _BankReconciliationPageState extends State<BankReconciliationPage> {
             Expanded(
               flex: 2,
               child: Text(
-                '${tx.amount.toStringAsFixed(2)} ر.س',
+                '${tx.amount.toStringAsFixed(2)} ${l10n.currencySymbol}',
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.bold,
@@ -441,6 +449,7 @@ class _BankReconciliationPageState extends State<BankReconciliationPage> {
   }
 
   Widget _buildActionButtons() {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -451,9 +460,9 @@ class _BankReconciliationPageState extends State<BankReconciliationPage> {
           Expanded(
             child: TextField(
               controller: _noteController,
-              decoration: const InputDecoration(
-                hintText: 'ملاحظات التسوية...',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                hintText: l10n.reconciliationNotesHint,
+                border: const OutlineInputBorder(),
                 isDense: true,
               ),
             ),
@@ -462,7 +471,7 @@ class _BankReconciliationPageState extends State<BankReconciliationPage> {
           ElevatedButton.icon(
             onPressed: _selectedTxIds.isEmpty ? null : _reconcileSelected,
             icon: const Icon(Icons.check_circle, size: 18),
-            label: const Text('تسوية المحدد'),
+            label: Text(l10n.reconcileSelected),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.green,
               foregroundColor: Colors.white,
@@ -472,7 +481,7 @@ class _BankReconciliationPageState extends State<BankReconciliationPage> {
           ElevatedButton.icon(
             onPressed: _autoReconcile,
             icon: const Icon(Icons.auto_fix_high, size: 18),
-            label: const Text('تسوية تلقائية'),
+            label: Text(l10n.autoReconcile),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.blue,
               foregroundColor: Colors.white,
@@ -482,7 +491,7 @@ class _BankReconciliationPageState extends State<BankReconciliationPage> {
           OutlinedButton.icon(
             onPressed: _reconcileAll,
             icon: const Icon(Icons.done_all, size: 18),
-            label: const Text('تسوية الكل'),
+            label: Text(l10n.reconcileAll),
           ),
         ],
       ),
@@ -491,6 +500,7 @@ class _BankReconciliationPageState extends State<BankReconciliationPage> {
 
   Future<void> _loadTransactions() async {
     if (_selectedAccountId == null) return;
+    final l10n = AppLocalizations.of(context)!;
 
     setState(() {
       _isLoading = true;
@@ -521,7 +531,7 @@ class _BankReconciliationPageState extends State<BankReconciliationPage> {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('خطأ في تحميل المعاملات: $e'),
+            content: Text(l10n.errorLoadingTransactions(e.toString())),
             backgroundColor: Colors.red,
           ),
         );
@@ -531,6 +541,7 @@ class _BankReconciliationPageState extends State<BankReconciliationPage> {
 
   Future<void> _reconcileSelected() async {
     if (_selectedAccountId == null || _selectedTxIds.isEmpty) return;
+    final l10n = AppLocalizations.of(context)!;
 
     try {
       for (final txId in _selectedTxIds) {
@@ -545,7 +556,7 @@ class _BankReconciliationPageState extends State<BankReconciliationPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('تم تسوية ${_selectedTxIds.length} معاملة بنجاح'),
+            content: Text(l10n.reconcileSuccessCount(_selectedTxIds.length)),
             backgroundColor: Colors.green,
           ),
         );
@@ -556,7 +567,7 @@ class _BankReconciliationPageState extends State<BankReconciliationPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('خطأ في التسوية: $e'),
+            content: Text(l10n.reconciliationError(e.toString())),
             backgroundColor: Colors.red,
           ),
         );
@@ -566,6 +577,7 @@ class _BankReconciliationPageState extends State<BankReconciliationPage> {
 
   Future<void> _autoReconcile() async {
     if (_selectedAccountId == null) return;
+    final l10n = AppLocalizations.of(context)!;
 
     final tolerance =
         Decimal.tryParse(_toleranceController.text) ?? Decimal.zero;
@@ -587,7 +599,7 @@ class _BankReconciliationPageState extends State<BankReconciliationPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('تم تسوية $matched معاملة تلقائياً'),
+            content: Text(l10n.autoReconcileCount(matched)),
             backgroundColor: Colors.blue,
           ),
         );
@@ -598,7 +610,7 @@ class _BankReconciliationPageState extends State<BankReconciliationPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('خطأ في التسوية التلقائية: $e'),
+            content: Text(l10n.autoReconcileError(e.toString())),
             backgroundColor: Colors.red,
           ),
         );
@@ -608,24 +620,27 @@ class _BankReconciliationPageState extends State<BankReconciliationPage> {
 
   Future<void> _reconcileAll() async {
     if (_selectedAccountId == null || _transactions.isEmpty) return;
+    final l10n = AppLocalizations.of(context)!;
 
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('تسوية الكل'),
-        content: Text(
-            'هل تريد تسوية جميع ${_transactions.length} معاملة غير مسوّاة؟'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('إلغاء'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('تأكيد'),
-          ),
-        ],
-      ),
+      builder: (ctx) {
+        final dialogL10n = AppLocalizations.of(ctx)!;
+        return AlertDialog(
+          title: Text(dialogL10n.reconcileAll),
+          content: Text(dialogL10n.reconcileAllConfirm(_transactions.length)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(dialogL10n.cancel),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(dialogL10n.confirmGeneric),
+            ),
+          ],
+        );
+      },
     );
 
     if (confirmed != true) return;
@@ -642,7 +657,7 @@ class _BankReconciliationPageState extends State<BankReconciliationPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('تم تسوية جميع ${_transactions.length} معاملة بنجاح'),
+            content: Text(l10n.reconcileAllSuccess(_transactions.length)),
             backgroundColor: Colors.green,
           ),
         );
@@ -653,7 +668,7 @@ class _BankReconciliationPageState extends State<BankReconciliationPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('خطأ في التسوية: $e'),
+            content: Text(l10n.reconciliationError(e.toString())),
             backgroundColor: Colors.red,
           ),
         );

@@ -63,8 +63,8 @@ class SalesDao {
   Future<List<Map<String, dynamic>>> getTopSellingProducts({int limit = 10}) async {
     return _db.query('''
       SELECT si.product_id, p.name AS product_name, p.sku,
-        SUM(CAST(si.quantity AS REAL)) AS total_qty,
-        SUM(CAST(si.quantity AS REAL) * CAST(si.price AS REAL)) AS total_revenue
+        ROUND(SUM(CAST(si.quantity AS REAL)), 6) AS total_qty,
+        ROUND(SUM(CAST(si.quantity AS REAL) * CAST(si.price AS REAL)), 6) AS total_revenue
       FROM sale_items si
       JOIN products p ON p.id = si.product_id
       GROUP BY si.product_id

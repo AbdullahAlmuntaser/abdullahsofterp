@@ -104,7 +104,7 @@ class TransactionEngine {
         final existingRequest = await _approvalService!.getRequestByReferenceId(purchaseId);
         if (existingRequest == null) {
           // Submit for approval instead of posting directly
-          await _approvalService!.submitRequest(
+          await _approvalService!.createRequest(
             type: 'PURCHASE',
             title: 'فاتورة مشتريات #${purchaseId.substring(0, 8)}',
             amount: purchase.total.toDouble(),
@@ -115,7 +115,7 @@ class TransactionEngine {
           await (db.update(db.purchases)..where((p) => p.id.equals(purchaseId)))
               .write(const PurchasesCompanion(status: Value(DocumentStatus.draft)));
           return; // Exit - don't post yet
-        } else if (!existingRequest.isApproved) {
+        } else if (existingRequest['status'] != 'approved') {
           throw Exception('هذه الفاتورة بانتظار الموافقة. لا يمكن الترحيل حتى تتم الموافقة عليها.');
         }
       }
@@ -1026,12 +1026,12 @@ class TransactionEngine {
 
     final result = <SaleWithBalance>[];
     for (final sale in sales) {
-      final payments = await (db.select(db.accountTransactions)
-            ..where((t) => t.referenceId.equals(sale.id)))
+      final paymentLinks = await (db.select(db.customerPaymentLinks)
+            ..where((l) => l.saleId.equals(sale.id)))
           .get();
       Decimal totalPaid = Decimal.zero;
-      for (final payment in payments) {
-        totalPaid += (payment.credit - payment.debit);
+      for (final link in paymentLinks) {
+        totalPaid += link.amount;
       }
       final balance = sale.total - totalPaid;
       if (balance > Decimal.zero) {
@@ -1051,12 +1051,12 @@ class TransactionEngine {
 
     final result = <PurchaseWithBalance>[];
     for (final purchase in purchases) {
-      final payments = await (db.select(db.accountTransactions)
-            ..where((t) => t.referenceId.equals(purchase.id)))
+      final paymentLinks = await (db.select(db.purchasePaymentLinks)
+            ..where((l) => l.purchaseId.equals(purchase.id)))
           .get();
       Decimal totalPaid = Decimal.zero;
-      for (final payment in payments) {
-        totalPaid += (payment.debit - payment.credit);
+      for (final link in paymentLinks) {
+        totalPaid += link.amount;
       }
       final balance = purchase.total - totalPaid;
       if (balance > Decimal.zero) {

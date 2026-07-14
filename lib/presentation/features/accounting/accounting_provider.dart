@@ -12,6 +12,7 @@ import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:supermarket/data/datasources/local/daos/accounting_dao.dart';
 import 'package:supermarket/data/models/gl_entry_detail.dart';
 import 'package:supermarket/injection_container.dart';
+import 'package:supermarket/l10n/app_localizations.dart';
 import 'package:uuid/uuid.dart';
 
 class AccountingProvider with ChangeNotifier {
@@ -97,11 +98,13 @@ class AccountingProvider with ChangeNotifier {
   }
 
   Future<void> createManualEntry({
+    required BuildContext context,
     required String description,
     required DateTime date,
     required List<GLLinesCompanion> lines,
     required String? userId,
   }) async {
+    final l10n = AppLocalizations.of(context)!;
     // Basic validation for balanced entry
     Decimal totalDebit = Decimal.zero;
     Decimal totalCredit = Decimal.zero;
@@ -112,7 +115,7 @@ class AccountingProvider with ChangeNotifier {
 
     if ((totalDebit - totalCredit).abs() > Decimal.parse('0.001')) {
       throw Exception(
-        'القيد غير متوازن. المدين: $totalDebit, الدائن: $totalCredit',
+        l10n.unbalancedEntryError(totalDebit.toString(), totalCredit.toString()),
       );
     }
 
@@ -135,7 +138,7 @@ class AccountingProvider with ChangeNotifier {
       await sl<AuditService>().logCreate(
         'ManualJournalEntry',
         entryId,
-        details: 'قيد يدوي: $description, الإجمالي: $totalDebit',
+        details: l10n.manualJournalEntryAudit(description, totalDebit.toString()),
         userId: userId,
       );
     });

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supermarket/core/services/transaction_engine.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
+import 'package:supermarket/l10n/app_localizations.dart';
 
 class CustomerPaymentResult {
   final Decimal totalAmount;
@@ -70,6 +71,7 @@ class _CustomerPaymentDialogState extends State<CustomerPaymentDialog> {
   }
 
   void _submit() {
+    final l10n = AppLocalizations.of(context)!;
     final allocations = <({String saleId, Decimal amount})>[];
     for (final inv in widget.outstandingInvoices) {
       if (_selected[inv.sale.id] == true) {
@@ -82,7 +84,7 @@ class _CustomerPaymentDialogState extends State<CustomerPaymentDialog> {
     }
     if (allocations.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('يرجى اختيار فاتورة واحدة على الأقل')),
+        SnackBar(content: Text(l10n.selectAtLeastOneInvoice)),
       );
       return;
     }
@@ -98,10 +100,11 @@ class _CustomerPaymentDialogState extends State<CustomerPaymentDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Directionality(
       textDirection: TextDirection.rtl,
       child: AlertDialog(
-        title: Text('دفع فواتير ${widget.customer.name}'),
+        title: Text(l10n.payInvoicesFor(widget.customer.name)),
         content: SizedBox(
           width: double.maxFinite,
           child: Column(
@@ -116,7 +119,7 @@ class _CustomerPaymentDialogState extends State<CustomerPaymentDialog> {
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       child: Text(
-                        'المبلغ الإجمالي: ${_totalAmount.toStringAsFixed(2)} ر.س',
+                        '${l10n.totalAmount}: ${_totalAmount.toStringAsFixed(2)} ${l10n.currencySymbol}',
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -125,9 +128,9 @@ class _CustomerPaymentDialogState extends State<CustomerPaymentDialog> {
                     ),
                     TextField(
                       controller: _noteController,
-                      decoration: const InputDecoration(
-                        labelText: 'ملاحظات',
-                        border: OutlineInputBorder(),
+                      decoration: InputDecoration(
+                        labelText: l10n.notes,
+                        border: const OutlineInputBorder(),
                       ),
                     ),
                   ],
@@ -139,11 +142,11 @@ class _CustomerPaymentDialogState extends State<CustomerPaymentDialog> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('إلغاء'),
+            child: Text(l10n.cancel),
           ),
           ElevatedButton(
             onPressed: _submit,
-            child: const Text('حفظ'),
+            child: Text(l10n.save),
           ),
         ],
       ),
@@ -151,6 +154,7 @@ class _CustomerPaymentDialogState extends State<CustomerPaymentDialog> {
   }
 
   Widget _buildInvoiceTile(SaleWithBalance inv) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 4),
       child: Padding(
@@ -173,11 +177,11 @@ class _CustomerPaymentDialogState extends State<CustomerPaymentDialog> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'فاتورة #${inv.sale.id.substring(0, 8)}',
+                        l10n.invoiceHash(inv.sale.id.substring(0, 8)),
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                       Text(
-                        'المتبقي: ${inv.balance.toStringAsFixed(2)} ر.س',
+                        l10n.remainingLabel(inv.balance.toStringAsFixed(2)),
                         style: TextStyle(
                           color: Colors.red.shade700,
                           fontSize: 12,
@@ -194,10 +198,10 @@ class _CustomerPaymentDialogState extends State<CustomerPaymentDialog> {
                 child: TextField(
                   controller: _amountControllers[inv.sale.id],
                   keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'المبلغ المدفوع',
+                  decoration: InputDecoration(
+                    labelText: l10n.amountPaidLabel,
                     isDense: true,
-                    border: OutlineInputBorder(),
+                    border: const OutlineInputBorder(),
                   ),
                   onChanged: (_) => setState(() {}),
                 ),

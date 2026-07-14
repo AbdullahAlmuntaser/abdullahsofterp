@@ -50,7 +50,7 @@ class ZakatService {
         .getSingle();
   }
 
-  /// Calculate total assets from GL accounts
+  /// Calculate total assets from GL accounts using actual ledger balances
   Future<Decimal> _calculateTotalAssets() async {
     final assetAccounts = await (db.select(db.gLAccounts)
           ..where((a) => a.accountType.equals(AccountType.asset.index)))
@@ -58,12 +58,13 @@ class ZakatService {
 
     Decimal total = Decimal.zero;
     for (final account in assetAccounts) {
-      total += account.balance;
+      final balance = await _getAccountBalanceFromLines(account.id);
+      total += balance;
     }
     return total;
   }
 
-  /// Calculate total liabilities from GL accounts
+  /// Calculate total liabilities from GL accounts using actual ledger balances
   Future<Decimal> _calculateTotalLiabilities() async {
     final liabilityAccounts = await (db.select(db.gLAccounts)
           ..where((a) => a.accountType.equals(AccountType.liability.index)))
@@ -71,9 +72,25 @@ class ZakatService {
 
     Decimal total = Decimal.zero;
     for (final account in liabilityAccounts) {
-      total += account.balance;
+      final balance = await _getAccountBalanceFromLines(account.id);
+      total += balance;
     }
     return total;
+  }
+
+  /// Compute account balance from actual GL lines instead of the dead balance column
+  Future<Decimal> _getAccountBalanceFromLines(String accountId) async {
+    final lines = await (db.select(db.gLLines)
+          ..where((l) => l.accountId.equals(accountId)))
+        .get();
+
+    Decimal debitTotal = Decimal.zero;
+    Decimal creditTotal = Decimal.zero;
+    for (final line in lines) {
+      debitTotal += line.debit;
+      creditTotal += line.credit;
+    }
+    return debitTotal - creditTotal;
   }
 
   /// Get Zakat calculation by ID

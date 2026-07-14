@@ -5,6 +5,7 @@ import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:supermarket/core/services/budget_service.dart';
 import 'package:supermarket/injection_container.dart';
 import 'package:intl/intl.dart';
+import 'package:supermarket/l10n/app_localizations.dart';
 
 class BudgetsPage extends StatefulWidget {
   const BudgetsPage({super.key});
@@ -40,17 +41,18 @@ class _BudgetsPageState extends State<BudgetsPage>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final db = context.read<AppDatabase>();
     final budgetService = sl<BudgetService>();
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('الميزانيات التقديرية'),
+        title: Text(l10n.budgets),
         bottom: TabBar(
           controller: _tabController,
-          tabs: const [
-            Tab(icon: Icon(Icons.list), text: 'الميزانيات'),
-            Tab(icon: Icon(Icons.add_circle), text: 'إنشاء ميزانية'),
+          tabs: [
+            Tab(icon: const Icon(Icons.list), text: l10n.budgetList),
+            Tab(icon: const Icon(Icons.add_circle), text: l10n.createBudget),
           ],
         ),
       ),
@@ -65,6 +67,7 @@ class _BudgetsPageState extends State<BudgetsPage>
   }
 
   Widget _buildBudgetsList(AppDatabase db) {
+    final l10n = AppLocalizations.of(context)!;
     return StreamBuilder<List<AccBudget>>(
       stream: (db.select(db.accBudgets)
             ..orderBy([(b) => drift.OrderingTerm.desc(b.createdAt)]))
@@ -84,10 +87,10 @@ class _BudgetsPageState extends State<BudgetsPage>
                 Icon(Icons.account_balance_wallet_outlined,
                     size: 64, color: Colors.grey[400]),
                 const SizedBox(height: 16),
-                Text('لا توجد ميزانيات تقديرية',
+                Text(l10n.noBudgetsFound,
                     style: TextStyle(color: Colors.grey[600], fontSize: 16)),
                 const SizedBox(height: 8),
-                const Text('قم بإنشاء ميزانية جديدة من التبويب الثاني'),
+                Text(l10n.createBudgetHint),
               ],
             ),
           );
@@ -133,7 +136,7 @@ class _BudgetsPageState extends State<BudgetsPage>
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
-                            budget.status == 'active' ? 'نشط' : 'مغلق',
+                            budget.status == 'active' ? l10n.statusActive : l10n.closed,
                             style: TextStyle(
                               color: budget.status == 'active'
                                   ? Colors.green.shade700
@@ -145,26 +148,26 @@ class _BudgetsPageState extends State<BudgetsPage>
                       ],
                     ),
                     const SizedBox(height: 8),
-                    Text('الفترة: ${budget.period}',
+                    Text(l10n.periodLabel(budget.period),
                         style: TextStyle(color: Colors.grey[600])),
                     const SizedBox(height: 16),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         _buildBudgetInfo(
-                          'المudgeted',
+                          l10n.budgeted,
                           NumberFormat.currency(symbol: '')
                               .format(budget.budgetedAmount),
                           Colors.blue,
                         ),
                         _buildBudgetInfo(
-                          'الفعلي',
+                          l10n.actual,
                           NumberFormat.currency(symbol: '')
                               .format(budget.actualAmount),
                           Colors.orange,
                         ),
                         _buildBudgetInfo(
-                          'التباين',
+                          l10n.variance,
                           NumberFormat.currency(symbol: '').format(variance),
                           isOverBudget ? Colors.red : Colors.green,
                         ),
@@ -184,7 +187,7 @@ class _BudgetsPageState extends State<BudgetsPage>
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      '${(progress.toDouble() * 100).toStringAsFixed(1)}% مستهلك',
+                      l10n.consumedPercent((progress.toDouble() * 100).toStringAsFixed(1)),
                       style: TextStyle(
                         color: progress > Decimal.one
                             ? Colors.red
@@ -219,6 +222,7 @@ class _BudgetsPageState extends State<BudgetsPage>
   }
 
   Widget _buildCreateBudgetForm(AppDatabase db, BudgetService budgetService) {
+    final l10n = AppLocalizations.of(context)!;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Form(
@@ -228,14 +232,14 @@ class _BudgetsPageState extends State<BudgetsPage>
           children: [
             TextFormField(
               controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: 'اسم الميزانية',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.label),
+              decoration: InputDecoration(
+                labelText: l10n.budgetName,
+                border: const OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.label),
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'يرجى إدخال اسم الميزانية';
+                  return l10n.enterBudgetNameError;
                 }
                 return null;
               },
@@ -243,10 +247,10 @@ class _BudgetsPageState extends State<BudgetsPage>
             const SizedBox(height: 16),
             DropdownButtonFormField<String>(
               value: _selectedPeriod,
-              decoration: const InputDecoration(
-                labelText: 'الفترة',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.calendar_today),
+              decoration: InputDecoration(
+                labelText: l10n.period,
+                border: const OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.calendar_today),
               ),
               items: _buildPeriodItems(),
               onChanged: (value) => setState(() => _selectedPeriod = value!),
@@ -260,14 +264,14 @@ class _BudgetsPageState extends State<BudgetsPage>
                 final costCenters = snapshot.data ?? [];
                 return DropdownButtonFormField<int?>(
                   value: _selectedCostCenterId,
-                  decoration: const InputDecoration(
-                    labelText: 'مركز التكلفة (اختياري)',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.business),
+                  decoration: InputDecoration(
+                    labelText: l10n.costCenterOptional,
+                    border: const OutlineInputBorder(),
+                    prefixIcon: const Icon(Icons.business),
                   ),
                   items: [
-                    const DropdownMenuItem<int?>(
-                        value: null, child: Text('عام')),
+                    DropdownMenuItem<int?>(
+                        value: null, child: Text(l10n.general)),
                     ...costCenters.map((c) => DropdownMenuItem(
                           value: int.tryParse(c.id),
                           child: Text(c.name),
@@ -285,14 +289,14 @@ class _BudgetsPageState extends State<BudgetsPage>
                 final accounts = snapshot.data ?? [];
                 return DropdownButtonFormField<int?>(
                   value: _selectedAccountId,
-                  decoration: const InputDecoration(
-                    labelText: 'الحساب المحاسبي (اختياري)',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.account_balance),
+                  decoration: InputDecoration(
+                    labelText: l10n.accountOptional,
+                    border: const OutlineInputBorder(),
+                    prefixIcon: const Icon(Icons.account_balance),
                   ),
                   items: [
-                    const DropdownMenuItem<int?>(
-                        value: null, child: Text('عام')),
+                    DropdownMenuItem<int?>(
+                        value: null, child: Text(l10n.general)),
                     ...accounts.where((a) => a.type == 'EXPENSE').map(
                           (a) => DropdownMenuItem(
                               value: int.tryParse(a.id), child: Text(a.name)),
@@ -306,20 +310,20 @@ class _BudgetsPageState extends State<BudgetsPage>
             const SizedBox(height: 16),
             TextFormField(
               controller: _amountController,
-              decoration: const InputDecoration(
-                labelText: 'المبلغ المقدر',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.attach_money),
-                suffixText: 'ريال',
+              decoration: InputDecoration(
+                labelText: l10n.budgetedAmount,
+                border: const OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.attach_money),
+                suffixText: l10n.currencySymbol,
               ),
               keyboardType: TextInputType.number,
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'يرجى إدخال المبلغ';
+                  return l10n.enterAmountPrompt;
                 }
                 final amount = double.tryParse(value);
                 if (amount == null || amount <= 0) {
-                  return 'يرجى إدخال مبلغ صحيح';
+                  return l10n.enterAmountError;
                 }
                 return null;
               },
@@ -334,7 +338,7 @@ class _BudgetsPageState extends State<BudgetsPage>
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   : const Icon(Icons.save),
-              label: Text(_isLoading ? 'جاري الإنشاء...' : 'إنشاء ميزانية'),
+              label: Text(_isLoading ? l10n.creating : l10n.createBudget),
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16),
               ),
@@ -346,6 +350,7 @@ class _BudgetsPageState extends State<BudgetsPage>
   }
 
   List<DropdownMenuItem<String>> _buildPeriodItems() {
+    final l10n = AppLocalizations.of(context)!;
     final currentYear = DateTime.now().year;
     return [
       DropdownMenuItem(
@@ -355,18 +360,19 @@ class _BudgetsPageState extends State<BudgetsPage>
       DropdownMenuItem(
           value: '${currentYear - 2}', child: Text('${currentYear - 2}')),
       DropdownMenuItem(
-          value: '$currentYear-Q1', child: Text('$currentYear - الربع الأول')),
+          value: '$currentYear-Q1', child: Text('$currentYear - ${l10n.q1}')),
       DropdownMenuItem(
-          value: '$currentYear-Q2', child: Text('$currentYear - الربع الثاني')),
+          value: '$currentYear-Q2', child: Text('$currentYear - ${l10n.q2}')),
       DropdownMenuItem(
-          value: '$currentYear-Q3', child: Text('$currentYear - الربع الثالث')),
+          value: '$currentYear-Q3', child: Text('$currentYear - ${l10n.q3}')),
       DropdownMenuItem(
-          value: '$currentYear-Q4', child: Text('$currentYear - الربع الرابع')),
+          value: '$currentYear-Q4', child: Text('$currentYear - ${l10n.q4}')),
     ];
   }
 
   Future<void> _createBudget(AppDatabase db) async {
     if (!_formKey.currentState!.validate()) return;
+    final l10n = AppLocalizations.of(context)!;
 
     setState(() => _isLoading = true);
 
@@ -384,8 +390,8 @@ class _BudgetsPageState extends State<BudgetsPage>
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('تم إنشاء الميزانية بنجاح'),
+          SnackBar(
+            content: Text(l10n.budgetCreated),
             backgroundColor: Colors.green,
           ),
         );
@@ -401,7 +407,7 @@ class _BudgetsPageState extends State<BudgetsPage>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('خطأ: $e'),
+            content: Text(l10n.errorWithMessage(e.toString())),
             backgroundColor: Colors.red,
           ),
         );

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supermarket/core/services/transaction_engine.dart';
 import 'package:supermarket/injection_container.dart';
+import 'package:supermarket/l10n/app_localizations.dart';
 
 class BillAllocationWidget extends StatefulWidget {
   final String customerId;
@@ -94,12 +95,13 @@ class _BillAllocationWidgetState extends State<BillAllocationWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     if (_isLoading) return const Center(child: CircularProgressIndicator());
     if (_outstandingSales.isEmpty) {
-      return const Card(
+      return Card(
         child: Padding(
-          padding: EdgeInsets.all(16.0),
-          child: Text('لا توجد فواتير آجلة مستحقة لهذا العميل.'),
+          padding: const EdgeInsets.all(16.0),
+          child: Text(l10n.noOutstandingInvoices),
         ),
       );
     }
@@ -110,14 +112,14 @@ class _BillAllocationWidgetState extends State<BillAllocationWidget> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
-              'توزيع المبلغ على الفواتير',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            Text(
+              l10n.allocateAmountToInvoices,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             TextButton.icon(
               onPressed: _autoAllocate,
               icon: const Icon(Icons.auto_fix_high),
-              label: const Text('توزيع آلي (الأقدم أولاً)'),
+              label: Text(l10n.autoAllocateOldestFirst),
             ),
           ],
         ),
@@ -131,8 +133,8 @@ class _BillAllocationWidgetState extends State<BillAllocationWidget> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('المتبقي للتوزيع: ${_remainingAmount.toStringAsFixed(2)}'),
-              Text('تم توزيع: ${_totalAllocated.toStringAsFixed(2)}'),
+              Text(l10n.remainingToAllocate(_remainingAmount.toStringAsFixed(2))),
+              Text(l10n.allocated(_totalAllocated.toStringAsFixed(2))),
             ],
           ),
         ),
@@ -150,9 +152,9 @@ class _BillAllocationWidgetState extends State<BillAllocationWidget> {
               margin: const EdgeInsets.only(bottom: 8),
               child: ListTile(
                 title: Text(
-                    'فاتورة #${sale.id.substring(0, 8)} - ${sale.createdAt.toString().split(' ')[0]}'),
+                    l10n.invoiceWithId(sale.id.substring(0, 8))),
                 subtitle: Text(
-                    'الإجمالي: ${sale.total} | المتبقي: ${saleWithBalance.balance.toDouble()}'),
+                    l10n.totalAndBalance(sale.total.toString(), saleWithBalance.balance.toDouble().toString())),
                 trailing: SizedBox(
                   width: 120,
                   child: TextField(

@@ -2684,6 +2684,3570 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No unmatched transactions'**
   String get noUnmatchedTransactions;
+
+  /// No description provided for @accountingPeriods.
+  ///
+  /// In en, this message translates to:
+  /// **'Accounting Periods'**
+  String get accountingPeriods;
+
+  /// No description provided for @autoGenerate.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto Generate'**
+  String get autoGenerate;
+
+  /// No description provided for @cancelAutoGeneration.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel Auto Generation'**
+  String get cancelAutoGeneration;
+
+  /// No description provided for @periodName.
+  ///
+  /// In en, this message translates to:
+  /// **'Period Name'**
+  String get periodName;
+
+  /// No description provided for @examplePeriodName.
+  ///
+  /// In en, this message translates to:
+  /// **'Example: January 2026'**
+  String get examplePeriodName;
+
+  /// No description provided for @startDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Date'**
+  String get startDate;
+
+  /// No description provided for @endDate.
+  ///
+  /// In en, this message translates to:
+  /// **'End Date'**
+  String get endDate;
+
+  /// No description provided for @selectDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Date'**
+  String get selectDate;
+
+  /// No description provided for @existingPeriods.
+  ///
+  /// In en, this message translates to:
+  /// **'Existing Periods'**
+  String get existingPeriods;
+
+  /// No description provided for @noAccountingPeriods.
+  ///
+  /// In en, this message translates to:
+  /// **'No Accounting Periods'**
+  String get noAccountingPeriods;
+
+  /// No description provided for @closePeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Close Period'**
+  String get closePeriod;
+
+  /// No description provided for @openPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Period'**
+  String get openPeriod;
+
+  /// No description provided for @pleaseFillAllFields.
+  ///
+  /// In en, this message translates to:
+  /// **'Please fill all fields'**
+  String get pleaseFillAllFields;
+
+  /// No description provided for @periodAddedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Period added successfully'**
+  String get periodAddedSuccessfully;
+
+  /// No description provided for @confirmClosePeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Close Period'**
+  String get confirmClosePeriod;
+
+  /// No description provided for @closePeriodMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Profits will be transferred to retained earnings.'**
+  String get closePeriodMessage;
+
+  /// No description provided for @confirmGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get confirmGeneric;
+
+  /// No description provided for @failedToClosePeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to close period'**
+  String get failedToClosePeriod;
+
+  /// No description provided for @failedToReopenPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to reopen period'**
+  String get failedToReopenPeriod;
+
+  /// No description provided for @cannotDeleteClosedPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot delete a closed period'**
+  String get cannotDeleteClosedPeriod;
+
+  /// No description provided for @cannotDeletePeriodWithEntries.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot delete period: GL entries exist in this period'**
+  String get cannotDeletePeriodWithEntries;
+
+  /// No description provided for @periodDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Period deleted'**
+  String get periodDeleted;
+
+  /// No description provided for @createAutoPeriods.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Auto Periods'**
+  String get createAutoPeriods;
+
+  /// No description provided for @year.
+  ///
+  /// In en, this message translates to:
+  /// **'Year'**
+  String get year;
+
+  /// No description provided for @periodType.
+  ///
+  /// In en, this message translates to:
+  /// **'Period Type'**
+  String get periodType;
+
+  /// No description provided for @monthly.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly (12 periods)'**
+  String get monthly;
+
+  /// No description provided for @quarterly.
+  ///
+  /// In en, this message translates to:
+  /// **'Quarterly (4 periods)'**
+  String get quarterly;
+
+  /// No description provided for @yearly.
+  ///
+  /// In en, this message translates to:
+  /// **'Yearly (1 period)'**
+  String get yearly;
+
+  /// No description provided for @autoPeriodInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Periods will be created automatically based on selection.'**
+  String get autoPeriodInfo;
+
+  /// No description provided for @periodsCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} accounting periods created successfully'**
+  String periodsCreated(Object count);
+
+  /// No description provided for @failedToCreatePeriods.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to create periods: {error}'**
+  String failedToCreatePeriods(Object error);
+
+  /// No description provided for @reopenPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Reopen Period'**
+  String get reopenPeriod;
+
+  /// No description provided for @addPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Period'**
+  String get addPeriod;
+
+  /// No description provided for @addManualPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Manual Period'**
+  String get addManualPeriod;
+
+  /// No description provided for @manualJournalEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual Journal Entry'**
+  String get manualJournalEntry;
+
+  /// No description provided for @addAccountToEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Account to Entry'**
+  String get addAccountToEntry;
+
+  /// No description provided for @entryDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Entry Description'**
+  String get entryDescription;
+
+  /// No description provided for @entryDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Entry Date'**
+  String get entryDate;
+
+  /// No description provided for @account.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get account;
+
+  /// No description provided for @amount.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get amount;
+
+  /// No description provided for @costCenter.
+  ///
+  /// In en, this message translates to:
+  /// **'Cost Center'**
+  String get costCenter;
+
+  /// No description provided for @noCostCenter.
+  ///
+  /// In en, this message translates to:
+  /// **'No Cost Center'**
+  String get noCostCenter;
+
+  /// No description provided for @saveAndPost.
+  ///
+  /// In en, this message translates to:
+  /// **'Save & Post'**
+  String get saveAndPost;
+
+  /// No description provided for @entryNotBalanced.
+  ///
+  /// In en, this message translates to:
+  /// **'Entry Not Balanced'**
+  String get entryNotBalanced;
+
+  /// No description provided for @pleaseEnterDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter the entry description'**
+  String get pleaseEnterDescription;
+
+  /// No description provided for @cannotPostToClosedPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot post to a closed accounting period'**
+  String get cannotPostToClosedPeriod;
+
+  /// No description provided for @pleaseSelectAccountForLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select an account for line {lineNumber}'**
+  String pleaseSelectAccountForLine(Object lineNumber);
+
+  /// No description provided for @lineCannotHaveDebitAndCredit.
+  ///
+  /// In en, this message translates to:
+  /// **'Line {lineNumber} cannot have both debit and credit'**
+  String lineCannotHaveDebitAndCredit(Object lineNumber);
+
+  /// No description provided for @lineHasAccountWithoutAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Line {lineNumber} has an account without a debit or credit value'**
+  String lineHasAccountWithoutAmount(Object lineNumber);
+
+  /// No description provided for @entrySavedAndPosted.
+  ///
+  /// In en, this message translates to:
+  /// **'Entry saved and posted successfully'**
+  String get entrySavedAndPosted;
+
+  /// No description provided for @failedToSaveEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to save entry: {error}'**
+  String failedToSaveEntry(Object error);
+
+  /// No description provided for @recurringEntries.
+  ///
+  /// In en, this message translates to:
+  /// **'Recurring Entries'**
+  String get recurringEntries;
+
+  /// No description provided for @executeDueEntries.
+  ///
+  /// In en, this message translates to:
+  /// **'Execute Due Entries'**
+  String get executeDueEntries;
+
+  /// No description provided for @addRecurringEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Recurring Entry'**
+  String get addRecurringEntry;
+
+  /// No description provided for @noRecurringEntries.
+  ///
+  /// In en, this message translates to:
+  /// **'No recurring entries'**
+  String get noRecurringEntries;
+
+  /// No description provided for @tapToAddRecurringEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap + to add a new recurring entry'**
+  String get tapToAddRecurringEntry;
+
+  /// No description provided for @dailyFreq.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily'**
+  String get dailyFreq;
+
+  /// No description provided for @weeklyFreq.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly'**
+  String get weeklyFreq;
+
+  /// No description provided for @biweeklyFreq.
+  ///
+  /// In en, this message translates to:
+  /// **'Biweekly'**
+  String get biweeklyFreq;
+
+  /// No description provided for @monthlyFreq.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly'**
+  String get monthlyFreq;
+
+  /// No description provided for @quarterlyFreq.
+  ///
+  /// In en, this message translates to:
+  /// **'Quarterly'**
+  String get quarterlyFreq;
+
+  /// No description provided for @yearlyFreq.
+  ///
+  /// In en, this message translates to:
+  /// **'Yearly'**
+  String get yearlyFreq;
+
+  /// No description provided for @statusActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get statusActive;
+
+  /// No description provided for @statusPaused.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused'**
+  String get statusPaused;
+
+  /// No description provided for @statusCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get statusCompleted;
+
+  /// No description provided for @statusUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown'**
+  String get statusUnknown;
+
+  /// No description provided for @fromToAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'From: {debitAccount} To: {creditAccount}'**
+  String fromToAccounts(Object creditAccount, Object debitAccount);
+
+  /// No description provided for @nextExecutionDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Next execution: {date}'**
+  String nextExecutionDate(Object date);
+
+  /// No description provided for @executedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Executed: {count}/{total}'**
+  String executedCount(Object count, Object total);
+
+  /// No description provided for @executedCountNoLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Executed: {count}'**
+  String executedCountNoLimit(Object count);
+
+  /// No description provided for @pause.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get pause;
+
+  /// No description provided for @resume.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume'**
+  String get resume;
+
+  /// No description provided for @executeNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Execute Now'**
+  String get executeNow;
+
+  /// No description provided for @executionHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Execution History'**
+  String get executionHistory;
+
+  /// No description provided for @confirmDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Delete'**
+  String get confirmDeleteTitle;
+
+  /// No description provided for @confirmDeleteRecurringEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete \"{entryName}\"?'**
+  String confirmDeleteRecurringEntry(Object entryName);
+
+  /// No description provided for @entryName.
+  ///
+  /// In en, this message translates to:
+  /// **'Entry Name'**
+  String get entryName;
+
+  /// No description provided for @debitAccountCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Debit Account Code'**
+  String get debitAccountCode;
+
+  /// No description provided for @creditAccountCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Credit Account Code'**
+  String get creditAccountCode;
+
+  /// No description provided for @frequency.
+  ///
+  /// In en, this message translates to:
+  /// **'Frequency'**
+  String get frequency;
+
+  /// No description provided for @referenceType.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference Type'**
+  String get referenceType;
+
+  /// No description provided for @expenseType.
+  ///
+  /// In en, this message translates to:
+  /// **'Expense'**
+  String get expenseType;
+
+  /// No description provided for @revenueType.
+  ///
+  /// In en, this message translates to:
+  /// **'Revenue'**
+  String get revenueType;
+
+  /// No description provided for @customType.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get customType;
+
+  /// No description provided for @close.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get close;
+
+  /// No description provided for @executionHistoryFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Execution History - {name}'**
+  String executionHistoryFor(Object name);
+
+  /// No description provided for @noExecutionHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'No execution history'**
+  String get noExecutionHistory;
+
+  /// No description provided for @entryExecutedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Entry executed successfully'**
+  String get entryExecutedSuccessfully;
+
+  /// No description provided for @pleaseFillRequiredFields.
+  ///
+  /// In en, this message translates to:
+  /// **'Please fill all required fields'**
+  String get pleaseFillRequiredFields;
+
+  /// No description provided for @executionResult.
+  ///
+  /// In en, this message translates to:
+  /// **'Executed: {success} succeeded, {fail} failed'**
+  String executionResult(Object fail, Object success);
+
+  /// No description provided for @errorWithMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Error: {error}'**
+  String errorWithMessage(Object error);
+
+  /// No description provided for @cashReceiptVoucher.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash Receipt Voucher'**
+  String get cashReceiptVoucher;
+
+  /// No description provided for @cashPaymentVoucher.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash Payment Voucher'**
+  String get cashPaymentVoucher;
+
+  /// No description provided for @receiptIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Receipt (In)'**
+  String get receiptIn;
+
+  /// No description provided for @paymentOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment (Out)'**
+  String get paymentOut;
+
+  /// No description provided for @creditAccountSource.
+  ///
+  /// In en, this message translates to:
+  /// **'Credit Account (Source)'**
+  String get creditAccountSource;
+
+  /// No description provided for @debitAccountEntity.
+  ///
+  /// In en, this message translates to:
+  /// **'Debit Account (Entity)'**
+  String get debitAccountEntity;
+
+  /// No description provided for @categoryHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Category (e.g. Rent, Salaries)'**
+  String get categoryHint;
+
+  /// No description provided for @requiredField.
+  ///
+  /// In en, this message translates to:
+  /// **'Required'**
+  String get requiredField;
+
+  /// No description provided for @voucherSavedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Voucher saved successfully'**
+  String get voucherSavedSuccessfully;
+
+  /// No description provided for @saveReceiptVoucher.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Receipt Voucher'**
+  String get saveReceiptVoucher;
+
+  /// No description provided for @savePaymentVoucher.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Payment Voucher'**
+  String get savePaymentVoucher;
+
+  /// No description provided for @checkManagement.
+  ///
+  /// In en, this message translates to:
+  /// **'Check Management'**
+  String get checkManagement;
+
+  /// No description provided for @checkType.
+  ///
+  /// In en, this message translates to:
+  /// **'Check Type'**
+  String get checkType;
+
+  /// No description provided for @receivedChecks.
+  ///
+  /// In en, this message translates to:
+  /// **'Received Checks (from customers)'**
+  String get receivedChecks;
+
+  /// No description provided for @issuedChecks.
+  ///
+  /// In en, this message translates to:
+  /// **'Issued Checks (to suppliers)'**
+  String get issuedChecks;
+
+  /// No description provided for @checkNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Check Number'**
+  String get checkNumber;
+
+  /// No description provided for @bankName.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank Name'**
+  String get bankName;
+
+  /// No description provided for @customer.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer'**
+  String get customer;
+
+  /// No description provided for @paymentCollectionAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment/Collection Account'**
+  String get paymentCollectionAccount;
+
+  /// No description provided for @saveCheck.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Check'**
+  String get saveCheck;
+
+  /// No description provided for @noChecks.
+  ///
+  /// In en, this message translates to:
+  /// **'No checks.'**
+  String get noChecks;
+
+  /// No description provided for @checkInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Check No: {number} - {bank}'**
+  String checkInfo(Object bank, Object number);
+
+  /// No description provided for @checkDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount: {amount} - Due: {dueDate}\nStatus: {status}'**
+  String checkDetails(Object amount, Object dueDate, Object status);
+
+  /// No description provided for @collect.
+  ///
+  /// In en, this message translates to:
+  /// **'Collect'**
+  String get collect;
+
+  /// No description provided for @reject.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject/Bounce'**
+  String get reject;
+
+  /// No description provided for @checkCollected.
+  ///
+  /// In en, this message translates to:
+  /// **'Collection of check: {checkNumber}'**
+  String checkCollected(Object checkNumber);
+
+  /// No description provided for @checkBounced.
+  ///
+  /// In en, this message translates to:
+  /// **'Bounced check: {checkNumber}'**
+  String checkBounced(Object checkNumber);
+
+  /// No description provided for @checkStatusUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Check status updated to {status}'**
+  String checkStatusUpdated(Object status);
+
+  /// No description provided for @fixedAssetsManagement.
+  ///
+  /// In en, this message translates to:
+  /// **'Fixed Assets Management'**
+  String get fixedAssetsManagement;
+
+  /// No description provided for @confirmDepreciation.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to run monthly depreciation for all assets? This will happen in the background.'**
+  String get confirmDepreciation;
+
+  /// No description provided for @run.
+  ///
+  /// In en, this message translates to:
+  /// **'Run'**
+  String get run;
+
+  /// No description provided for @depreciationCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Depreciation calculation completed successfully.'**
+  String get depreciationCompleted;
+
+  /// No description provided for @calculateMonthlyDepreciation.
+  ///
+  /// In en, this message translates to:
+  /// **'Calculate Monthly Depreciation'**
+  String get calculateMonthlyDepreciation;
+
+  /// No description provided for @noFixedAssets.
+  ///
+  /// In en, this message translates to:
+  /// **'No fixed assets registered yet.'**
+  String get noFixedAssets;
+
+  /// No description provided for @startAddingAsset.
+  ///
+  /// In en, this message translates to:
+  /// **'Start by adding a new asset from the button below.'**
+  String get startAddingAsset;
+
+  /// No description provided for @addAsset.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Asset'**
+  String get addAsset;
+
+  /// No description provided for @purchaseDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchase Date'**
+  String get purchaseDate;
+
+  /// No description provided for @originalCost.
+  ///
+  /// In en, this message translates to:
+  /// **'Original Cost'**
+  String get originalCost;
+
+  /// No description provided for @usefulLife.
+  ///
+  /// In en, this message translates to:
+  /// **'Useful Life'**
+  String get usefulLife;
+
+  /// No description provided for @years.
+  ///
+  /// In en, this message translates to:
+  /// **'{years} years'**
+  String years(Object years);
+
+  /// No description provided for @salvageValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Salvage Value'**
+  String get salvageValue;
+
+  /// No description provided for @accumulatedDepreciation.
+  ///
+  /// In en, this message translates to:
+  /// **'Accumulated Depreciation'**
+  String get accumulatedDepreciation;
+
+  /// No description provided for @netBookValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Net Book Value'**
+  String get netBookValue;
+
+  /// No description provided for @accountOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Accounting Account (Optional)'**
+  String get accountOptional;
+
+  /// No description provided for @active.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get active;
+
+  /// No description provided for @additionalNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Additional notes...'**
+  String get additionalNotes;
+
+  /// No description provided for @actual.
+  ///
+  /// In en, this message translates to:
+  /// **'Actual'**
+  String get actual;
+
+  /// No description provided for @autoReconcileCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} transaction(s) auto-reconciled'**
+  String autoReconcileCount(Object count);
+
+  /// No description provided for @autoReconcileError.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto reconcile error: {error}'**
+  String autoReconcileError(Object error);
+
+  /// No description provided for @bankAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank Account'**
+  String get bankAccount;
+
+  /// No description provided for @bankTransfer.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank Transfer'**
+  String get bankTransfer;
+
+  /// No description provided for @budgetCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Budget created successfully'**
+  String get budgetCreated;
+
+  /// No description provided for @budgetList.
+  ///
+  /// In en, this message translates to:
+  /// **'Budget List'**
+  String get budgetList;
+
+  /// No description provided for @budgetName.
+  ///
+  /// In en, this message translates to:
+  /// **'Budget Name'**
+  String get budgetName;
+
+  /// No description provided for @budgeted.
+  ///
+  /// In en, this message translates to:
+  /// **'Budgeted'**
+  String get budgeted;
+
+  /// No description provided for @budgetedAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Budgeted Amount'**
+  String get budgetedAmount;
+
+  /// No description provided for @budgets.
+  ///
+  /// In en, this message translates to:
+  /// **'Budgets'**
+  String get budgets;
+
+  /// No description provided for @cashOverShortNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash or cash over/short account not found'**
+  String get cashOverShortNotFound;
+
+  /// No description provided for @check.
+  ///
+  /// In en, this message translates to:
+  /// **'Check'**
+  String get check;
+
+  /// No description provided for @checkDueDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Check Due Date: {date}'**
+  String checkDueDate(Object date);
+
+  /// No description provided for @closed.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed'**
+  String get closed;
+
+  /// No description provided for @commission.
+  ///
+  /// In en, this message translates to:
+  /// **'Commission'**
+  String get commission;
+
+  /// No description provided for @confirmAndRecordReconciliation.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm and Record Reconciliation'**
+  String get confirmAndRecordReconciliation;
+
+  /// No description provided for @consumedPercent.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% consumed'**
+  String consumedPercent(Object percent);
+
+  /// No description provided for @costCenterOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Cost Center (Optional)'**
+  String get costCenterOptional;
+
+  /// No description provided for @createBudget.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Budget'**
+  String get createBudget;
+
+  /// No description provided for @createBudgetHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a new budget from the second tab'**
+  String get createBudgetHint;
+
+  /// No description provided for @creating.
+  ///
+  /// In en, this message translates to:
+  /// **'Creating...'**
+  String get creating;
+
+  /// No description provided for @description.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get description;
+
+  /// No description provided for @enterAmountPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter an amount'**
+  String get enterAmountPrompt;
+
+  /// No description provided for @enterBudgetNameError.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a budget name'**
+  String get enterBudgetNameError;
+
+  /// No description provided for @errorLoadingTransactions.
+  ///
+  /// In en, this message translates to:
+  /// **'Error loading transactions: {error}'**
+  String errorLoadingTransactions(Object error);
+
+  /// No description provided for @fromAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'From Account'**
+  String get fromAccount;
+
+  /// No description provided for @fromDate.
+  ///
+  /// In en, this message translates to:
+  /// **'From Date'**
+  String get fromDate;
+
+  /// No description provided for @general.
+  ///
+  /// In en, this message translates to:
+  /// **'General'**
+  String get general;
+
+  /// No description provided for @noBudgetsFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No budgets found'**
+  String get noBudgetsFound;
+
+  /// No description provided for @payTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay To'**
+  String get payTo;
+
+  /// No description provided for @paymentVoucher.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment Voucher'**
+  String get paymentVoucher;
+
+  /// No description provided for @paymentVoucherSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment voucher saved successfully'**
+  String get paymentVoucherSaved;
+
+  /// No description provided for @periodLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Period: {period}'**
+  String periodLabel(Object period);
+
+  /// No description provided for @q1.
+  ///
+  /// In en, this message translates to:
+  /// **'Q1'**
+  String get q1;
+
+  /// No description provided for @q2.
+  ///
+  /// In en, this message translates to:
+  /// **'Q2'**
+  String get q2;
+
+  /// No description provided for @q3.
+  ///
+  /// In en, this message translates to:
+  /// **'Q3'**
+  String get q3;
+
+  /// No description provided for @q4.
+  ///
+  /// In en, this message translates to:
+  /// **'Q4'**
+  String get q4;
+
+  /// No description provided for @receiptVoucher.
+  ///
+  /// In en, this message translates to:
+  /// **'Receipt Voucher'**
+  String get receiptVoucher;
+
+  /// No description provided for @receiptVoucherSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Receipt voucher saved successfully'**
+  String get receiptVoucherSaved;
+
+  /// No description provided for @receiveFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive From'**
+  String get receiveFrom;
+
+  /// No description provided for @reconcileAllConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Do you want to reconcile all {count} unmatched transactions?'**
+  String reconcileAllConfirm(Object count);
+
+  /// No description provided for @reconcileAllSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'All {count} transactions reconciled successfully'**
+  String reconcileAllSuccess(Object count);
+
+  /// No description provided for @reconcileSuccessCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} transaction(s) reconciled successfully'**
+  String reconcileSuccessCount(Object count);
+
+  /// No description provided for @reconciliationDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Reconciliation: {note}'**
+  String reconciliationDescription(Object note);
+
+  /// No description provided for @reconciliationError.
+  ///
+  /// In en, this message translates to:
+  /// **'Reconciliation error: {error}'**
+  String reconciliationError(Object error);
+
+  /// No description provided for @reconciliationNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Reconciliation Notes'**
+  String get reconciliationNotes;
+
+  /// No description provided for @reconciliationNotesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Reconciliation notes...'**
+  String get reconciliationNotesHint;
+
+  /// No description provided for @reconciliationSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Reconciliation recorded successfully'**
+  String get reconciliationSuccess;
+
+  /// No description provided for @recordTransfer.
+  ///
+  /// In en, this message translates to:
+  /// **'Record Transfer'**
+  String get recordTransfer;
+
+  /// No description provided for @reference.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference'**
+  String get reference;
+
+  /// No description provided for @refresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get refresh;
+
+  /// No description provided for @saveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Save failed: {error}'**
+  String saveFailed(Object error);
+
+  /// No description provided for @search.
+  ///
+  /// In en, this message translates to:
+  /// **'Search'**
+  String get search;
+
+  /// No description provided for @selectAccountsError.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select accounts'**
+  String get selectAccountsError;
+
+  /// No description provided for @selectBankAccountPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a bank account to start reconciliation'**
+  String get selectBankAccountPrompt;
+
+  /// No description provided for @selectCustomerOrSupplier.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select a customer or supplier'**
+  String get selectCustomerOrSupplier;
+
+  /// No description provided for @selectedTransactions.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected Transactions'**
+  String get selectedTransactions;
+
+  /// No description provided for @toAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'To Account'**
+  String get toAccount;
+
+  /// No description provided for @toDate.
+  ///
+  /// In en, this message translates to:
+  /// **'To Date'**
+  String get toDate;
+
+  /// No description provided for @transferCompany.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer Company'**
+  String get transferCompany;
+
+  /// No description provided for @transferItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer: {amount}'**
+  String transferItem(Object amount);
+
+  /// No description provided for @transferSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer completed successfully'**
+  String get transferSuccess;
+
+  /// No description provided for @transferType.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer Type'**
+  String get transferType;
+
+  /// No description provided for @transfers.
+  ///
+  /// In en, this message translates to:
+  /// **'Financial Transfers'**
+  String get transfers;
+
+  /// No description provided for @variance.
+  ///
+  /// In en, this message translates to:
+  /// **'Variance'**
+  String get variance;
+
+  /// No description provided for @customizeDashboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Customize Dashboard'**
+  String get customizeDashboard;
+
+  /// No description provided for @dragToReorderHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag to reorder, tap the eye to show/hide section'**
+  String get dragToReorderHint;
+
+  /// No description provided for @favorites.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorites'**
+  String get favorites;
+
+  /// No description provided for @tapStarToPin.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap ⭐ on any screen to pin it here'**
+  String get tapStarToPin;
+
+  /// No description provided for @favoriteItems.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} items'**
+  String favoriteItems(Object count);
+
+  /// No description provided for @sell.
+  ///
+  /// In en, this message translates to:
+  /// **'Sell'**
+  String get sell;
+
+  /// No description provided for @saleInvoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Sale Invoice'**
+  String get saleInvoice;
+
+  /// No description provided for @saleInvoiceDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a new sale invoice'**
+  String get saleInvoiceDescription;
+
+  /// No description provided for @priceQuote.
+  ///
+  /// In en, this message translates to:
+  /// **'Price Quote'**
+  String get priceQuote;
+
+  /// No description provided for @priceQuoteDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a price quote for customer'**
+  String get priceQuoteDescription;
+
+  /// No description provided for @customerOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer Order'**
+  String get customerOrder;
+
+  /// No description provided for @customerOrderDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive an order from customer'**
+  String get customerOrderDescription;
+
+  /// No description provided for @purchaseInvoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchase Invoice'**
+  String get purchaseInvoice;
+
+  /// No description provided for @purchaseInvoiceDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a new purchase invoice'**
+  String get purchaseInvoiceDescription;
+
+  /// No description provided for @purchaseOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchase Order'**
+  String get purchaseOrder;
+
+  /// No description provided for @purchaseOrderDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a purchase order from supplier'**
+  String get purchaseOrderDescription;
+
+  /// No description provided for @newOperation.
+  ///
+  /// In en, this message translates to:
+  /// **'New Operation'**
+  String get newOperation;
+
+  /// No description provided for @inventory.
+  ///
+  /// In en, this message translates to:
+  /// **'Inventory'**
+  String get inventory;
+
+  /// No description provided for @cashboxes.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash Boxes'**
+  String get cashboxes;
+
+  /// No description provided for @stockTake.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock Take'**
+  String get stockTake;
+
+  /// No description provided for @inventoryTransfer.
+  ///
+  /// In en, this message translates to:
+  /// **'Inventory Transfer'**
+  String get inventoryTransfer;
+
+  /// No description provided for @printBarcode.
+  ///
+  /// In en, this message translates to:
+  /// **'Print Barcode'**
+  String get printBarcode;
+
+  /// No description provided for @deposit.
+  ///
+  /// In en, this message translates to:
+  /// **'Deposit'**
+  String get deposit;
+
+  /// No description provided for @withdraw.
+  ///
+  /// In en, this message translates to:
+  /// **'Withdraw'**
+  String get withdraw;
+
+  /// No description provided for @transfer.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer'**
+  String get transfer;
+
+  /// No description provided for @salesReport.
+  ///
+  /// In en, this message translates to:
+  /// **'Sales Report'**
+  String get salesReport;
+
+  /// No description provided for @purchasesReport.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchases Report'**
+  String get purchasesReport;
+
+  /// No description provided for @profitReport.
+  ///
+  /// In en, this message translates to:
+  /// **'Profit Report'**
+  String get profitReport;
+
+  /// No description provided for @inventoryReport.
+  ///
+  /// In en, this message translates to:
+  /// **'Inventory Report'**
+  String get inventoryReport;
+
+  /// No description provided for @quickAccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick Access'**
+  String get quickAccess;
+
+  /// No description provided for @clearHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear History'**
+  String get clearHistory;
+
+  /// No description provided for @now.
+  ///
+  /// In en, this message translates to:
+  /// **'Now'**
+  String get now;
+
+  /// No description provided for @minutesAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes}m ago'**
+  String minutesAgo(Object minutes);
+
+  /// No description provided for @hoursAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours}h ago'**
+  String hoursAgo(Object hours);
+
+  /// No description provided for @daysAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'{days}d ago'**
+  String daysAgo(Object days);
+
+  /// No description provided for @todaysBusiness.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s Business'**
+  String get todaysBusiness;
+
+  /// No description provided for @todayPurchases.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s Purchases'**
+  String get todayPurchases;
+
+  /// No description provided for @invoiceCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Invoice Count'**
+  String get invoiceCount;
+
+  /// No description provided for @newCustomers.
+  ///
+  /// In en, this message translates to:
+  /// **'New Customers'**
+  String get newCustomers;
+
+  /// No description provided for @profit.
+  ///
+  /// In en, this message translates to:
+  /// **'Profit'**
+  String get profit;
+
+  /// No description provided for @productsSold.
+  ///
+  /// In en, this message translates to:
+  /// **'Products Sold'**
+  String get productsSold;
+
+  /// No description provided for @thisWeekSales.
+  ///
+  /// In en, this message translates to:
+  /// **'This Week\'s Sales'**
+  String get thisWeekSales;
+
+  /// No description provided for @thisWeekPurchases.
+  ///
+  /// In en, this message translates to:
+  /// **'This Week\'s Purchases'**
+  String get thisWeekPurchases;
+
+  /// No description provided for @transactionSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction Settings'**
+  String get transactionSettings;
+
+  /// No description provided for @transactionType.
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction Type'**
+  String get transactionType;
+
+  /// No description provided for @thisFieldRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'This field is required'**
+  String get thisFieldRequired;
+
+  /// No description provided for @transactionSavedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction saved successfully'**
+  String get transactionSavedSuccessfully;
+
+  /// No description provided for @selectPaymentMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Payment Method'**
+  String get selectPaymentMethod;
+
+  /// No description provided for @quickPos.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick POS'**
+  String get quickPos;
+
+  /// No description provided for @sellMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Sell Mode'**
+  String get sellMode;
+
+  /// No description provided for @retailMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Retail Mode'**
+  String get retailMode;
+
+  /// No description provided for @wholesaleModeDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Wholesale Mode'**
+  String get wholesaleModeDescription;
+
+  /// No description provided for @holdSale.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold Sale'**
+  String get holdSale;
+
+  /// No description provided for @saleHeld.
+  ///
+  /// In en, this message translates to:
+  /// **'Sale held'**
+  String get saleHeld;
+
+  /// No description provided for @recallSale.
+  ///
+  /// In en, this message translates to:
+  /// **'Recall Held Sale'**
+  String get recallSale;
+
+  /// No description provided for @heldSales.
+  ///
+  /// In en, this message translates to:
+  /// **'Held Sales'**
+  String get heldSales;
+
+  /// No description provided for @itemsCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} items'**
+  String itemsCount(Object count);
+
+  /// No description provided for @currencySar.
+  ///
+  /// In en, this message translates to:
+  /// **'SAR'**
+  String get currencySar;
+
+  /// No description provided for @checkoutSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Sale completed successfully'**
+  String get checkoutSuccess;
+
+  /// No description provided for @cashCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash Customer'**
+  String get cashCustomer;
+
+  /// No description provided for @howToSendInvoice.
+  ///
+  /// In en, this message translates to:
+  /// **'How would you like to send the invoice?'**
+  String get howToSendInvoice;
+
+  /// No description provided for @later.
+  ///
+  /// In en, this message translates to:
+  /// **'Later'**
+  String get later;
+
+  /// No description provided for @print.
+  ///
+  /// In en, this message translates to:
+  /// **'Print'**
+  String get print;
+
+  /// No description provided for @share.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get share;
+
+  /// No description provided for @returnSuccessTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Return Processed Successfully'**
+  String get returnSuccessTitle;
+
+  /// No description provided for @returnId.
+  ///
+  /// In en, this message translates to:
+  /// **'Return ID: {id}'**
+  String returnId(Object id);
+
+  /// No description provided for @originalInvoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Original Invoice: {id}'**
+  String originalInvoice(Object id);
+
+  /// No description provided for @returnAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Return Amount: {amount} SAR'**
+  String returnAmount(Object amount);
+
+  /// No description provided for @salesReturnDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Return products from a sale invoice'**
+  String get salesReturnDescription;
+
+  /// No description provided for @purchaseReturnDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Return products to a supplier'**
+  String get purchaseReturnDescription;
+
+  /// No description provided for @saleInvoiceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Sale Invoice'**
+  String get saleInvoiceLabel;
+
+  /// No description provided for @purchaseInvoiceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchase Invoice'**
+  String get purchaseInvoiceLabel;
+
+  /// No description provided for @salesReturnLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Sales Return'**
+  String get salesReturnLabel;
+
+  /// No description provided for @purchaseReturnLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchase Return'**
+  String get purchaseReturnLabel;
+
+  /// No description provided for @priceQuoteLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Price Quote'**
+  String get priceQuoteLabel;
+
+  /// No description provided for @purchaseOrderLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchase Order'**
+  String get purchaseOrderLabel;
+
+  /// No description provided for @customerOrderLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer Order'**
+  String get customerOrderLabel;
+
+  /// No description provided for @transactionDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction date'**
+  String get transactionDate;
+
+  /// No description provided for @bank.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank'**
+  String get bank;
+
+  /// No description provided for @cashCustomerFallback.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash Customer'**
+  String get cashCustomerFallback;
+
+  /// No description provided for @invoiceNo.
+  ///
+  /// In en, this message translates to:
+  /// **'Invoice No: #{id}'**
+  String invoiceNo(Object id);
+
+  /// No description provided for @totalAmountWithCurrency.
+  ///
+  /// In en, this message translates to:
+  /// **'Total: {amount} SAR'**
+  String totalAmountWithCurrency(Object amount);
+
+  /// No description provided for @customerNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer: {customer}'**
+  String customerNameLabel(Object customer);
+
+  /// No description provided for @thankYouForShopping.
+  ///
+  /// In en, this message translates to:
+  /// **'Thank you for shopping with us!'**
+  String get thankYouForShopping;
+
+  /// No description provided for @supplierStatement.
+  ///
+  /// In en, this message translates to:
+  /// **'Supplier Statement'**
+  String get supplierStatement;
+
+  /// No description provided for @todaySalesKpi.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s Sales'**
+  String get todaySalesKpi;
+
+  /// No description provided for @todayPurchasesKpi.
+  ///
+  /// In en, this message translates to:
+  /// **'Today\'s Purchases'**
+  String get todayPurchasesKpi;
+
+  /// No description provided for @freshCustomers.
+  ///
+  /// In en, this message translates to:
+  /// **'New Customers'**
+  String get freshCustomers;
+
+  /// No description provided for @itemsSold.
+  ///
+  /// In en, this message translates to:
+  /// **'Products Sold'**
+  String get itemsSold;
+
+  /// No description provided for @selectCustomerField.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer'**
+  String get selectCustomerField;
+
+  /// No description provided for @selectSupplierField.
+  ///
+  /// In en, this message translates to:
+  /// **'Supplier'**
+  String get selectSupplierField;
+
+  /// No description provided for @dateField.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get dateField;
+
+  /// No description provided for @notesField.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get notesField;
+
+  /// No description provided for @amountField.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get amountField;
+
+  /// No description provided for @paymentMethodField.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment Method'**
+  String get paymentMethodField;
+
+  /// No description provided for @accessDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Access Denied'**
+  String get accessDenied;
+
+  /// No description provided for @accessDeniedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Sorry, you do not have permission to access this page.'**
+  String get accessDeniedMessage;
+
+  /// No description provided for @backToHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to Home'**
+  String get backToHome;
+
+  /// No description provided for @noTransactionsToPrint.
+  ///
+  /// In en, this message translates to:
+  /// **'No transactions to print'**
+  String get noTransactionsToPrint;
+
+  /// No description provided for @customerNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer not found'**
+  String get customerNotFound;
+
+  /// No description provided for @totalPayments.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Payments'**
+  String get totalPayments;
+
+  /// No description provided for @remainingBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining Balance'**
+  String get remainingBalance;
+
+  /// No description provided for @noFinancialMovements.
+  ///
+  /// In en, this message translates to:
+  /// **'No financial movements for this customer'**
+  String get noFinancialMovements;
+
+  /// No description provided for @statementLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Statement'**
+  String get statementLabel;
+
+  /// No description provided for @payInvoicesFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay Invoices for {name}'**
+  String payInvoicesFor(Object name);
+
+  /// No description provided for @selectAtLeastOneInvoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select at least one invoice'**
+  String get selectAtLeastOneInvoice;
+
+  /// No description provided for @invoiceHash.
+  ///
+  /// In en, this message translates to:
+  /// **'Invoice #{id}'**
+  String invoiceHash(Object id);
+
+  /// No description provided for @amountPaidLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount Paid'**
+  String get amountPaidLabel;
+
+  /// No description provided for @netProfit.
+  ///
+  /// In en, this message translates to:
+  /// **'Net Profit'**
+  String get netProfit;
+
+  /// No description provided for @pendingOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending Orders'**
+  String get pendingOrders;
+
+  /// No description provided for @stockAlerts.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock Alerts'**
+  String get stockAlerts;
+
+  /// No description provided for @creditExceeded.
+  ///
+  /// In en, this message translates to:
+  /// **'Credit Exceeded'**
+  String get creditExceeded;
+
+  /// No description provided for @sat.
+  ///
+  /// In en, this message translates to:
+  /// **'Sat'**
+  String get sat;
+
+  /// No description provided for @sun.
+  ///
+  /// In en, this message translates to:
+  /// **'Sun'**
+  String get sun;
+
+  /// No description provided for @mon.
+  ///
+  /// In en, this message translates to:
+  /// **'Mon'**
+  String get mon;
+
+  /// No description provided for @tue.
+  ///
+  /// In en, this message translates to:
+  /// **'Tue'**
+  String get tue;
+
+  /// No description provided for @wed.
+  ///
+  /// In en, this message translates to:
+  /// **'Wed'**
+  String get wed;
+
+  /// No description provided for @thu.
+  ///
+  /// In en, this message translates to:
+  /// **'Thu'**
+  String get thu;
+
+  /// No description provided for @fri.
+  ///
+  /// In en, this message translates to:
+  /// **'Fri'**
+  String get fri;
+
+  /// No description provided for @topSellingToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Top Selling Today'**
+  String get topSellingToday;
+
+  /// No description provided for @qtyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Qty: {qty}'**
+  String qtyLabel(Object qty);
+
+  /// No description provided for @remainingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining: {amount}'**
+  String remainingLabel(Object amount);
+
+  /// No description provided for @productCategories.
+  ///
+  /// In en, this message translates to:
+  /// **'Product Categories'**
+  String get productCategories;
+
+  /// No description provided for @retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get retry;
+
+  /// No description provided for @noData.
+  ///
+  /// In en, this message translates to:
+  /// **'No Data'**
+  String get noData;
+
+  /// No description provided for @errorLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Error: {error}'**
+  String errorLabel(Object error);
+
+  /// No description provided for @cashBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash Balance'**
+  String get cashBalance;
+
+  /// No description provided for @lowStockSupply.
+  ///
+  /// In en, this message translates to:
+  /// **'Low Stock'**
+  String get lowStockSupply;
+
+  /// No description provided for @newOperationDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Sale, Purchase, Return, Voucher, or any other operation'**
+  String get newOperationDesc;
+
+  /// No description provided for @quickOperations.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick Operations'**
+  String get quickOperations;
+
+  /// No description provided for @buyAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Buy'**
+  String get buyAction;
+
+  /// No description provided for @customerAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer'**
+  String get customerAction;
+
+  /// No description provided for @productAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Product'**
+  String get productAction;
+
+  /// No description provided for @supplierAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Supplier'**
+  String get supplierAction;
+
+  /// No description provided for @reportAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Report'**
+  String get reportAction;
+
+  /// No description provided for @mainSections.
+  ///
+  /// In en, this message translates to:
+  /// **'Main Sections'**
+  String get mainSections;
+
+  /// No description provided for @operationsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Operations'**
+  String get operationsSection;
+
+  /// No description provided for @accountingSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Accounting'**
+  String get accountingSection;
+
+  /// No description provided for @partiesSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Parties'**
+  String get partiesSection;
+
+  /// No description provided for @adminSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin'**
+  String get adminSection;
+
+  /// No description provided for @newLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get newLabel;
+
+  /// No description provided for @menuLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Menu'**
+  String get menuLabel;
+
+  /// No description provided for @advancedSearch.
+  ///
+  /// In en, this message translates to:
+  /// **'Advanced Search'**
+  String get advancedSearch;
+
+  /// No description provided for @attentionCenter.
+  ///
+  /// In en, this message translates to:
+  /// **'Attention Center'**
+  String get attentionCenter;
+
+  /// No description provided for @noAlerts.
+  ///
+  /// In en, this message translates to:
+  /// **'No alerts currently'**
+  String get noAlerts;
+
+  /// No description provided for @timelineLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Timeline'**
+  String get timelineLabel;
+
+  /// No description provided for @timelineEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No operations yet'**
+  String get timelineEmpty;
+
+  /// No description provided for @allocateAmountToInvoices.
+  ///
+  /// In en, this message translates to:
+  /// **'Allocate Amount to Invoices'**
+  String get allocateAmountToInvoices;
+
+  /// No description provided for @allocated.
+  ///
+  /// In en, this message translates to:
+  /// **'Allocated: {amount}'**
+  String allocated(Object amount);
+
+  /// No description provided for @annual.
+  ///
+  /// In en, this message translates to:
+  /// **'Annual'**
+  String get annual;
+
+  /// No description provided for @approvalWorkflow.
+  ///
+  /// In en, this message translates to:
+  /// **'Approval Workflow'**
+  String get approvalWorkflow;
+
+  /// No description provided for @approve.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve'**
+  String get approve;
+
+  /// No description provided for @approved.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved'**
+  String get approved;
+
+  /// No description provided for @assetName.
+  ///
+  /// In en, this message translates to:
+  /// **'Asset Name'**
+  String get assetName;
+
+  /// No description provided for @assetsAndLiabilities.
+  ///
+  /// In en, this message translates to:
+  /// **'Assets: {assets} | Liabilities: {liabilities}'**
+  String assetsAndLiabilities(Object assets, Object liabilities);
+
+  /// No description provided for @autoAllocateOldestFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-Allocate (Oldest First)'**
+  String get autoAllocateOldestFirst;
+
+  /// No description provided for @byUser.
+  ///
+  /// In en, this message translates to:
+  /// **'by {user}'**
+  String byUser(Object user);
+
+  /// No description provided for @calculate.
+  ///
+  /// In en, this message translates to:
+  /// **'Calculate'**
+  String get calculate;
+
+  /// No description provided for @calculateNewZakat.
+  ///
+  /// In en, this message translates to:
+  /// **'Calculate New Zakat'**
+  String get calculateNewZakat;
+
+  /// No description provided for @calculateZakat.
+  ///
+  /// In en, this message translates to:
+  /// **'Calculate Zakat'**
+  String get calculateZakat;
+
+  /// No description provided for @calculationType.
+  ///
+  /// In en, this message translates to:
+  /// **'Calculation Type'**
+  String get calculationType;
+
+  /// No description provided for @change.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get change;
+
+  /// No description provided for @closeDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Close Date: {date}'**
+  String closeDate(Object date);
+
+  /// No description provided for @closeFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Close failed: {error}'**
+  String closeFailed(Object error);
+
+  /// No description provided for @closeYearDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'All revenue and expense balances will be transferred to retained earnings, and temporary accounts will be zeroed for the new year.'**
+  String get closeYearDescription;
+
+  /// No description provided for @commissions.
+  ///
+  /// In en, this message translates to:
+  /// **'Commissions'**
+  String get commissions;
+
+  /// No description provided for @confirmClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Close'**
+  String get confirmClose;
+
+  /// No description provided for @confirmPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Payment'**
+  String get confirmPayment;
+
+  /// No description provided for @confirmPaymentMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to record payment for this tax?'**
+  String get confirmPaymentMessage;
+
+  /// No description provided for @cost.
+  ///
+  /// In en, this message translates to:
+  /// **'Cost'**
+  String get cost;
+
+  /// No description provided for @createRevaluationEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Create Revaluation Entry'**
+  String get createRevaluationEntry;
+
+  /// No description provided for @demoRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Demo Request'**
+  String get demoRequest;
+
+  /// No description provided for @demoRequestNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Demo request to activate the approval workflow until it is linked to purchase forms.'**
+  String get demoRequestNote;
+
+  /// No description provided for @dividends.
+  ///
+  /// In en, this message translates to:
+  /// **'Dividends'**
+  String get dividends;
+
+  /// No description provided for @dividendsInterest.
+  ///
+  /// In en, this message translates to:
+  /// **'Dividends / Interest'**
+  String get dividendsInterest;
+
+  /// No description provided for @editAsset.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Asset'**
+  String get editAsset;
+
+  /// No description provided for @enterReferenceNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter reference number'**
+  String get enterReferenceNumber;
+
+  /// No description provided for @entriesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Entries ({count})'**
+  String entriesCount(Object count);
+
+  /// No description provided for @entryCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Entry Count'**
+  String get entryCount;
+
+  /// No description provided for @errorLoadingApprovalRequests.
+  ///
+  /// In en, this message translates to:
+  /// **'Error loading approval requests: {error}'**
+  String errorLoadingApprovalRequests(Object error);
+
+  /// No description provided for @failedToAddAsset.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to add asset: {error}'**
+  String failedToAddAsset(Object error);
+
+  /// No description provided for @failedToCalculateDepreciation.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to calculate depreciation: {error}'**
+  String failedToCalculateDepreciation(Object error);
+
+  /// No description provided for @failedToLoadAssets.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load assets: {error}'**
+  String failedToLoadAssets(Object error);
+
+  /// No description provided for @failedToUpdateAsset.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update asset: {error}'**
+  String failedToUpdateAsset(Object error);
+
+  /// No description provided for @failedToUpdateRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update approval request: {error}'**
+  String failedToUpdateRequest(Object error);
+
+  /// No description provided for @file.
+  ///
+  /// In en, this message translates to:
+  /// **'File'**
+  String get file;
+
+  /// No description provided for @fileTax.
+  ///
+  /// In en, this message translates to:
+  /// **'File Tax'**
+  String get fileTax;
+
+  /// No description provided for @filed.
+  ///
+  /// In en, this message translates to:
+  /// **'Filed'**
+  String get filed;
+
+  /// No description provided for @grossAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Gross Amount'**
+  String get grossAmount;
+
+  /// No description provided for @insurance.
+  ///
+  /// In en, this message translates to:
+  /// **'Insurance'**
+  String get insurance;
+
+  /// No description provided for @interest.
+  ///
+  /// In en, this message translates to:
+  /// **'Interest'**
+  String get interest;
+
+  /// No description provided for @invoiceAlreadyApproved.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved Invoice: Cannot Edit'**
+  String get invoiceAlreadyApproved;
+
+  /// No description provided for @invoiceApprovedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This invoice has been approved. Would you like to make a correction?'**
+  String get invoiceApprovedMessage;
+
+  /// No description provided for @invoiceWithId.
+  ///
+  /// In en, this message translates to:
+  /// **'Invoice #{id}'**
+  String invoiceWithId(Object id);
+
+  /// No description provided for @largePurchaseRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Large Purchase Request'**
+  String get largePurchaseRequest;
+
+  /// No description provided for @manualJournalEntryAudit.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual entry: {description}, Total: {total}'**
+  String manualJournalEntryAudit(Object description, Object total);
+
+  /// No description provided for @net.
+  ///
+  /// In en, this message translates to:
+  /// **'Net'**
+  String get net;
+
+  /// No description provided for @netAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Net Amount'**
+  String get netAmount;
+
+  /// No description provided for @newAsset.
+  ///
+  /// In en, this message translates to:
+  /// **'New Asset'**
+  String get newAsset;
+
+  /// No description provided for @noApprovalRequests.
+  ///
+  /// In en, this message translates to:
+  /// **'No approval requests at this time'**
+  String get noApprovalRequests;
+
+  /// No description provided for @noOutstandingInvoices.
+  ///
+  /// In en, this message translates to:
+  /// **'No outstanding invoices for this customer.'**
+  String get noOutstandingInvoices;
+
+  /// No description provided for @noTaxEntriesInPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'No tax entries in this period'**
+  String get noTaxEntriesInPeriod;
+
+  /// No description provided for @noZakatCalculations.
+  ///
+  /// In en, this message translates to:
+  /// **'No zakat calculations'**
+  String get noZakatCalculations;
+
+  /// No description provided for @paid.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid'**
+  String get paid;
+
+  /// No description provided for @paidZakat.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid Zakat'**
+  String get paidZakat;
+
+  /// No description provided for @pay.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay'**
+  String get pay;
+
+  /// No description provided for @paymentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment: {paymentId}'**
+  String paymentLabel(Object paymentId);
+
+  /// No description provided for @pendingZakat.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending Zakat'**
+  String get pendingZakat;
+
+  /// No description provided for @periodYear.
+  ///
+  /// In en, this message translates to:
+  /// **'Period (Year)'**
+  String get periodYear;
+
+  /// No description provided for @pleaseEnterValidNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a valid number'**
+  String get pleaseEnterValidNumber;
+
+  /// No description provided for @purchaseDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchase Date: {date}'**
+  String purchaseDateLabel(Object date);
+
+  /// No description provided for @recordPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Record Payment'**
+  String get recordPayment;
+
+  /// No description provided for @referenceNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Reference Number'**
+  String get referenceNumber;
+
+  /// No description provided for @rejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected'**
+  String get rejected;
+
+  /// No description provided for @remainingToAllocate.
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining to allocate: {amount}'**
+  String remainingToAllocate(Object amount);
+
+  /// No description provided for @rent.
+  ///
+  /// In en, this message translates to:
+  /// **'Rent'**
+  String get rent;
+
+  /// No description provided for @revaluationReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment revaluation'**
+  String get revaluationReason;
+
+  /// No description provided for @requestApproved.
+  ///
+  /// In en, this message translates to:
+  /// **'Request approved'**
+  String get requestApproved;
+
+  /// No description provided for @requestRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Request rejected'**
+  String get requestRejected;
+
+  /// No description provided for @royalties.
+  ///
+  /// In en, this message translates to:
+  /// **'Royalties'**
+  String get royalties;
+
+  /// No description provided for @royaltiesServices.
+  ///
+  /// In en, this message translates to:
+  /// **'Royalties / Services'**
+  String get royaltiesServices;
+
+  /// No description provided for @saveChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Changes'**
+  String get saveChanges;
+
+  /// No description provided for @serviceFees.
+  ///
+  /// In en, this message translates to:
+  /// **'Service Fees'**
+  String get serviceFees;
+
+  /// No description provided for @statusWithValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Status: {status}'**
+  String statusWithValue(Object status);
+
+  /// No description provided for @taxFiledSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Tax filed successfully'**
+  String get taxFiledSuccessfully;
+
+  /// No description provided for @taxWithRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Tax ({rate}%)'**
+  String taxWithRate(Object rate);
+
+  /// No description provided for @technicalFees.
+  ///
+  /// In en, this message translates to:
+  /// **'Technical Fees'**
+  String get technicalFees;
+
+  /// No description provided for @technicalFeesCommissionsRent.
+  ///
+  /// In en, this message translates to:
+  /// **'Technical Fees / Commissions / Rent'**
+  String get technicalFeesCommissionsRent;
+
+  /// No description provided for @totalAndBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Total: {total} | Remaining: {balance}'**
+  String totalAndBalance(Object balance, Object total);
+
+  /// No description provided for @totalZakat.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Zakat'**
+  String get totalZakat;
+
+  /// No description provided for @typeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get typeLabel;
+
+  /// No description provided for @unbalancedEntryError.
+  ///
+  /// In en, this message translates to:
+  /// **'Entry is not balanced. Debit: {debit}, Credit: {credit}'**
+  String unbalancedEntryError(Object credit, Object debit);
+
+  /// No description provided for @unifiedStatement.
+  ///
+  /// In en, this message translates to:
+  /// **'Unified Statement'**
+  String get unifiedStatement;
+
+  /// No description provided for @usefulLifeYears.
+  ///
+  /// In en, this message translates to:
+  /// **'Useful Life (Years)'**
+  String get usefulLifeYears;
+
+  /// No description provided for @withholdingTax.
+  ///
+  /// In en, this message translates to:
+  /// **'Withholding Tax'**
+  String get withholdingTax;
+
+  /// No description provided for @withholdingTaxRates.
+  ///
+  /// In en, this message translates to:
+  /// **'Withholding Tax Rates'**
+  String get withholdingTaxRates;
+
+  /// No description provided for @withholdingTaxSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Withholding Tax Summary'**
+  String get withholdingTaxSummary;
+
+  /// No description provided for @yearClosedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Financial year closed successfully'**
+  String get yearClosedSuccessfully;
+
+  /// No description provided for @zakat.
+  ///
+  /// In en, this message translates to:
+  /// **'Zakat'**
+  String get zakat;
+
+  /// No description provided for @zakatAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Zakat: {amount}'**
+  String zakatAmount(Object amount);
+
+  /// No description provided for @zakatCalculatedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Zakat calculated successfully'**
+  String get zakatCalculatedSuccessfully;
+
+  /// No description provided for @zakatFiledSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Zakat filed successfully'**
+  String get zakatFiledSuccessfully;
+
+  /// No description provided for @zakatPaidSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Zakat paid successfully'**
+  String get zakatPaidSuccessfully;
+
+  /// No description provided for @serialNumbers.
+  ///
+  /// In en, this message translates to:
+  /// **'Serial Numbers'**
+  String get serialNumbers;
+
+  /// No description provided for @history.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get history;
+
+  /// No description provided for @noSerialNumbers.
+  ///
+  /// In en, this message translates to:
+  /// **'No serial numbers'**
+  String get noSerialNumbers;
+
+  /// No description provided for @inStock.
+  ///
+  /// In en, this message translates to:
+  /// **'In Stock'**
+  String get inStock;
+
+  /// No description provided for @soldStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Sold'**
+  String get soldStatus;
+
+  /// No description provided for @reservedStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Reserved'**
+  String get reservedStatus;
+
+  /// No description provided for @returnedStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Returned'**
+  String get returnedStatus;
+
+  /// No description provided for @productWithName.
+  ///
+  /// In en, this message translates to:
+  /// **'Product: {name}'**
+  String productWithName(Object name);
+
+  /// No description provided for @warehouseWithName.
+  ///
+  /// In en, this message translates to:
+  /// **'Warehouse: {name}'**
+  String warehouseWithName(Object name);
+
+  /// No description provided for @batchWithName.
+  ///
+  /// In en, this message translates to:
+  /// **'Batch: {name}'**
+  String batchWithName(Object name);
+
+  /// No description provided for @receivedDateWithDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Received Date: {date}'**
+  String receivedDateWithDate(Object date);
+
+  /// No description provided for @reserve.
+  ///
+  /// In en, this message translates to:
+  /// **'Reserve'**
+  String get reserve;
+
+  /// No description provided for @restock.
+  ///
+  /// In en, this message translates to:
+  /// **'Restock'**
+  String get restock;
+
+  /// No description provided for @addSerialNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Serial Number'**
+  String get addSerialNumber;
+
+  /// No description provided for @serialNumberLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Serial Number'**
+  String get serialNumberLabel;
+
+  /// No description provided for @serialNumberAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Serial number added successfully'**
+  String get serialNumberAdded;
+
+  /// No description provided for @bulkRegister.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Multiple Serial Numbers'**
+  String get bulkRegister;
+
+  /// No description provided for @serialNumbersOnePerLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Serial numbers (one per line)'**
+  String get serialNumbersOnePerLine;
+
+  /// No description provided for @registerAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Register All'**
+  String get registerAll;
+
+  /// No description provided for @enterAtLeastOneSerial.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter at least one serial number'**
+  String get enterAtLeastOneSerial;
+
+  /// No description provided for @serialBulkRegistered.
+  ///
+  /// In en, this message translates to:
+  /// **'Registered {count} of {total} serial numbers'**
+  String serialBulkRegistered(Object count, Object total);
+
+  /// No description provided for @reserveSerialNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Reserve Serial Number'**
+  String get reserveSerialNumber;
+
+  /// No description provided for @salesOrderNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Sales Order Number'**
+  String get salesOrderNumber;
+
+  /// No description provided for @enterSalesOrderNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter the sales order number'**
+  String get enterSalesOrderNumber;
+
+  /// No description provided for @serialReserved.
+  ///
+  /// In en, this message translates to:
+  /// **'Serial number reserved'**
+  String get serialReserved;
+
+  /// No description provided for @registerSerialSale.
+  ///
+  /// In en, this message translates to:
+  /// **'Register Serial Sale'**
+  String get registerSerialSale;
+
+  /// No description provided for @saleNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Sale Number'**
+  String get saleNumber;
+
+  /// No description provided for @enterSaleNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter the sale number'**
+  String get enterSaleNumber;
+
+  /// No description provided for @saleRegistered.
+  ///
+  /// In en, this message translates to:
+  /// **'Sale registered successfully'**
+  String get saleRegistered;
+
+  /// No description provided for @registerSale.
+  ///
+  /// In en, this message translates to:
+  /// **'Register Sale'**
+  String get registerSale;
+
+  /// No description provided for @confirmReturn.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Return'**
+  String get confirmReturn;
+
+  /// No description provided for @confirmReturnMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Do you want to mark serial number \"{serialNumber}\" as returned?'**
+  String confirmReturnMessage(Object serialNumber);
+
+  /// No description provided for @returnRegistered.
+  ///
+  /// In en, this message translates to:
+  /// **'Return registered successfully'**
+  String get returnRegistered;
+
+  /// No description provided for @serialNumberHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Serial Number History'**
+  String get serialNumberHistory;
+
+  /// No description provided for @viewHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'View History'**
+  String get viewHistory;
+
+  /// No description provided for @shiftReport.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift Report'**
+  String get shiftReport;
+
+  /// No description provided for @noShiftsYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No shifts yet'**
+  String get noShiftsYet;
+
+  /// No description provided for @openStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get openStatus;
+
+  /// No description provided for @closedStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed'**
+  String get closedStatus;
+
+  /// No description provided for @userWithId.
+  ///
+  /// In en, this message translates to:
+  /// **'User: {userId}'**
+  String userWithId(Object userId);
+
+  /// No description provided for @openingCashAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening Cash: {amount}'**
+  String openingCashAmount(Object amount);
+
+  /// No description provided for @closingCashAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Closing Cash: {amount}'**
+  String closingCashAmount(Object amount);
+
+  /// No description provided for @noteWithText.
+  ///
+  /// In en, this message translates to:
+  /// **'Note: {note}'**
+  String noteWithText(Object note);
+
+  /// No description provided for @viewReport.
+  ///
+  /// In en, this message translates to:
+  /// **'View Report'**
+  String get viewReport;
+
+  /// No description provided for @shiftStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift Start'**
+  String get shiftStart;
+
+  /// No description provided for @shiftEnd.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift End'**
+  String get shiftEnd;
+
+  /// No description provided for @durationLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Duration'**
+  String get durationLabel;
+
+  /// No description provided for @expectedCashAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Expected Cash: {amount}'**
+  String expectedCashAmount(Object amount);
+
+  /// No description provided for @differenceAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Difference: {amount}'**
+  String differenceAmount(Object amount);
+
+  /// No description provided for @cashTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash'**
+  String get cashTotal;
+
+  /// No description provided for @cardTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Card'**
+  String get cardTotal;
+
+  /// No description provided for @shiftNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes: {note}'**
+  String shiftNotes(Object note);
+
+  /// No description provided for @stockTakeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock Take'**
+  String get stockTakeTitle;
+
+  /// No description provided for @selectWarehouseToStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select a warehouse to start stock take'**
+  String get selectWarehouseToStart;
+
+  /// No description provided for @addItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Item'**
+  String get addItem;
+
+  /// No description provided for @targetWarehouse.
+  ///
+  /// In en, this message translates to:
+  /// **'Target Warehouse'**
+  String get targetWarehouse;
+
+  /// No description provided for @startStockTakeSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Start New Stock Take Session'**
+  String get startStockTakeSession;
+
+  /// No description provided for @noItemsInSession.
+  ///
+  /// In en, this message translates to:
+  /// **'No items in this session yet'**
+  String get noItemsInSession;
+
+  /// No description provided for @expectedSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'Expected (System)'**
+  String get expectedSystem;
+
+  /// No description provided for @actualQtyDiscovered.
+  ///
+  /// In en, this message translates to:
+  /// **'Actual Quantity Discovered'**
+  String get actualQtyDiscovered;
+
+  /// No description provided for @varianceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Variance'**
+  String get varianceLabel;
+
+  /// No description provided for @finalNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Final Stock Take Notes'**
+  String get finalNotes;
+
+  /// No description provided for @approveAndCloseStockTake.
+  ///
+  /// In en, this message translates to:
+  /// **'Approve and Close Stock Take'**
+  String get approveAndCloseStockTake;
+
+  /// No description provided for @stockTakeCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock take completed, inventory and accounting entries updated successfully'**
+  String get stockTakeCompleted;
+
+  /// No description provided for @stockTakeError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error completing stock take: {error}'**
+  String stockTakeError(Object error);
+
+  /// No description provided for @addProductToStockTake.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Product to Stock Take'**
+  String get addProductToStockTake;
+
+  /// No description provided for @searchProduct.
+  ///
+  /// In en, this message translates to:
+  /// **'Search Product'**
+  String get searchProduct;
+
+  /// No description provided for @noResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No results'**
+  String get noResults;
+
+  /// No description provided for @qtyOfProduct.
+  ///
+  /// In en, this message translates to:
+  /// **'Quantity of {name}'**
+  String qtyOfProduct(Object name);
+
+  /// No description provided for @actualQtyNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Current Actual Quantity'**
+  String get actualQtyNow;
+
+  /// No description provided for @addToStockTake.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to Stock Take'**
+  String get addToStockTake;
+
+  /// No description provided for @warehouseManagement.
+  ///
+  /// In en, this message translates to:
+  /// **'Warehouse Management'**
+  String get warehouseManagement;
+
+  /// No description provided for @noWarehousesAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'No warehouses added'**
+  String get noWarehousesAdded;
+
+  /// No description provided for @noLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'No location'**
+  String get noLocation;
+
+  /// No description provided for @defaultLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Default'**
+  String get defaultLabel;
+
+  /// No description provided for @setAsDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Set as Default'**
+  String get setAsDefault;
+
+  /// No description provided for @addNewWarehouse.
+  ///
+  /// In en, this message translates to:
+  /// **'Add New Warehouse'**
+  String get addNewWarehouse;
+
+  /// No description provided for @locationLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get locationLabel;
+
+  /// No description provided for @warehouseNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Warehouse name is required'**
+  String get warehouseNameRequired;
+
+  /// No description provided for @warehouseCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Warehouse created successfully'**
+  String get warehouseCreated;
+
+  /// No description provided for @warehouseCreateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to create warehouse: {error}'**
+  String warehouseCreateFailed(Object error);
+
+  /// No description provided for @editWarehouse.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Warehouse'**
+  String get editWarehouse;
+
+  /// No description provided for @update.
+  ///
+  /// In en, this message translates to:
+  /// **'Update'**
+  String get update;
+
+  /// No description provided for @warehouseUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Warehouse updated successfully'**
+  String get warehouseUpdated;
+
+  /// No description provided for @warehouseUpdateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update warehouse: {error}'**
+  String warehouseUpdateFailed(Object error);
+
+  /// No description provided for @confirmDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Delete'**
+  String get confirmDelete;
+
+  /// No description provided for @confirmDeleteWarehouse.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this warehouse?'**
+  String get confirmDeleteWarehouse;
+
+  /// No description provided for @warehouseDeleteFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to delete warehouse: {error}'**
+  String warehouseDeleteFailed(Object error);
+
+  /// No description provided for @cannotDeleteWarehouseWithStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot delete warehouse because it contains stock.'**
+  String get cannotDeleteWarehouseWithStock;
+
+  /// No description provided for @warehouseDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Warehouse deleted successfully'**
+  String get warehouseDeleted;
+
+  /// No description provided for @warehouseManager.
+  ///
+  /// In en, this message translates to:
+  /// **'Warehouse Manager'**
+  String get warehouseManager;
+
+  /// No description provided for @codeJobTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Code: {code} | Job: {jobTitle}'**
+  String codeJobTitle(Object code, Object jobTitle);
+
+  /// No description provided for @notSpecified.
+  ///
+  /// In en, this message translates to:
+  /// **'Not Specified'**
+  String get notSpecified;
+
+  /// No description provided for @editPurchaseInvoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Purchase Invoice'**
+  String get editPurchaseInvoice;
+
+  /// No description provided for @purchaseInvoiceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchase Invoice'**
+  String get purchaseInvoiceTitle;
+
+  /// No description provided for @periodClosedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'The accounting period is closed. Invoices cannot be posted until a new period is opened.'**
+  String get periodClosedMessage;
+
+  /// No description provided for @lockedInvoiceMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This invoice is not a draft, so it cannot be edited directly. Use a correction document or return instead.'**
+  String get lockedInvoiceMessage;
+
+  /// No description provided for @paymentMethodLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment Method'**
+  String get paymentMethodLabel;
+
+  /// No description provided for @currencyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Currency'**
+  String get currencyLabel;
+
+  /// No description provided for @representativeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Representative'**
+  String get representativeLabel;
+
+  /// No description provided for @generalRepresentative.
+  ///
+  /// In en, this message translates to:
+  /// **'General Representative'**
+  String get generalRepresentative;
+
+  /// No description provided for @selectProduct.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Product'**
+  String get selectProduct;
+
+  /// No description provided for @subtotalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Subtotal'**
+  String get subtotalLabel;
+
+  /// No description provided for @taxLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Tax'**
+  String get taxLabel;
+
+  /// No description provided for @discountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Discount'**
+  String get discountLabel;
+
+  /// No description provided for @shippingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Shipping'**
+  String get shippingLabel;
+
+  /// No description provided for @otherExpensesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Other Expenses'**
+  String get otherExpensesLabel;
+
+  /// No description provided for @totalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get totalLabel;
+
+  /// No description provided for @optional.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional'**
+  String get optional;
+
+  /// No description provided for @needTaxPermission.
+  ///
+  /// In en, this message translates to:
+  /// **'You need tax edit permission'**
+  String get needTaxPermission;
+
+  /// No description provided for @addExistingItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Existing Item'**
+  String get addExistingItem;
+
+  /// No description provided for @addNewItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Add New Item'**
+  String get addNewItem;
+
+  /// No description provided for @cannotEditNonDraftItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot edit items of a non-draft purchase invoice'**
+  String get cannotEditNonDraftItems;
+
+  /// No description provided for @fixFinancialFields.
+  ///
+  /// In en, this message translates to:
+  /// **'Please fix the financial fields before saving'**
+  String get fixFinancialFields;
+
+  /// No description provided for @noTaxPermission.
+  ///
+  /// In en, this message translates to:
+  /// **'You do not have permission to edit tax'**
+  String get noTaxPermission;
+
+  /// No description provided for @pleaseSelectSupplier.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select a supplier'**
+  String get pleaseSelectSupplier;
+
+  /// No description provided for @pleaseSelectWarehouse.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select a warehouse'**
+  String get pleaseSelectWarehouse;
+
+  /// No description provided for @pleaseAddItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Please add items'**
+  String get pleaseAddItems;
+
+  /// No description provided for @quantityMustBeGreaterThanZero.
+  ///
+  /// In en, this message translates to:
+  /// **'Quantity must be greater than zero'**
+  String get quantityMustBeGreaterThanZero;
+
+  /// No description provided for @priceMustBeNonNegative.
+  ///
+  /// In en, this message translates to:
+  /// **'Price must be greater than or equal to zero'**
+  String get priceMustBeNonNegative;
+
+  /// No description provided for @cannotEditNonDraftInvoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot edit a non-draft purchase invoice. Use a correction document or return instead.'**
+  String get cannotEditNonDraftInvoice;
+
+  /// No description provided for @newPurchaseInvoiceValue.
+  ///
+  /// In en, this message translates to:
+  /// **'New purchase invoice worth {amount}'**
+  String newPurchaseInvoiceValue(Object amount);
+
+  /// No description provided for @invoiceModifiedValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Invoice modified to {amount}'**
+  String invoiceModifiedValue(Object amount);
+
+  /// No description provided for @invoicePosted.
+  ///
+  /// In en, this message translates to:
+  /// **'Invoice posted'**
+  String get invoicePosted;
+
+  /// No description provided for @purchaseSavedAndPosted.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchase saved, posted, and inventory updated successfully'**
+  String get purchaseSavedAndPosted;
+
+  /// No description provided for @invoiceModifiedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Invoice modified successfully'**
+  String get invoiceModifiedSuccessfully;
+
+  /// No description provided for @draftSavedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Draft saved successfully'**
+  String get draftSavedSuccessfully;
+
+  /// No description provided for @errorSavingInvoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Error saving invoice: {error}'**
+  String errorSavingInvoice(Object error);
+
+  /// No description provided for @unexpectedError.
+  ///
+  /// In en, this message translates to:
+  /// **'An unexpected error occurred while saving.'**
+  String get unexpectedError;
+
+  /// No description provided for @foreignKeyError.
+  ///
+  /// In en, this message translates to:
+  /// **'Link error: please verify the selected data (warehouse, supplier, or items).'**
+  String get foreignKeyError;
+
+  /// No description provided for @uniqueConstraintError.
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate error: invoice number or other data already exists.'**
+  String get uniqueConstraintError;
+
+  /// No description provided for @periodClosedCannotPost.
+  ///
+  /// In en, this message translates to:
+  /// **'The accounting period is closed. Cannot post.'**
+  String get periodClosedCannotPost;
+
+  /// No description provided for @purchaseOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchase Orders'**
+  String get purchaseOrders;
+
+  /// No description provided for @noPurchaseOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'No purchase orders'**
+  String get noPurchaseOrders;
+
+  /// No description provided for @purchaseOrderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchase Order: {number}'**
+  String purchaseOrderTitle(Object number);
+
+  /// No description provided for @supplierStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Supplier: {name} | Status: {status}'**
+  String supplierStatus(Object name, Object status);
+
+  /// No description provided for @confirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get confirmTitle;
+
+  /// No description provided for @convertOrderToInvoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Convert purchase order {number} to invoice?'**
+  String convertOrderToInvoice(Object number);
+
+  /// No description provided for @convert.
+  ///
+  /// In en, this message translates to:
+  /// **'Convert'**
+  String get convert;
+
+  /// No description provided for @conversionSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Conversion successful'**
+  String get conversionSuccess;
+
+  /// No description provided for @generateAutoOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate Auto Purchase Orders'**
+  String get generateAutoOrders;
+
+  /// No description provided for @ordersGenerated.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchase orders generated successfully'**
+  String get ordersGenerated;
+
+  /// No description provided for @supplierPerformance.
+  ///
+  /// In en, this message translates to:
+  /// **'Supplier Performance Report'**
+  String get supplierPerformance;
+
+  /// No description provided for @invoiceCountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Invoices: {count}'**
+  String invoiceCountLabel(Object count);
+
+  /// No description provided for @totalPurchasesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Total: {amount}'**
+  String totalPurchasesLabel(Object amount);
+
+  /// No description provided for @averageInvoiceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Avg Invoice: {amount}'**
+  String averageInvoiceLabel(Object amount);
+
+  /// No description provided for @priceQuotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Price Quotes'**
+  String get priceQuotes;
+
+  /// No description provided for @noPriceQuotes.
+  ///
+  /// In en, this message translates to:
+  /// **'No price quotes'**
+  String get noPriceQuotes;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

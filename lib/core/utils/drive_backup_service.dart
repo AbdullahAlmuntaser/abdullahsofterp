@@ -48,14 +48,22 @@ class DriveBackupService {
 
       final account = await _googleSignIn!.signIn();
       if (account != null) {
-        _isAuthenticated = true;
         _userEmail = account.email;
+
+        final authHeaders = await account.authHeaders;
+        final client = AuthenticatedClient(authHeaders);
+        _driveApi = drive.DriveApi(client);
+        _isAuthenticated = true;
 
         AppLogger.info('Signed in to Google Drive as: $_userEmail');
         return true;
       }
+      _driveApi = null;
+      _isAuthenticated = false;
       return false;
     } catch (e) {
+      _driveApi = null;
+      _isAuthenticated = false;
       AppLogger.error('Failed to sign in to Google Drive', error: e);
       return false;
     }
@@ -189,18 +197,55 @@ class DriveBackupService {
     if (!_isAuthenticated || _driveApi == null) return false;
 
     try {
-      final response = await _driveApi!.files.get(fileId) as drive.Media;
+      final response = await _driveApi!.files.get(
+        fileId,
+        $fields: '',
+      );
 
-      final file = File(localPath);
-      final sink = file.openWrite();
-      await sink.addStream(response.stream);
-      await sink.close();
+      if (response is drive.File) {
+        final downloadUrl = response.webContentLink;
+        if (downloadUrl == null) {
+          AppLogger.error('No download URL available for backup file');
+          return false;
+        }
 
-      AppLogger.info('Downloaded backup to: $localPath');
-      return true;
+        final token = await _getAccessToken();
+        if (token == null) {
+          AppLogger.error('No access token available');
+          return false;
+        }
+        final http.Response downloadResponse = await http.get(
+          Uri.parse(downloadUrl),
+          headers: {'Authorization': 'Bearer $token'},
+        );
+
+        if (downloadResponse.statusCode == 200) {
+          final file = File(localPath);
+          await file.writeAsBytes(downloadResponse.bodyBytes);
+          AppLogger.info('Downloaded backup to: $localPath');
+          return true;
+        }
+
+        AppLogger.error(
+            'Failed to download file: HTTP ${downloadResponse.statusCode}');
+        return false;
+      }
+
+      AppLogger.error('Unexpected response type from Drive API');
+      return false;
     } catch (e) {
       AppLogger.error('Failed to download cloud backup', error: e);
       return false;
+    }
+  }
+
+  Future<String?> _getAccessToken() async {
+    try {
+      final headers = await _googleSignIn?.currentUser?.authHeaders;
+      if (headers == null) return null;
+      return headers['Authorization']?.replaceFirst('Bearer ', '');
+    } catch (_) {
+      return null;
     }
   }
 

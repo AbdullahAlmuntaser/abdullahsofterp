@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supermarket/core/services/unified_statement_service.dart';
+import 'package:supermarket/l10n/app_localizations.dart';
 import 'package:supermarket/presentation/widgets/shared/account_selector_widget.dart';
 import 'package:supermarket/presentation/widgets/shared/period_filter_widget.dart';
 import 'package:intl/intl.dart' as intl;
@@ -37,8 +38,9 @@ class _UnifiedStatementPageState extends State<UnifiedStatementPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: const Text('كشف حساب موحد')),
+      appBar: AppBar(title: Text(l10n.unifiedStatement)),
       body: Column(
         children: [
           Padding(
@@ -72,12 +74,12 @@ class _UnifiedStatementPageState extends State<UnifiedStatementPage> {
                 scrollDirection: Axis.horizontal,
                 child: SingleChildScrollView(
                   child: DataTable(
-                    columns: const [
-                      DataColumn(label: Text('التاريخ')),
-                      DataColumn(label: Text('البيان')),
-                      DataColumn(label: Text('مدين')),
-                      DataColumn(label: Text('دائن')),
-                      DataColumn(label: Text('الرصيد')),
+                    columns: [
+                      DataColumn(label: Text(l10n.date)),
+                      DataColumn(label: Text(l10n.statementLabel)),
+                      DataColumn(label: Text(l10n.debit)),
+                      DataColumn(label: Text(l10n.credit)),
+                      DataColumn(label: Text(l10n.balance)),
                     ],
                     rows: _entries!.map((e) {
                       return DataRow(cells: [

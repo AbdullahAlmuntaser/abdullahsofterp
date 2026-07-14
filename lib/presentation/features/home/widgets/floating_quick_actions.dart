@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supermarket/core/constants/app_colors.dart';
 import 'package:supermarket/core/constants/app_dimensions.dart';
+import 'package:supermarket/l10n/app_localizations.dart';
 
 class FloatingQuickActions extends StatefulWidget {
   const FloatingQuickActions({super.key});
@@ -67,34 +68,35 @@ class _FloatingQuickActionsState extends State<FloatingQuickActions>
   }
 
   List<Widget> _buildMiniActions(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final actions = [
-      const _MiniAction(
-          label: 'بيع',
+      _MiniAction(
+          label: l10n.sell,
           icon: Icons.point_of_sale,
           color: AppColors.opSales,
           route: '/pos'),
-      const _MiniAction(
-          label: 'شراء',
+      _MiniAction(
+          label: l10n.purchase,
           icon: Icons.shopping_bag,
           color: AppColors.opPurchases,
           route: '/purchases/new'),
-      const _MiniAction(
-          label: 'عميل',
+      _MiniAction(
+          label: l10n.customer,
           icon: Icons.person_add,
           color: AppColors.opCustomers,
           route: '/customers'),
-      const _MiniAction(
-          label: 'مورد',
+      _MiniAction(
+          label: l10n.supplier,
           icon: Icons.local_shipping,
           color: AppColors.opSuppliers,
           route: '/suppliers'),
-      const _MiniAction(
-          label: 'منتج',
+      _MiniAction(
+          label: l10n.productLabel,
           icon: Icons.add_box,
           color: AppColors.opInventory,
           route: '/products'),
-      const _MiniAction(
-          label: 'تقرير',
+      _MiniAction(
+          label: l10n.reports,
           icon: Icons.assessment,
           color: AppColors.opReports,
           route: '/reports/sales'),

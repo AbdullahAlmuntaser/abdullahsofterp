@@ -56,26 +56,72 @@ class ProductionService {
             ..where((t) => t.productionOrderId.equals(orderId)))
           .get();
 
-      // 1. Consume Raw Materials
+      // 1. Consume Raw Materials from actual batches
+      Decimal totalCost = Decimal.zero;
       for (var item in items) {
-        await db.stockMovementDao.insertStockMovement(
-          StockMovementsCompanion.insert(
-            productId: item.componentProductId,
-            quantity: -item.plannedQuantity,
-            type: 'PRODUCTION_CONSUME',
-            referenceId: Value(orderId),
-            movementDate: Value(DateTime.now()),
-          ),
-        );
+        final batches = await (db.select(db.productBatches)
+              ..where((b) => b.productId.equals(item.componentProductId))
+              ..where((b) => b.quantity.isBiggerThan(
+                  Constant(Decimal.zero.toString()))))
+            .get();
+
+        Decimal remaining = item.plannedQuantity;
+        for (var batch in batches) {
+          if (remaining <= Decimal.zero) break;
+          final deduct = remaining > batch.quantity ? batch.quantity : remaining;
+
+          await (db.update(db.productBatches)
+                ..where((b) => b.id.equals(batch.id)))
+              .write(ProductBatchesCompanion(
+            quantity: Value(batch.quantity - deduct),
+          ));
+
+          await db.stockMovementDao.insertStockMovement(
+            StockMovementsCompanion.insert(
+              productId: item.componentProductId,
+              quantity: -deduct,
+              type: 'PRODUCTION_CONSUME',
+              referenceId: Value(orderId),
+              batchId: Value(batch.id),
+              movementDate: Value(DateTime.now()),
+            ),
+          );
+
+          totalCost += deduct * batch.costPrice;
+          remaining -= deduct;
+        }
       }
 
-      // 2. Produce Finished Good
+      // 2. Create batch for finished good with calculated cost
+      final finishedBatchId = const Uuid().v4();
+      final unitCost = order.plannedQuantity > Decimal.zero
+          ? (totalCost / order.plannedQuantity).toDecimal()
+          : Decimal.zero;
+
+      final whId = order.warehouseId;
+      if (whId == null || whId.isEmpty) {
+        throw Exception('المستودع مطلوب لإتمام أمر الإنتاج.');
+      }
+      await db.into(db.productBatches).insert(
+            ProductBatchesCompanion.insert(
+              id: Value(finishedBatchId),
+              productId: order.finishedProductId,
+              warehouseId: whId,
+              batchNumber: 'PROD-${orderId.substring(0, 8)}',
+              quantity: Value(order.plannedQuantity),
+              initialQuantity: Value(order.plannedQuantity),
+              costPrice: Value(unitCost),
+            ),
+          );
+
       await db.stockMovementDao.insertStockMovement(
         StockMovementsCompanion.insert(
           productId: order.finishedProductId,
           quantity: order.plannedQuantity,
+          cost: Value(totalCost),
           type: 'PRODUCTION_OUTPUT',
           referenceId: Value(orderId),
+          batchId: Value(finishedBatchId),
           movementDate: Value(DateTime.now()),
         ),
       );

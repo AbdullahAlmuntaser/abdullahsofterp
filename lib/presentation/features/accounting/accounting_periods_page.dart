@@ -7,8 +7,8 @@ import 'package:intl/intl.dart';
 import 'package:supermarket/core/services/financial_closing_service.dart';
 import 'package:supermarket/core/auth/auth_provider.dart';
 import 'package:supermarket/core/services/accounting_period_service.dart';
+import 'package:supermarket/l10n/app_localizations.dart';
 
-/// صفحة إدارة الفترات المحاسبية
 class AccountingPeriodsPage extends StatefulWidget {
   const AccountingPeriodsPage({super.key});
 
@@ -21,9 +21,8 @@ class _AccountingPeriodsPageState extends State<AccountingPeriodsPage> {
   DateTime? _startDate;
   DateTime? _endDate;
 
-  // متغيرات لإنشاء فترات تلقائية
   int _selectedYear = DateTime.now().year;
-  String _periodType = 'monthly'; // monthly, quarterly, yearly
+  String _periodType = 'monthly';
   bool _isBulkCreate = false;
 
   @override
@@ -34,23 +33,23 @@ class _AccountingPeriodsPageState extends State<AccountingPeriodsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final db = context.read<AppDatabase>();
     final periodService = context.read<AccountingPeriodService>();
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('الفترات المحاسبية'),
+        title: Text(l10n.accountingPeriods),
         actions: [
           IconButton(
             icon: const Icon(Icons.calendar_month),
-            tooltip: 'إنشاء فترات تلقائية',
+            tooltip: l10n.createAutoPeriods,
             onPressed: () => _showBulkCreateDialog(db, periodService),
           ),
         ],
       ),
       body: Column(
         children: [
-          // نموذج إضافة فترة يدوية
           Card(
             margin: const EdgeInsets.all(16),
             child: Padding(
@@ -61,9 +60,9 @@ class _AccountingPeriodsPageState extends State<AccountingPeriodsPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        'إضافة فترة يدوية',
-                        style: TextStyle(
+                      Text(
+                        l10n.addManualPeriod,
+                        style: const TextStyle(
                             fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                       TextButton.icon(
@@ -75,18 +74,18 @@ class _AccountingPeriodsPageState extends State<AccountingPeriodsPage> {
                         icon: Icon(
                             _isBulkCreate ? Icons.close : Icons.auto_awesome),
                         label: Text(_isBulkCreate
-                            ? 'إلغاء التوليد التلقائي'
-                            : 'توليد تلقائي'),
+                            ? l10n.cancelAutoGeneration
+                            : l10n.autoGenerate),
                       ),
                     ],
                   ),
                   const SizedBox(height: 16),
                   TextField(
                     controller: _nameController,
-                    decoration: const InputDecoration(
-                      labelText: 'اسم الفترة',
-                      border: OutlineInputBorder(),
-                      hintText: 'مثال: يناير 2026',
+                    decoration: InputDecoration(
+                      labelText: l10n.periodName,
+                      border: const OutlineInputBorder(),
+                      hintText: l10n.examplePeriodName,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -96,15 +95,15 @@ class _AccountingPeriodsPageState extends State<AccountingPeriodsPage> {
                         child: InkWell(
                           onTap: () => _selectStartDate(context),
                           child: InputDecorator(
-                            decoration: const InputDecoration(
-                              labelText: 'تاريخ البداية',
-                              border: OutlineInputBorder(),
-                              suffixIcon: Icon(Icons.calendar_today),
+                            decoration: InputDecoration(
+                              labelText: l10n.startDate,
+                              border: const OutlineInputBorder(),
+                              suffixIcon: const Icon(Icons.calendar_today),
                             ),
                             child: Text(
                               _startDate != null
                                   ? DateFormat('yyyy-MM-dd').format(_startDate!)
-                                  : 'اختر التاريخ',
+                                  : l10n.selectDate,
                             ),
                           ),
                         ),
@@ -114,15 +113,15 @@ class _AccountingPeriodsPageState extends State<AccountingPeriodsPage> {
                         child: InkWell(
                           onTap: () => _selectEndDate(context),
                           child: InputDecorator(
-                            decoration: const InputDecoration(
-                              labelText: 'تاريخ النهاية',
-                              border: OutlineInputBorder(),
-                              suffixIcon: Icon(Icons.calendar_today),
+                            decoration: InputDecoration(
+                              labelText: l10n.endDate,
+                              border: const OutlineInputBorder(),
+                              suffixIcon: const Icon(Icons.calendar_today),
                             ),
                             child: Text(
                               _endDate != null
                                   ? DateFormat('yyyy-MM-dd').format(_endDate!)
-                                  : 'اختر التاريخ',
+                                  : l10n.selectDate,
                             ),
                           ),
                         ),
@@ -135,22 +134,22 @@ class _AccountingPeriodsPageState extends State<AccountingPeriodsPage> {
                         ? () => _addPeriod(db)
                         : null,
                     icon: const Icon(Icons.add),
-                    label: const Text('إضافة فترة يدوية'),
+                    label: Text(l10n.addManualPeriod),
                   ),
                 ],
               ),
             ),
           ),
 
-          // قائمة الفترات
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'الفترات الموجودة',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  l10n.existingPeriods,
+                  style:
+                      const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -161,7 +160,7 @@ class _AccountingPeriodsPageState extends State<AccountingPeriodsPage> {
               builder: (context, snapshot) {
                 final periods = snapshot.data ?? [];
                 if (periods.isEmpty) {
-                  return const Center(child: Text('لا توجد فترات محاسبية'));
+                  return Center(child: Text(l10n.noAccountingPeriods));
                 }
                 return ListView.separated(
                   padding: const EdgeInsets.all(16),
@@ -190,13 +189,13 @@ class _AccountingPeriodsPageState extends State<AccountingPeriodsPage> {
                                 onPressed: () =>
                                     _confirmClosePeriod(db, period),
                                 icon: const Icon(Icons.lock, size: 18),
-                                label: const Text('إغلاق'),
+                                label: Text(l10n.closePeriod),
                               ),
                             if (period.isClosed)
                               TextButton.icon(
                                 onPressed: () => _reopenPeriod(db, period),
                                 icon: const Icon(Icons.lock_open, size: 18),
-                                label: const Text('فتح'),
+                                label: Text(l10n.openPeriod),
                               ),
                             IconButton(
                               icon: const Icon(Icons.delete, color: Colors.red),
@@ -237,12 +236,13 @@ class _AccountingPeriodsPageState extends State<AccountingPeriodsPage> {
   }
 
   Future<void> _addPeriod(AppDatabase db) async {
+    final l10n = AppLocalizations.of(context)!;
     if (_nameController.text.isEmpty ||
         _startDate == null ||
         _endDate == null) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('يرجى ملء جميع الحقول')));
+      ).showSnackBar(SnackBar(content: Text(l10n.pleaseFillAllFields)));
       return;
     }
 
@@ -266,7 +266,7 @@ class _AccountingPeriodsPageState extends State<AccountingPeriodsPage> {
     if (mounted) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('تم إضافة الفترة بنجاح')));
+      ).showSnackBar(SnackBar(content: Text(l10n.periodAddedSuccessfully)));
     }
   }
 
@@ -274,22 +274,23 @@ class _AccountingPeriodsPageState extends State<AccountingPeriodsPage> {
     AppDatabase db,
     AccountingPeriod period,
   ) async {
+    final l10n = AppLocalizations.of(context)!;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('تأكيد إغلاق الفترة'),
+        title: Text(l10n.confirmClosePeriod),
         content: Text(
-          'هل أنت متأكد من إغلاق الفترة "${period.name}"؟\n'
-          'سيتم ترحيل الأرباح إلى الأرباح المحتجزة.',
+          '${l10n.closePeriodMessage}\n'
+          '${l10n.closePeriodMessage}',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('إلغاء'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('تأكيد'),
+            child: Text(l10n.confirmGeneric),
           ),
         ],
       ),
@@ -301,6 +302,7 @@ class _AccountingPeriodsPageState extends State<AccountingPeriodsPage> {
   }
 
   Future<void> _closePeriod(AppDatabase db, AccountingPeriod period) async {
+    final l10n = AppLocalizations.of(context)!;
     try {
       final authProvider = context.read<AuthProvider>();
       final closingService = context.read<FinancialClosingService>();
@@ -319,7 +321,7 @@ class _AccountingPeriodsPageState extends State<AccountingPeriodsPage> {
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-                content: Text(result.error ?? 'فشل في إغلاق الفترة'),
+                content: Text(result.error ?? l10n.failedToClosePeriod),
                 backgroundColor: Colors.red),
           );
         }
@@ -328,7 +330,7 @@ class _AccountingPeriodsPageState extends State<AccountingPeriodsPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text('فشل في إغلاق الفترة: $e'),
+              content: Text('${l10n.failedToClosePeriod}: $e'),
               backgroundColor: Colors.red),
         );
       }
@@ -336,6 +338,7 @@ class _AccountingPeriodsPageState extends State<AccountingPeriodsPage> {
   }
 
   Future<void> _reopenPeriod(AppDatabase db, AccountingPeriod period) async {
+    final l10n = AppLocalizations.of(context)!;
     try {
       final authProvider = context.read<AuthProvider>();
       final closingService = context.read<FinancialClosingService>();
@@ -355,7 +358,7 @@ class _AccountingPeriodsPageState extends State<AccountingPeriodsPage> {
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-                content: Text(result.error ?? 'فشل في إعادة فتح الفترة'),
+                content: Text(result.error ?? l10n.failedToReopenPeriod),
                 backgroundColor: Colors.red),
           );
         }
@@ -364,7 +367,7 @@ class _AccountingPeriodsPageState extends State<AccountingPeriodsPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text('فشل في إعادة فتح الفترة: $e'),
+              content: Text('${l10n.failedToReopenPeriod}: $e'),
               backgroundColor: Colors.red),
         );
       }
@@ -372,14 +375,14 @@ class _AccountingPeriodsPageState extends State<AccountingPeriodsPage> {
   }
 
   Future<void> _deletePeriod(AppDatabase db, AccountingPeriod period) async {
+    final l10n = AppLocalizations.of(context)!;
     if (period.isClosed) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('لا يمكن حذف فترة مغلقة')));
+      ).showSnackBar(SnackBar(content: Text(l10n.cannotDeleteClosedPeriod)));
       return;
     }
 
-    // Check for GL entries in this period's date range
     final entryCount = await (db.select(db.gLEntries)
           ..where(
               (e) => e.date.isBiggerOrEqual(drift.Variable(period.startDate)))
@@ -391,9 +394,8 @@ class _AccountingPeriodsPageState extends State<AccountingPeriodsPage> {
 
     if (entryCount.isNotEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-              'لا يمكن حذف الفترة: توجد قيود محاسبية مسجلة ضمن هذه الفترة'),
+        SnackBar(
+          content: Text(l10n.cannotDeletePeriodWithEntries),
           backgroundColor: Colors.red,
         ),
       );
@@ -408,15 +410,15 @@ class _AccountingPeriodsPageState extends State<AccountingPeriodsPage> {
     if (mounted) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('تم حذف الفترة')));
+      ).showSnackBar(SnackBar(content: Text(l10n.periodDeleted)));
     }
   }
 
-  /// عرض حوار إنشاء فترات تلقائية
   Future<void> _showBulkCreateDialog(
     AppDatabase db,
     AccountingPeriodService periodService,
   ) async {
+    final l10n = AppLocalizations.of(context)!;
     int year = _selectedYear;
     String type = _periodType;
 
@@ -424,16 +426,15 @@ class _AccountingPeriodsPageState extends State<AccountingPeriodsPage> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
-          title: const Text('إنشاء فترات محاسبية تلقائية'),
+          title: Text(l10n.createAutoPeriods),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // اختيار السنة
               DropdownButtonFormField<int>(
                 value: year,
-                decoration: const InputDecoration(
-                  labelText: 'السنة',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: l10n.year,
+                  border: const OutlineInputBorder(),
                 ),
                 items: List.generate(10, (i) => DateTime.now().year - 5 + i)
                     .map((y) => DropdownMenuItem(
@@ -444,34 +445,33 @@ class _AccountingPeriodsPageState extends State<AccountingPeriodsPage> {
                 onChanged: (v) => setDialogState(() => year = v!),
               ),
               const SizedBox(height: 16),
-              // نوع الفترة
               DropdownButtonFormField<String>(
                 value: type,
-                decoration: const InputDecoration(
-                  labelText: 'نوع الفترة',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: l10n.periodType,
+                  border: const OutlineInputBorder(),
                 ),
-                items: const [
+                items: [
                   DropdownMenuItem(
-                      value: 'monthly', child: Text('شهرية (12 فترة)')),
+                      value: 'monthly', child: Text(l10n.monthly)),
                   DropdownMenuItem(
-                      value: 'quarterly', child: Text('ربع سنوية (4 فترات)')),
+                      value: 'quarterly', child: Text(l10n.quarterly)),
                   DropdownMenuItem(
-                      value: 'yearly', child: Text('سنوية (فترة واحدة)')),
+                      value: 'yearly', child: Text(l10n.yearly)),
                 ],
                 onChanged: (v) => setDialogState(() => type = v!),
               ),
               const SizedBox(height: 16),
-              const Text(
-                'سيتم إنشاء الفترات تلقائياً بناءً على الاختيار.',
-                style: TextStyle(fontSize: 12, color: Colors.grey),
+              Text(
+                l10n.autoPeriodInfo,
+                style: const TextStyle(fontSize: 12, color: Colors.grey),
               ),
             ],
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('إلغاء'),
+              child: Text(l10n.cancel),
             ),
             ElevatedButton.icon(
               onPressed: () async {
@@ -479,7 +479,7 @@ class _AccountingPeriodsPageState extends State<AccountingPeriodsPage> {
                 await _bulkCreatePeriods(db, periodService, year, type);
               },
               icon: const Icon(Icons.auto_awesome),
-              label: const Text('إنشاء'),
+              label: Text(l10n.autoGenerate),
             ),
           ],
         ),
@@ -487,13 +487,13 @@ class _AccountingPeriodsPageState extends State<AccountingPeriodsPage> {
     );
   }
 
-  /// إنشاء فترات متعددة تلقائياً
   Future<void> _bulkCreatePeriods(
     AppDatabase db,
     AccountingPeriodService periodService,
     int year,
     String type,
   ) async {
+    final l10n = AppLocalizations.of(context)!;
     try {
       final count =
           await periodService.bulkCreatePeriods(year: year, type: type);
@@ -505,7 +505,7 @@ class _AccountingPeriodsPageState extends State<AccountingPeriodsPage> {
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('تم إنشاء $count فترات محاسبية بنجاح'),
+            content: Text(l10n.periodsCreated(count.toString())),
             backgroundColor: Colors.green,
           ),
         );
@@ -514,7 +514,7 @@ class _AccountingPeriodsPageState extends State<AccountingPeriodsPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('فشل في إنشاء الفترات: $e'),
+            content: Text(l10n.failedToCreatePeriods(e.toString())),
             backgroundColor: Colors.red,
           ),
         );

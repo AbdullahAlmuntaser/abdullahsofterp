@@ -16,6 +16,7 @@ class CartItem extends Equatable {
     required this.product,
     required this.quantity,
     this.isWholesale = false,
+    // TODO: localize - consider making unitName required or provide via l10n
     this.unitName = 'حبة',
     required this.unitFactor,
     required this.unitPrice,

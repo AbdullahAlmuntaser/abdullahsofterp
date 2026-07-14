@@ -1,4 +1,6 @@
 import 'package:csv/csv.dart';
+import 'package:drift/drift.dart';
+import 'package:excel/excel.dart' as excel;
 import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
@@ -132,7 +134,15 @@ class ExportService {
       {DateTime? from,
       DateTime? to,
       ExportFormat format = ExportFormat.csv}) async {
-    var query = db.select(db.sales);
+    final query = db.select(db.sales);
+    if (from != null) {
+      final fromDate = from;
+      query.where((s) => s.createdAt.isBiggerOrEqualValue(fromDate));
+    }
+    if (to != null) {
+      final toDate = to;
+      query.where((s) => s.createdAt.isSmallerOrEqualValue(toDate));
+    }
 
     final sales = await query.get();
 
@@ -213,23 +223,26 @@ class ExportService {
 
   Future<String> _exportToExcel(
       List<List<dynamic>> rows, String filename, String sheetName) async {
-    final directory = await getApplicationDocumentsDirectory();
-    final file = File('${directory.path}/$filename.csv');
+    final workbook = excel.Excel.createExcel();
+    final sheet = workbook[sheetName];
 
-    final buffer = StringBuffer();
     for (int i = 0; i < rows.length; i++) {
       final row = rows[i];
-      buffer.write(row.map((cell) {
-        final str = cell?.toString() ?? '';
-        if (str.contains(',') || str.contains('"') || str.contains('\n')) {
-          return '"${str.replaceAll('"', '""')}"';
-        }
-        return str;
-      }).join(','));
-      if (i < rows.length - 1) buffer.write('\n');
+      for (int j = 0; j < row.length; j++) {
+        final cell = sheet.cell(excel.CellIndex.indexByColumnRow(
+          columnIndex: j,
+          rowIndex: i,
+        ));
+        cell.value = excel.TextCellValue(row[j]?.toString() ?? '');
+      }
     }
 
-    await file.writeAsString(buffer.toString());
+    final directory = await getApplicationDocumentsDirectory();
+    final file = File('${directory.path}/$filename.xlsx');
+    final data = workbook.encode();
+    if (data != null) {
+      await file.writeAsBytes(data);
+    }
     return file.path;
   }
 
