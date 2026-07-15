@@ -23,7 +23,6 @@ import 'package:supermarket/core/services/hr_service.dart';
 import 'package:supermarket/core/services/stock_transfer_service.dart';
 import 'package:supermarket/core/services/asset_service.dart';
 import 'package:supermarket/core/services/accounting_service.dart';
-import 'package:supermarket/core/services/purchase_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,7 +34,6 @@ class RootWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 1. تأكد أن التطبيق يبدأ بـ MaterialApp يحتوي على Navigator
     return const MaterialApp(
       debugShowCheckedModeBanner: false,
       home: SplashScreen(),
@@ -57,7 +55,6 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    // 2. لا تستخدم Navigator مباشرة في initState، نستخدم دالة تهيئة مستقلة
     _startInitialization();
   }
 
@@ -125,7 +122,6 @@ class _SplashScreenState extends State<SplashScreen> {
 
     debugPrint("NAVIGATE: Transitioning to MyApp");
 
-    // 3 & 5. استخدام addPostFrameCallback لضمان استدعاء Navigator بعد اكتمال build
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         Navigator.of(context).pushReplacement(
@@ -141,7 +137,6 @@ class _SplashScreenState extends State<SplashScreen> {
 
     _updateStatus("⚠ حدث خطأ", error);
 
-    // استخدام addPostFrameCallback لعرض الـ Dialog بشكل آمن
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         showDialog(
@@ -234,10 +229,7 @@ class MyApp extends StatelessWidget {
             create: (_) => AccountingProvider(
                 di.sl<AppDatabase>(), di.sl<AccountingService>())),
         ChangeNotifierProvider(create: (_) => di.sl<ProductsProvider>()),
-        ChangeNotifierProvider(
-          create: (_) =>
-              PurchaseProvider(di.sl<AppDatabase>(), di.sl<PurchaseService>()),
-        ),
+        ChangeNotifierProvider(create: (_) => di.sl<PurchaseProvider>()),
         ChangeNotifierProvider(
             create: (_) => ShiftProvider(ShiftService(di.sl<AppDatabase>()))),
         ChangeNotifierProvider(
@@ -247,8 +239,7 @@ class MyApp extends StatelessWidget {
                 PayrollProvider(di.sl<HRService>(), di.sl<PayrollService>())),
         ChangeNotifierProvider(
           create: (_) =>
-              StockTransferProvider(StockTransferService(di.sl<AppDatabase>())),
-        ),
+              StockTransferProvider(StockTransferService(di.sl<AppDatabase>()))),
         ChangeNotifierProvider(
             create: (_) => AssetProvider(AssetService(di.sl<AppDatabase>()))),
         ChangeNotifierProvider(create: (_) => CustomerStatementProvider()),
