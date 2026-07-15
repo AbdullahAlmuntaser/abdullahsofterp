@@ -1,7 +1,23 @@
 import 'package:drift/drift.dart';
-import 'package:supermarket/core/constants/app_enums.dart';
-import 'package:supermarket/core/models/inventory/inventory_models.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
+
+class UnitBreakdown {
+  final String unitName;
+  final int quantity;
+  final Decimal unitFactor;
+
+  UnitBreakdown({
+    required this.unitName,
+    required this.quantity,
+    required this.unitFactor,
+  });
+}
+
+enum SaleMode {
+  retail,
+  wholesale,
+  mixed,
+}
 
 class _ProductUnitExt {
   final String id;
@@ -84,6 +100,8 @@ class InventoryDisplayService {
         return unit.canSellRetail;
       case SaleMode.mixed:
         return unit.canSellWholesale || unit.canSellRetail;
+      default:
+        return false;
     }
   }
 
