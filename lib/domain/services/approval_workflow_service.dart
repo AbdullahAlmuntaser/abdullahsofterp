@@ -65,9 +65,10 @@ class ApprovalWorkflowService {
 
     final workflowId = workflows.first['id'] as int;
 
+    final now = DateTime.now().toIso8601String();
     final requestId = await database.customInsert(
-      'INSERT INTO approval_requests (document_type, document_id, workflow_id, current_level, status, requested_by) VALUES (?, ?, ?, 1, \'pending\', ?)',
-      variables: [Variable(documentType), Variable(documentId), Variable(workflowId), Variable(requestedBy)],
+      'INSERT INTO approval_requests (document_type, document_id, workflow_id, current_level, status, requested_by, requested_at) VALUES (?, ?, ?, 1, \'pending\', ?, ?)',
+      variables: [Variable(documentType), Variable(documentId), Variable(workflowId), Variable(requestedBy), Variable(now)],
     );
 
     return requestId;
@@ -108,8 +109,8 @@ class ApprovalWorkflowService {
       final roleId = approverInfo.isNotEmpty ? approverInfo.first['role_id'] : null;
 
       await database.customInsert(
-        'INSERT INTO approval_history (request_id, level_order, approver_id, approver_role_id, action, comments) VALUES (?, ?, ?, ?, ?, ?)',
-        variables: [Variable(requestId), Variable(currentLevel), Variable(approverId), Variable(roleId as Object), Variable(action), Variable(comments)],
+        'INSERT INTO approval_history (request_id, level_order, approver_id, approver_role, action, comments, action_date) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        variables: [Variable(requestId), Variable(currentLevel), Variable(approverId), Variable(roleId as Object), Variable(action), Variable(comments), Variable(DateTime.now().toIso8601String())],
       );
 
       if (action == 'approved') {

@@ -15,6 +15,10 @@ import 'package:supermarket/injection_container.dart';
 import 'package:supermarket/core/services/communication_service.dart';
 import 'package:supermarket/core/services/quick_customer_service.dart';
 import 'package:supermarket/core/utils/printer_helper.dart';
+import 'package:supermarket/core/services/pricing_service.dart';
+import 'package:supermarket/core/services/packaging_engine.dart';
+import 'package:supermarket/core/services/transaction_engine.dart';
+import 'package:supermarket/core/services/loyalty_service.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -24,7 +28,48 @@ class PosPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => sl<PosBloc>()..add(LoadCategories()),
+      create: (context) {
+        final l10n = AppLocalizations.of(context)!;
+        final bloc = PosBloc(
+          sl<AppDatabase>(),
+          sl<PricingService>(),
+          sl<TransactionEngine>(),
+          sl<PackagingEngine>(),
+          loyaltyService: sl<LoyaltyService>(),
+          t: (key, {Map<String, String>? args}) {
+            final a = args;
+            switch (key) {
+              case 'posDiscountExceeds':
+                return l10n.posDiscountExceeds(a!['max']!);
+              case 'posOriginalInvoiceNotFound':
+                return l10n.posOriginalInvoiceNotFound;
+              case 'posErrorSearchInvoice':
+                return l10n.posErrorSearchInvoice(a!['error']!);
+              case 'posNoReturnItemsSelected':
+                return l10n.posNoReturnItemsSelected;
+              case 'posErrorProcessReturn':
+                return l10n.posErrorProcessReturn(a!['error']!);
+              case 'posProductNotFound':
+                return l10n.posProductNotFound;
+              case 'posProductOutOfStock':
+                return l10n.posProductOutOfStock(a!['name']!);
+              case 'posErrorAddProduct':
+                return l10n.posErrorAddProduct(a!['error']!);
+              case 'posQuantityExceedsStock':
+                return l10n.posQuantityExceedsStock(a!['quantity']!, a['stock']!);
+              case 'posMustOpenShift':
+                return l10n.posMustOpenShift;
+              case 'posCreditLimitExceeded':
+                return l10n.posCreditLimitExceeded;
+              case 'posLoyaltyReason':
+                return l10n.posLoyaltyReason;
+              default:
+                return key;
+            }
+          },
+        );
+        return bloc..add(LoadCategories());
+      },
       child: const PosView(),
     );
   }

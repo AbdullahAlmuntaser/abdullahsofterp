@@ -576,6 +576,7 @@ class FinancialControlService {
     required DateTime startDate,
     required DateTime endDate,
   }) async {
+    final year = startDate.year;
     final existingOpen = await (db.select(
       db.accountingPeriods,
     )..where((p) => p.isClosed.equals(false)))
@@ -586,6 +587,19 @@ class FinancialControlService {
         success: false,
         error:
             'توجد فترة مفتوحة سابقة: ${existingOpen.name}. يرجى إقفالها أولاً.',
+      );
+    }
+
+    final existingForYear = await (db.select(db.accountingPeriods)
+          ..where((p) =>
+              p.fiscalYear.equals(year) &
+              p.status.equals('OPEN')))
+        .getSingleOrNull();
+
+    if (existingForYear != null) {
+      return FinancialControlResult(
+        success: false,
+        error: 'توجد فترة مفتوحة للسنة $year مسبقاً: ${existingForYear.name}.',
       );
     }
 

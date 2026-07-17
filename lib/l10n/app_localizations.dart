@@ -2835,12 +2835,6 @@ abstract class AppLocalizations {
   /// **'Period Type'**
   String get periodType;
 
-  /// No description provided for @monthly.
-  ///
-  /// In en, this message translates to:
-  /// **'Monthly (12 periods)'**
-  String get monthly;
-
   /// No description provided for @quarterly.
   ///
   /// In en, this message translates to:
@@ -12272,6 +12266,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'يرجى ملء جميع الحقول المطلوبة'**
   String get yrjaMlaJmyaAlhqwlAlmtlwbh;
+
+  /// No description provided for @posDiscountExceeds.
+  ///
+  /// In en, this message translates to:
+  /// **'Discount exceeds maximum {max}'**
+  String posDiscountExceeds(Object max);
+
+  /// No description provided for @posOriginalInvoiceNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Original invoice not found'**
+  String get posOriginalInvoiceNotFound;
+
+  /// No description provided for @posErrorSearchInvoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Error searching invoice: {error}'**
+  String posErrorSearchInvoice(Object error);
+
+  /// No description provided for @posNoReturnItemsSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'No return items selected'**
+  String get posNoReturnItemsSelected;
+
+  /// No description provided for @posErrorProcessReturn.
+  ///
+  /// In en, this message translates to:
+  /// **'Error processing return: {error}'**
+  String posErrorProcessReturn(Object error);
+
+  /// No description provided for @posProductNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Product not found'**
+  String get posProductNotFound;
+
+  /// No description provided for @posProductOutOfStock.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is out of stock'**
+  String posProductOutOfStock(Object name);
+
+  /// No description provided for @posErrorAddProduct.
+  ///
+  /// In en, this message translates to:
+  /// **'Error adding product: {error}'**
+  String posErrorAddProduct(Object error);
+
+  /// No description provided for @posQuantityExceedsStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Quantity {quantity} exceeds available stock {stock}'**
+  String posQuantityExceedsStock(Object quantity, Object stock);
+
+  /// No description provided for @posMustOpenShift.
+  ///
+  /// In en, this message translates to:
+  /// **'You must open a shift first'**
+  String get posMustOpenShift;
+
+  /// No description provided for @posCreditLimitExceeded.
+  ///
+  /// In en, this message translates to:
+  /// **'Customer credit limit exceeded'**
+  String get posCreditLimitExceeded;
+
+  /// No description provided for @posLoyaltyReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Loyalty program'**
+  String get posLoyaltyReason;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

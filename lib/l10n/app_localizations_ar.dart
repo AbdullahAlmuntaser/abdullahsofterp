@@ -1412,9 +1412,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get periodType => 'نوع الفترة';
 
   @override
-  String get monthly => 'شهرية (12 فترة)';
-
-  @override
   String get quarterly => 'ربع سنوية (4 فترات)';
 
   @override
@@ -6327,4 +6324,52 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get yrjaMlaJmyaAlhqwlAlmtlwbh => 'يرجى ملء جميع الحقول المطلوبة';
+
+  @override
+  String posDiscountExceeds(Object max) {
+    return 'الخصم يتجاوز الحد الأقصى $max';
+  }
+
+  @override
+  String get posOriginalInvoiceNotFound => 'الفاتورة الأصلية غير موجودة';
+
+  @override
+  String posErrorSearchInvoice(Object error) {
+    return 'خطأ في البحث عن الفاتورة: $error';
+  }
+
+  @override
+  String get posNoReturnItemsSelected => 'لم يتم تحديد أصناف للمردود';
+
+  @override
+  String posErrorProcessReturn(Object error) {
+    return 'خطأ في معالجة المردود: $error';
+  }
+
+  @override
+  String get posProductNotFound => 'المنتج غير موجود';
+
+  @override
+  String posProductOutOfStock(Object name) {
+    return '$name غير متوفر في المخزون';
+  }
+
+  @override
+  String posErrorAddProduct(Object error) {
+    return 'خطأ في إضافة المنتج: $error';
+  }
+
+  @override
+  String posQuantityExceedsStock(Object quantity, Object stock) {
+    return 'الكمية $quantity تتجاوز المخزون المتاح $stock';
+  }
+
+  @override
+  String get posMustOpenShift => 'يجب فتح وردية أولاً';
+
+  @override
+  String get posCreditLimitExceeded => 'تم تجاوز الحد الائتماني للعميل';
+
+  @override
+  String get posLoyaltyReason => 'برنامج الولاء';
 }

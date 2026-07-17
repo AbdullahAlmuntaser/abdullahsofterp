@@ -1412,9 +1412,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get periodType => 'Period Type';
 
   @override
-  String get monthly => 'Monthly (12 periods)';
-
-  @override
   String get quarterly => 'Quarterly (4 periods)';
 
   @override
@@ -6327,4 +6324,52 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get yrjaMlaJmyaAlhqwlAlmtlwbh => 'يرجى ملء جميع الحقول المطلوبة';
+
+  @override
+  String posDiscountExceeds(Object max) {
+    return 'Discount exceeds maximum $max';
+  }
+
+  @override
+  String get posOriginalInvoiceNotFound => 'Original invoice not found';
+
+  @override
+  String posErrorSearchInvoice(Object error) {
+    return 'Error searching invoice: $error';
+  }
+
+  @override
+  String get posNoReturnItemsSelected => 'No return items selected';
+
+  @override
+  String posErrorProcessReturn(Object error) {
+    return 'Error processing return: $error';
+  }
+
+  @override
+  String get posProductNotFound => 'Product not found';
+
+  @override
+  String posProductOutOfStock(Object name) {
+    return '$name is out of stock';
+  }
+
+  @override
+  String posErrorAddProduct(Object error) {
+    return 'Error adding product: $error';
+  }
+
+  @override
+  String posQuantityExceedsStock(Object quantity, Object stock) {
+    return 'Quantity $quantity exceeds available stock $stock';
+  }
+
+  @override
+  String get posMustOpenShift => 'You must open a shift first';
+
+  @override
+  String get posCreditLimitExceeded => 'Customer credit limit exceeded';
+
+  @override
+  String get posLoyaltyReason => 'Loyalty program';
 }

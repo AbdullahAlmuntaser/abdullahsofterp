@@ -615,6 +615,103 @@ class AccountingPeriods extends Table with SyncableTable {
   ];
 }
 
+class ApprovalWorkflows extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get name => text()();
+  TextColumn get documentType => text()();
+  TextColumn get conditionType => text().nullable()();
+  RealColumn get conditionValue => real().nullable()();
+  TextColumn get operator => text().nullable()();
+  IntColumn get levelOrder => integer().withDefault(const Constant(1))();
+  BoolColumn get isActive => boolean().withDefault(const Constant(true))();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+class ApprovalLevels extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get workflowId => integer()();
+  IntColumn get levelOrder => integer()();
+  TextColumn get role => text().nullable()();
+  IntColumn get userId => integer().nullable()();
+  RealColumn get minAmount => real().nullable()();
+  RealColumn get maxAmount => real().nullable()();
+  BoolColumn get requiresSignature => boolean().withDefault(const Constant(false))();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+class ApprovalRequests extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get documentType => text()();
+  IntColumn get documentId => integer()();
+  IntColumn get workflowId => integer()();
+  IntColumn get currentLevel => integer().withDefault(const Constant(1))();
+  TextColumn get status => text().withDefault(const Constant('pending'))();
+  IntColumn get requestedBy => integer().nullable()();
+  DateTimeColumn get requestedAt => dateTime()();
+  DateTimeColumn get completedAt => dateTime().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+class ApprovalHistory extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get requestId => integer()();
+  IntColumn get levelOrder => integer()();
+  IntColumn get approverId => integer().nullable()();
+  TextColumn get approverRole => text().nullable()();
+  TextColumn get action => text()();
+  TextColumn get comments => text().nullable()();
+  DateTimeColumn get actionDate => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+class Quotations extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get quotationNumber => text().unique()();
+  IntColumn get customerId => integer()();
+  IntColumn get branchId => integer().nullable()();
+  IntColumn get warehouseId => integer().nullable()();
+  DateTimeColumn get date => dateTime()();
+  DateTimeColumn get expiryDate => dateTime().nullable()();
+  TextColumn get status => text().withDefault(const Constant('draft'))();
+  RealColumn get subtotal => real().withDefault(const Constant(0.0))();
+  RealColumn get discountTotal => real().withDefault(const Constant(0.0))();
+  RealColumn get taxTotal => real().withDefault(const Constant(0.0))();
+  RealColumn get totalAmount => real().withDefault(const Constant(0.0))();
+  TextColumn get notes => text().nullable()();
+  IntColumn get createdBy => integer().nullable()();
+  DateTimeColumn get createdAt => dateTime()();
+  DateTimeColumn get updatedAt => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+class QuotationItems extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get quotationId => integer()();
+  IntColumn get productId => integer()();
+  RealColumn get quantity => real()();
+  RealColumn get unitPrice => real()();
+  RealColumn get discountPercent => real().withDefault(const Constant(0.0))();
+  RealColumn get discountAmount => real().withDefault(const Constant(0.0))();
+  RealColumn get taxPercent => real().withDefault(const Constant(0.0))();
+  RealColumn get taxAmount => real().withDefault(const Constant(0.0))();
+  RealColumn get totalAmount => real()();
+  TextColumn get notes => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 class SyncQueue extends Table {
   TextColumn get id => text().clientDefault(() => const Uuid().v4())();
   TextColumn get entityTable => text()();
@@ -1268,6 +1365,12 @@ class CustomerPaymentLinks extends Table with SyncableTable {
     ReconciliationDetails,
     UserSessions,
     LoginAttempts,
+    ApprovalWorkflows,
+    ApprovalLevels,
+    ApprovalRequests,
+    ApprovalHistory,
+    Quotations,
+    QuotationItems,
   ],
   daos: [
     ProductsDao,
@@ -1295,7 +1398,7 @@ class AppDatabase extends _$AppDatabase {
   static String? encryptionKey;
 
   @override
-  int get schemaVersion => 52;
+  int get schemaVersion => 53;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -1312,6 +1415,8 @@ class AppDatabase extends _$AppDatabase {
           // Explicitly set schema version to avoid stale PRAGMA user_version issues
           await customStatement("PRAGMA user_version = $schemaVersion");
           debugPrint("DB: PRAGMA user_version set to $schemaVersion.");
+          // Create missing tables not yet in generated allTables
+          await _ensureMissingTables();
           // Seed data immediately after creation in the same transaction
           await seedData();
         },
@@ -1610,6 +1715,118 @@ class AppDatabase extends _$AppDatabase {
               debugPrint('DB Migration v52: supplier_payments.account_id: $e');
             }
           }
+          if (from < 53) {
+            // Version 53: Create missing tables (approvals, quotations) for existing databases
+            // Use raw SQL because Drift generator hasn't created accessors for these new tables yet
+            const v53Tables = {
+              'approval_workflows': '''
+                CREATE TABLE IF NOT EXISTS approval_workflows (
+                  id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  name TEXT NOT NULL,
+                  document_type TEXT NOT NULL,
+                  condition_type TEXT,
+                  condition_value REAL,
+                  operator TEXT,
+                  level_order INTEGER DEFAULT 1,
+                  is_active INTEGER DEFAULT 1,
+                  created_at TEXT DEFAULT CURRENT_TIMESTAMP
+                )''',
+              'approval_levels': '''
+                CREATE TABLE IF NOT EXISTS approval_levels (
+                  id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  workflow_id INTEGER NOT NULL,
+                  level_order INTEGER NOT NULL,
+                  role TEXT,
+                  user_id INTEGER,
+                  min_amount REAL,
+                  max_amount REAL,
+                  requires_signature INTEGER DEFAULT 0
+                )''',
+              'approval_requests': '''
+                CREATE TABLE IF NOT EXISTS approval_requests (
+                  id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  document_type TEXT NOT NULL,
+                  document_id INTEGER NOT NULL,
+                  workflow_id INTEGER NOT NULL,
+                  current_level INTEGER DEFAULT 1,
+                  status TEXT DEFAULT 'pending',
+                  requested_by INTEGER,
+                  requested_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                  completed_at TEXT
+                )''',
+              'approval_history': '''
+                CREATE TABLE IF NOT EXISTS approval_history (
+                  id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  request_id INTEGER NOT NULL,
+                  level_order INTEGER NOT NULL,
+                  approver_id INTEGER,
+                  approver_role TEXT,
+                  action TEXT NOT NULL,
+                  comments TEXT,
+                  action_date TEXT DEFAULT CURRENT_TIMESTAMP
+                )''',
+              'quotations': '''
+                CREATE TABLE IF NOT EXISTS quotations (
+                  id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  quotation_number TEXT UNIQUE NOT NULL,
+                  customer_id INTEGER NOT NULL,
+                  branch_id INTEGER,
+                  warehouse_id INTEGER,
+                  date TEXT NOT NULL,
+                  expiry_date TEXT,
+                  status TEXT DEFAULT 'draft',
+                  subtotal REAL DEFAULT 0,
+                  discount_total REAL DEFAULT 0,
+                  tax_total REAL DEFAULT 0,
+                  total_amount REAL DEFAULT 0,
+                  notes TEXT,
+                  created_by INTEGER,
+                  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                  updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+                )''',
+              'quotation_items': '''
+                CREATE TABLE IF NOT EXISTS quotation_items (
+                  id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  quotation_id INTEGER NOT NULL,
+                  product_id INTEGER NOT NULL,
+                  quantity REAL NOT NULL,
+                  unit_price REAL NOT NULL,
+                  discount_percent REAL DEFAULT 0,
+                  discount_amount REAL DEFAULT 0,
+                  tax_percent REAL DEFAULT 0,
+                  tax_amount REAL DEFAULT 0,
+                  total_amount REAL NOT NULL,
+                  notes TEXT
+                )''',
+            };
+            for (final entry in v53Tables.entries) {
+              try {
+                await customStatement(entry.value);
+                debugPrint('DB Migration v53: Created table ${entry.key}');
+              } catch (e) {
+                debugPrint('DB Migration v53: Failed to create ${entry.key}: $e');
+              }
+            }
+            // Add indexes for the new tables
+            try {
+              await customStatement(
+                  'CREATE INDEX IF NOT EXISTS idx_approval_requests_status ON approval_requests(status)');
+            } catch (e) {
+              debugPrint('DB Migration v53: idx_approval_requests_status: $e');
+            }
+            try {
+              await customStatement(
+                  'CREATE INDEX IF NOT EXISTS idx_quotations_customer ON quotations(customer_id)');
+            } catch (e) {
+              debugPrint('DB Migration v53: idx_quotations_customer: $e');
+            }
+            try {
+              await customStatement(
+                  'CREATE INDEX IF NOT EXISTS idx_quotation_items_quotation ON quotation_items(quotation_id)');
+            } catch (e) {
+              debugPrint('DB Migration v53: idx_quotation_items_quotation: $e');
+            }
+          }
         },
         beforeOpen: (details) async {
           await customStatement('PRAGMA foreign_keys = ON;');
@@ -1619,10 +1836,12 @@ class AppDatabase extends _$AppDatabase {
           if (details.wasCreated) {
             // First creation: run migrations + seed data + indexes
             // (migrations already ran via onCreate, just do extras)
+            await _ensureMissingTables();
             await ensurePerformanceIndexes();
             await ensureCoreReferenceData();
           } else {
             // Existing database: lightweight self-healing only
+            await _ensureMissingTables();
             // Skip recovery check if already verified (stored in app_config_table)
             if (!await _isRecoveryVerified()) {
               await _recoverMissingTables(createMigrator());
@@ -1904,6 +2123,109 @@ class AppDatabase extends _$AppDatabase {
   Future<void> ensureCoreReferenceData() async {
     await ensureDefaultBranch();
     await ensureDefaultCurrencies();
+  }
+
+  static const Map<String, String> _missingTableSQL = {
+    'approval_workflows': '''
+      CREATE TABLE IF NOT EXISTS approval_workflows (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        document_type TEXT NOT NULL,
+        condition_type TEXT,
+        condition_value REAL,
+        operator TEXT,
+        level_order INTEGER DEFAULT 1,
+        is_active INTEGER DEFAULT 1,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP
+      )''',
+    'approval_levels': '''
+      CREATE TABLE IF NOT EXISTS approval_levels (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        workflow_id INTEGER NOT NULL,
+        level_order INTEGER NOT NULL,
+        role TEXT,
+        user_id INTEGER,
+        min_amount REAL,
+        max_amount REAL,
+        requires_signature INTEGER DEFAULT 0
+      )''',
+    'approval_requests': '''
+      CREATE TABLE IF NOT EXISTS approval_requests (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        document_type TEXT NOT NULL,
+        document_id INTEGER NOT NULL,
+        workflow_id INTEGER NOT NULL,
+        current_level INTEGER DEFAULT 1,
+        status TEXT DEFAULT 'pending',
+        requested_by INTEGER,
+        requested_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        completed_at TEXT
+      )''',
+    'approval_history': '''
+      CREATE TABLE IF NOT EXISTS approval_history (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        request_id INTEGER NOT NULL,
+        level_order INTEGER NOT NULL,
+        approver_id INTEGER,
+        approver_role TEXT,
+        action TEXT NOT NULL,
+        comments TEXT,
+        action_date TEXT DEFAULT CURRENT_TIMESTAMP
+      )''',
+    'quotations': '''
+      CREATE TABLE IF NOT EXISTS quotations (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        quotation_number TEXT UNIQUE NOT NULL,
+        customer_id INTEGER NOT NULL,
+        branch_id INTEGER,
+        warehouse_id INTEGER,
+        date TEXT NOT NULL,
+        expiry_date TEXT,
+        status TEXT DEFAULT 'draft',
+        subtotal REAL DEFAULT 0,
+        discount_total REAL DEFAULT 0,
+        tax_total REAL DEFAULT 0,
+        total_amount REAL DEFAULT 0,
+        notes TEXT,
+        created_by INTEGER,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+      )''',
+    'quotation_items': '''
+      CREATE TABLE IF NOT EXISTS quotation_items (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        quotation_id INTEGER NOT NULL,
+        product_id INTEGER NOT NULL,
+        quantity REAL NOT NULL,
+        unit_price REAL NOT NULL,
+        discount_percent REAL DEFAULT 0,
+        discount_amount REAL DEFAULT 0,
+        tax_percent REAL DEFAULT 0,
+        tax_amount REAL DEFAULT 0,
+        total_amount REAL NOT NULL,
+        notes TEXT
+      )''',
+  };
+
+  Future<void> _ensureMissingTables() async {
+    for (final entry in _missingTableSQL.entries) {
+      try {
+        await customStatement(entry.value);
+      } catch (e) {
+        debugPrint('DB: Failed to create missing table ${entry.key}: $e');
+      }
+    }
+    // Add indexes for the new tables
+    const indexStatements = [
+      'CREATE INDEX IF NOT EXISTS idx_approval_requests_status ON approval_requests(status)',
+      'CREATE INDEX IF NOT EXISTS idx_quotations_customer ON quotations(customer_id)',
+      'CREATE INDEX IF NOT EXISTS idx_quotation_items_quotation ON quotation_items(quotation_id)',
+    ];
+    for (final stmt in indexStatements) {
+      try {
+        await customStatement(stmt);
+      } catch (_) {}
+    }
   }
 
   static const Map<String, String> _seedPermissions = {

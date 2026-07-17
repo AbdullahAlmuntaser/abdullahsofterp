@@ -464,7 +464,6 @@
   "createAutoPeriods": "Create Auto Periods",
   "year": "Year",
   "periodType": "Period Type",
-  "monthly": "Monthly (12 periods)",
   "quarterly": "Quarterly (4 periods)",
   "yearly": "Yearly (1 period)",
   "autoPeriodInfo": "Periods will be created automatically based on selection.",
@@ -2055,5 +2054,48 @@
   "yrjaAkhtyarNwaAlijazh": "يرجى اختيار نوع الإجازة",
   "yrjaTshyhAlakhtaaAltalyh": "يرجى تصحيح الأخطاء التالية:",
   "yrjaTshyhAlhqwlAlmalyhQblAlhfz": "يرجى تصحيح الحقول المالية قبل الحفظ",
-  "yrjaMlaJmyaAlhqwlAlmtlwbh": "يرجى ملء جميع الحقول المطلوبة"
+  "yrjaMlaJmyaAlhqwlAlmtlwbh": "يرجى ملء جميع الحقول المطلوبة",
+  "posDiscountExceeds": "Discount exceeds maximum {max}",
+  "@posDiscountExceeds": {
+    "placeholders": {
+      "max": {}
+    }
+  },
+  "posOriginalInvoiceNotFound": "Original invoice not found",
+  "posErrorSearchInvoice": "Error searching invoice: {error}",
+  "@posErrorSearchInvoice": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "posNoReturnItemsSelected": "No return items selected",
+  "posErrorProcessReturn": "Error processing return: {error}",
+  "@posErrorProcessReturn": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "posProductNotFound": "Product not found",
+  "posProductOutOfStock": "{name} is out of stock",
+  "@posProductOutOfStock": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "posErrorAddProduct": "Error adding product: {error}",
+  "@posErrorAddProduct": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "posQuantityExceedsStock": "Quantity {quantity} exceeds available stock {stock}",
+  "@posQuantityExceedsStock": {
+    "placeholders": {
+      "quantity": {},
+      "stock": {}
+    }
+  },
+  "posMustOpenShift": "You must open a shift first",
+  "posCreditLimitExceeded": "Customer credit limit exceeded",
+  "posLoyaltyReason": "Loyalty program"
 }

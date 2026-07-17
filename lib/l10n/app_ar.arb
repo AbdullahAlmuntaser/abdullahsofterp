@@ -467,7 +467,6 @@
   "createAutoPeriods": "إنشاء فترات محاسبية تلقائية",
   "year": "السنة",
   "periodType": "نوع الفترة",
-  "monthly": "شهرية (12 فترة)",
   "quarterly": "ربع سنوية (4 فترات)",
   "yearly": "سنوية (فترة واحدة)",
   "autoPeriodInfo": "سيتم إنشاء الفترات تلقائياً بناءً على الاختيار.",
@@ -2057,5 +2056,48 @@
   "yrjaAkhtyarNwaAlijazh": "يرجى اختيار نوع الإجازة",
   "yrjaTshyhAlakhtaaAltalyh": "يرجى تصحيح الأخطاء التالية:",
   "yrjaTshyhAlhqwlAlmalyhQblAlhfz": "يرجى تصحيح الحقول المالية قبل الحفظ",
-  "yrjaMlaJmyaAlhqwlAlmtlwbh": "يرجى ملء جميع الحقول المطلوبة"
+  "yrjaMlaJmyaAlhqwlAlmtlwbh": "يرجى ملء جميع الحقول المطلوبة",
+  "posDiscountExceeds": "الخصم يتجاوز الحد الأقصى {max}",
+  "@posDiscountExceeds": {
+    "placeholders": {
+      "max": {}
+    }
+  },
+  "posOriginalInvoiceNotFound": "الفاتورة الأصلية غير موجودة",
+  "posErrorSearchInvoice": "خطأ في البحث عن الفاتورة: {error}",
+  "@posErrorSearchInvoice": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "posNoReturnItemsSelected": "لم يتم تحديد أصناف للمردود",
+  "posErrorProcessReturn": "خطأ في معالجة المردود: {error}",
+  "@posErrorProcessReturn": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "posProductNotFound": "المنتج غير موجود",
+  "posProductOutOfStock": "{name} غير متوفر في المخزون",
+  "@posProductOutOfStock": {
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "posErrorAddProduct": "خطأ في إضافة المنتج: {error}",
+  "@posErrorAddProduct": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "posQuantityExceedsStock": "الكمية {quantity} تتجاوز المخزون المتاح {stock}",
+  "@posQuantityExceedsStock": {
+    "placeholders": {
+      "quantity": {},
+      "stock": {}
+    }
+  },
+  "posMustOpenShift": "يجب فتح وردية أولاً",
+  "posCreditLimitExceeded": "تم تجاوز الحد الائتماني للعميل",
+  "posLoyaltyReason": "برنامج الولاء"
 }

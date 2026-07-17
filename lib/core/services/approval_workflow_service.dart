@@ -28,14 +28,16 @@ class ApprovalWorkflowService {
     String? referenceId,
     String? note,
   }) async {
+    final now = DateTime.now().toIso8601String();
     final id = await db.customInsert(
-      'INSERT INTO approval_requests (document_type, document_id, requested_by, status) '
-      'VALUES (?, ?, ?, ?)',
+      'INSERT INTO approval_requests (document_type, document_id, requested_by, status, requested_at) '
+      'VALUES (?, ?, ?, ?, ?)',
       variables: [
         Variable(type),
         Variable(referenceId ?? ''),
         Variable(int.tryParse(requestedBy) ?? 0),
         const Variable('pending'),
+        Variable(now),
       ],
     );
 
@@ -154,13 +156,14 @@ class ApprovalWorkflowService {
     );
 
     await db.customInsert(
-      'INSERT INTO approval_history (request_id, level_order, approver_id, action, comments) VALUES (?, ?, ?, ?, ?)',
+      'INSERT INTO approval_history (request_id, level_order, approver_id, action, comments, action_date) VALUES (?, ?, ?, ?, ?, ?)',
       variables: [
         Variable(requestId),
         Variable(request['current_level'] ?? 1),
         Variable(decidedBy),
         Variable(status),
         Variable(decisionNote),
+        Variable(DateTime.now().toIso8601String()),
       ],
     );
 

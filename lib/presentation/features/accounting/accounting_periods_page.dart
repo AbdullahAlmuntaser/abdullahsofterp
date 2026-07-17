@@ -22,7 +22,7 @@ class _AccountingPeriodsPageState extends State<AccountingPeriodsPage> {
   DateTime? _endDate;
 
   int _selectedYear = DateTime.now().year;
-  String _periodType = 'monthly';
+  String _periodType = 'yearly';
   bool _isBulkCreate = false;
 
   @override
@@ -452,10 +452,6 @@ class _AccountingPeriodsPageState extends State<AccountingPeriodsPage> {
                   border: const OutlineInputBorder(),
                 ),
                 items: [
-                  DropdownMenuItem(
-                      value: 'monthly', child: Text(l10n.monthly)),
-                  DropdownMenuItem(
-                      value: 'quarterly', child: Text(l10n.quarterly)),
                   DropdownMenuItem(
                       value: 'yearly', child: Text(l10n.yearly)),
                 ],

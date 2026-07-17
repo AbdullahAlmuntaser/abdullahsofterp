@@ -656,14 +656,16 @@ class FinancialClosingService {
     required DateTime startDate,
     required DateTime endDate,
   }) async {
-    final existing = await (db.select(
-      db.accountingPeriods,
-    )..where((p) => p.name.equals(name)))
+    final year = startDate.year;
+    final existingForYear = await (db.select(db.accountingPeriods)
+          ..where((p) =>
+              p.fiscalYear.equals(year) &
+              p.status.equals('OPEN')))
         .getSingleOrNull();
-    if (existing != null) {
+    if (existingForYear != null) {
       return ClosingResult(
         success: false,
-        error: 'توجد فترة بنفس الاسم',
+        error: 'توجد فترة مفتوحة للسنة $year مسبقاً: ${existingForYear.name}',
         message: '',
         journalEntryId: null,
       );

@@ -14,17 +14,20 @@ import 'package:supermarket/core/services/loyalty_service.dart';
 import 'package:uuid/uuid.dart';
 import 'package:supermarket/core/constants/app_enums.dart';
 
+typedef PosTranslator = String Function(String key, {Map<String, String>? args});
+
 class PosBloc extends Bloc<PosEvent, PosState> {
   final AppDatabase db;
   final PricingService pricingService;
   final TransactionEngine transactionEngine;
   final PackagingEngine packagingEngine;
   final LoyaltyService? loyaltyService;
+  final PosTranslator? t;
   late StreamSubscription<List<ProductWithCategory>> _productSubscription;
 
   PosBloc(this.db, this.pricingService, this.transactionEngine,
       this.packagingEngine,
-      {this.loyaltyService, bool skipInit = false})
+      {this.loyaltyService, this.t, bool skipInit = false})
       : super(PosLoading()) {
     on<LoadCategories>(_onLoadCategories);
     on<SelectCategory>(_onSelectCategory);
@@ -38,8 +41,7 @@ class PosBloc extends Bloc<PosEvent, PosState> {
         final maxDiscount =
             Decimal.tryParse(maxStr ?? '') ?? Decimal.fromInt(20);
         if (event.discount > maxDiscount) {
-          // TODO: localize - pass l10n from UI or use a localization service
-          emit(PosError(
+          emit(PosError(t?.call('posDiscountExceeds', args: {'max': maxDiscount.toStringAsFixed(0)}) ??
               'الخصم يتجاوز الحد المسموح به (${maxDiscount.toStringAsFixed(0)}%)'));
           return;
         }
@@ -113,8 +115,7 @@ class PosBloc extends Bloc<PosEvent, PosState> {
             .getSingleOrNull();
 
         if (sale == null) {
-          // TODO: localize
-          emit(const PosError('الفاتورة الأصلية غير موجودة'));
+          emit(PosError(t?.call('posOriginalInvoiceNotFound') ?? 'الفاتورة الأصلية غير موجودة'));
           emit(state);
           return;
         }
@@ -150,8 +151,7 @@ class PosBloc extends Bloc<PosEvent, PosState> {
           returnItems: returnItems,
         ));
       } catch (e) {
-        // TODO: localize
-        emit(PosError('خطأ في البحث عن الفاتورة: $e'));
+        emit(PosError(t?.call('posErrorSearchInvoice', args: {'error': e.toString()}) ?? 'خطأ في البحث عن الفاتورة: $e'));
       }
     }
 
@@ -196,8 +196,7 @@ class PosBloc extends Bloc<PosEvent, PosState> {
           .where((i) => i.quantity > Decimal.zero)
           .toList();
       if (itemsToReturn.isEmpty) {
-        // TODO: localize
-        emit(const PosError('لم يتم تحديد أي أصناف للمرتجع'));
+        emit(PosError(t?.call('posNoReturnItemsSelected') ?? 'لم يتم تحديد أي أصناف للمرتجع'));
         return;
       }
 
@@ -237,8 +236,7 @@ class PosBloc extends Bloc<PosEvent, PosState> {
 
         emit(PosReturnSuccess(returnId, originalSale, totalRefund));
       } catch (e) {
-        // TODO: localize
-        emit(PosError('خطأ في معالجة المرتجع: $e'));
+        emit(PosError(t?.call('posErrorProcessReturn', args: {'error': e.toString()}) ?? 'خطأ في معالجة المرتجع: $e'));
         emit(currentState.copyWith(isProcessingCheckout: false));
       }
     }
@@ -487,14 +485,12 @@ class PosBloc extends Bloc<PosEvent, PosState> {
       }
 
       if (product == null) {
-        // TODO: localize
-        emit(const PosError("المنتج غير موجود"));
+        emit(PosError(t?.call('posProductNotFound') ?? "المنتج غير موجود"));
         return;
       }
 
       if (product.stock <= Decimal.zero && !product.isService) {
-        // TODO: localize
-        emit(PosError("المنتج ${product.name} نفد من المخزون"));
+        emit(PosError(t?.call('posProductOutOfStock', args: {'name': product.name}) ?? "المنتج ${product.name} نفد من المخزون"));
         return;
       }
 
@@ -546,8 +542,7 @@ class PosBloc extends Bloc<PosEvent, PosState> {
 
       emit(currentState.copyWith(cart: newCart));
     } catch (e) {
-      // TODO: localize
-      emit(PosError("خطأ عند إضافة المنتج: $e"));
+      emit(PosError(t?.call('posErrorAddProduct', args: {'error': e.toString()}) ?? "خطأ عند إضافة المنتج: $e"));
       emit(currentState);
     }
   }
@@ -566,8 +561,10 @@ class PosBloc extends Bloc<PosEvent, PosState> {
 
     if (!item.product.isService &&
         (event.quantity * item.unitFactor) > item.product.stock) {
-      // TODO: localize
-      emit(PosError(
+      emit(PosError(t?.call('posQuantityExceedsStock', args: {
+            'quantity': event.quantity.toString(),
+            'stock': item.product.stock.toString()
+          }) ??
           "الكمية المطلوبة (${event.quantity}) تتجاوز المخزون المتاح (${item.product.stock})"));
       return;
     }
@@ -691,8 +688,7 @@ class PosBloc extends Bloc<PosEvent, PosState> {
                 (s) => s.userId.equals(event.userId!) & s.isOpen.equals(true)))
           .getSingleOrNull();
       if (activeShift == null) {
-        // TODO: localize
-        emit(const PosError('يجب فتح وردية عمل قبل إجراء عملية بيع نقدي'));
+        emit(PosError(t?.call('posMustOpenShift') ?? 'يجب فتح وردية عمل قبل إجراء عملية بيع نقدي'));
         return;
       }
     }
@@ -703,8 +699,7 @@ class PosBloc extends Bloc<PosEvent, PosState> {
       if (customer != null && customer.creditLimit > Decimal.zero) {
         final newBalance = customer.balance + currentState.total;
         if (newBalance > customer.creditLimit) {
-          // TODO: localize
-          emit(const PosError('العميل تجاوز الحد الائتماني المسموح به'));
+          emit(PosError(t?.call('posCreditLimitExceeded') ?? 'العميل تجاوز الحد الائتماني المسموح به'));
           return;
         }
       }
@@ -823,8 +818,7 @@ class PosBloc extends Bloc<PosEvent, PosState> {
           await loyaltyService!.awardPoints(
             customerId: event.customerId!,
             amount: total.toDouble(),
-            // TODO: localize
-            reason: 'مشتريات من نقطة بيع',
+            reason: t?.call('posLoyaltyReason') ?? 'مشتريات من نقطة بيع',
           );
         } catch (e) {
           // Loyalty awarding failure should not break the checkout
