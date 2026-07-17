@@ -65,6 +65,9 @@ void registerCoreModule(GetIt sl) {
   sl.registerLazySingleton<AppSettingsService>(() => AppSettingsService(db));
   sl.registerLazySingleton<SecurityService>(() => SecurityService(db));
   sl.registerLazySingleton<PermissionService>(() => PermissionService(db));
+  sl.registerLazySingleton<AuditLogService>(
+    () => AuditLogService(db),
+  );
   sl.registerLazySingleton<AdvancedPermissionService>(
     () => AdvancedPermissionService(db, auditLogService: sl<AuditLogService>()),
   );

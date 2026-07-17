@@ -9,6 +9,8 @@ import 'core/services/approval_workflow_service.dart';
 import 'core/services/loyalty_service.dart';
 import 'core/services/accounting_service.dart';
 import 'core/services/event_bus_service.dart';
+import 'core/services/advanced_permission_service.dart';
+import 'core/services/posting_engine.dart';
 import 'core/services/financial_control_service.dart';
 import 'core/services/security_service.dart';
 import 'core/utils/drive_backup_service.dart';
@@ -182,10 +184,6 @@ Future<void> initServices() async {
       () => MultiLevelApprovalService(sl<AppConfigService>()),
     );
     // NOTE: EndOfServiceBenefitService is registered in hr_module.dart
-    sl.registerLazySingleton<AuditLogService>(
-      () => AuditLogService(db),
-    );
-
     // Register missing ChangeNotifier providers
     sl.registerLazySingleton<CreditNoteProvider>(
       () => CreditNoteProvider(sl<CreditNoteService>()),
@@ -207,9 +205,6 @@ Future<void> initServices() async {
     );
 
     debugPrint("DI: Registering providers...");
-    sl.registerLazySingleton<SecurityService>(
-      () => SecurityService(db),
-    );
     sl.registerLazySingleton<AuthProvider>(
       () => AuthProvider(db, sl<PermissionService>(), sl<SecurityService>()),
     );
@@ -251,11 +246,49 @@ Future<void> initServices() async {
     debugPrint("DI: Providers registered");
 
     debugPrint("DI: ==== Services Initialization Complete ====");
+
+    _validateCriticalRegistrations();
   } catch (e, stack) {
     debugPrint("DI: Services initialization error: $e");
     debugPrintStack(stackTrace: stack);
     rethrow;
   }
+}
+
+void _validateCriticalRegistrations() {
+  final missing = <String>[];
+  void check<T extends Object>() {
+    if (!sl.isRegistered<T>()) {
+      missing.add(T.toString());
+    }
+  }
+
+  check<AppDatabase>();
+  check<EventBusService>();
+  check<AuditLogService>();
+  check<AppConfigService>();
+  check<SecurityService>();
+  check<PermissionService>();
+  check<AdvancedPermissionService>();
+  check<ApprovalWorkflowService>();
+  check<TransactionEngine>();
+  check<PostingEngine>();
+  check<InventoryCostingService>();
+  check<PackagingEngine>();
+  check<AuthProvider>();
+  check<ThemeProvider>();
+  check<LocaleProvider>();
+
+  if (missing.isNotEmpty) {
+    final names = missing.join(', ');
+    debugPrint('CRITICAL: Missing registered services: $names');
+    throw Exception(
+      'GetIt validation failed — the following services are not registered: $names. '
+      'Check the registration order in initServices() and module files.',
+    );
+  }
+
+  debugPrint("DI: All critical services validated successfully.");
 }
 
 List<SingleChildWidget> buildAppProviders() {
