@@ -65,7 +65,7 @@ class ProductBatchesReportWidget extends StatelessWidget {
                                   : '-',
                             ),
                           ),
-                          DataCell(Text(b.batch.quantity.toString())),
+                          DataCell(Text(b.batch.quantity.toStringAsFixed(0))),
                           DataCell(Text(b.batch.costPrice.toStringAsFixed(2))),
                           DataCell(Text(b.warehouse?.name ?? 'افتراضي')),
                         ],

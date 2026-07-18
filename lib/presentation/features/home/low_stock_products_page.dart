@@ -33,7 +33,7 @@ class LowStockProductsPage extends StatelessWidget {
                 trailing: Chip(
                   backgroundColor: Colors.red[100],
                   label: Text(
-                    '${l10n.stockLevel}: ${product.stock.toStringAsFixed(1)} / ${product.alertLimit.toStringAsFixed(1)}',
+                    '${l10n.stockLevel}: ${product.stock.toStringAsFixed(0)} / ${product.alertLimit.toStringAsFixed(0)}',
                     style: TextStyle(
                       color: Colors.red[800],
                       fontWeight: FontWeight.bold,

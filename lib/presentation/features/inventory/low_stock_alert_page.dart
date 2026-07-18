@@ -33,7 +33,7 @@ class LowStockAlertPage extends StatelessWidget {
                   leading: const Icon(Icons.warning, color: Colors.orange),
                   title: Text(p.name),
                   subtitle: Text(
-                    'الرصيد الحالي: ${p.stock} | حد التنبيه: ${p.alertLimit}',
+                    'الرصيد الحالي: ${p.stock.toStringAsFixed(0)} | حد التنبيه: ${p.alertLimit}',
                   ),
                   trailing: const Icon(Icons.inventory),
                   onTap: () {

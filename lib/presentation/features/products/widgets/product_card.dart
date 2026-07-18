@@ -48,7 +48,7 @@ class ProductCard extends StatelessWidget {
               style: Theme.of(context).textTheme.bodySmall,
             ),
             Text(
-              '${l10n.stockLabel}: ${product.stock}',
+              '${l10n.stockLabel}: ${product.stock.toStringAsFixed(0)}',
               style: Theme.of(context).textTheme.bodySmall,
             ),
             const SizedBox(height: 8),

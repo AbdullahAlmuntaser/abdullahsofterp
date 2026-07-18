@@ -149,7 +149,7 @@ class NotificationService extends ChangeNotifier {
       notify(
         title: 'تنبيه انخفاض المخزون',
         message:
-            '${product.name}: الرصيد ${product.stock.toStringAsFixed(2)} أقل من أو يساوي حد التنبيه ${product.alertLimit.toStringAsFixed(2)}.',
+            '${product.name}: الرصيد ${product.stock.toStringAsFixed(0)} أقل من أو يساوي حد التنبيه ${product.alertLimit.toStringAsFixed(0)}.',
         category: 'inventory',
         sourceKey: 'low_stock:${product.id}',
         severity: 'warning',
@@ -198,7 +198,7 @@ class NotificationService extends ChangeNotifier {
       notify(
         title: 'تنبيه قرب انتهاء دفعة',
         message:
-            'الدفعة ${batch.batchNumber} ستنتهي قبل ${thresholdDate.toIso8601String().split('T').first}. الكمية ${batch.quantity.toStringAsFixed(2)}.',
+            'الدفعة ${batch.batchNumber} ستنتهي قبل ${thresholdDate.toIso8601String().split('T').first}. الكمية ${batch.quantity.toStringAsFixed(0)}.',
         category: 'expiry',
         sourceKey: 'expiring_batch:${batch.id}',
         severity: 'warning',

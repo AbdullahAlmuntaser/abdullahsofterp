@@ -111,7 +111,7 @@ class _SlowMovingProductsPageState extends State<SlowMovingProductsPage> {
                           return ListTile(
                             title: Text(product.name),
                             subtitle: Text(
-                                'SKU: ${product.sku} | المخزون: ${product.stock}'),
+                                'SKU: ${product.sku} | المخزون: ${product.stock.toStringAsFixed(0)}'),
                             trailing: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               crossAxisAlignment: CrossAxisAlignment.end,

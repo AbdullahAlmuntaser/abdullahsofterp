@@ -1,6 +1,8 @@
 import 'package:drift/drift.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:supermarket/core/services/inventory_costing_service.dart';
+import 'package:supermarket/core/services/app_config_service.dart';
+import 'package:supermarket/core/utils/stock_display_adapter.dart';
 import 'package:uuid/uuid.dart';
 import 'dart:developer' as developer;
 
@@ -187,16 +189,25 @@ class PackagingEngine {
   Future<String> formatInventoryBalance(
       String productId, Decimal totalQtyInBase) async {
     try {
+      final flag = await AppConfigService(db).getBool(
+        AppConfigService.keyMultiUnitV2,
+        defaultValue: false,
+      );
+      if (flag) {
+        final adapter = StockDisplayAdapter(db);
+        final product = await (db.select(db.products)
+              ..where((p) => p.id.equals(productId)))
+            .getSingleOrNull();
+        if (product != null) {
+          return adapter.formatProductStock(product);
+        }
+      }
       final hierarchy = await getPackagingHierarchy(productId);
       if (hierarchy.isEmpty) return '${totalQtyInBase.toStringAsFixed(0)} حبة';
 
-      // Filter out non-packaging units (base unit synonyms like 'حبة', 'قطعة', etc.)
       const baseUnitSynonyms = {'حبة', 'قطعة', 'pcs', 'piece', 'each', 'unit', 'واحد', 'فردي'};
       final packagingUnits = hierarchy.where((u) =>
           !baseUnitSynonyms.contains(u.unitName) && u.unitFactor > Decimal.one);
-
-      // Also exclude any ProductUnit whose name matches the product's base unit
-      // We need to check against the product, so we do this after filtering
 
       final sortedHierarchy = packagingUnits.toList()
         ..sort((a, b) => b.unitFactor.compareTo(a.unitFactor));

@@ -492,7 +492,7 @@ class _AddProductDialogState extends State<_AddProductDialog> {
                         return RadioListTile<String>(
                           title: Text(product.name),
                           subtitle: Text(
-                              '${product.sellPrice} ر.س - المخزون: ${product.stock}'),
+                              '${product.sellPrice} ر.س - المخزون: ${product.stock.toStringAsFixed(0)}'),
                           value: product.id,
                           groupValue: _selectedProductId,
                           onChanged: (val) {
