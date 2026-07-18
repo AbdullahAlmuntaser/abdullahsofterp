@@ -99,8 +99,7 @@ class PackagingEngine {
   }) async {
     final actualDeduction =
         packageSize < batch.quantity ? packageSize : batch.quantity;
-    final costPerUnit = (batch.costPrice * packageSize / packageSize)
-        .toDecimal(scaleOnInfinitePrecision: 4);
+    final costPerUnit = batch.costPrice;
 
     await (db.update(db.productBatches)..where((b) => b.id.equals(batch.id)))
         .write(ProductBatchesCompanion(
@@ -116,9 +115,7 @@ class PackagingEngine {
               'BROKEN-${batch.batchNumber}-${DateTime.now().millisecondsSinceEpoch}',
           quantity: Value(actualDeduction),
           initialQuantity: Value(actualDeduction),
-          costPrice: Value((batch.costPrice / packageSize)
-                  .toDecimal(scaleOnInfinitePrecision: 4) *
-              actualDeduction),
+          costPrice: Value(batch.costPrice),
           expiryDate: Value(batch.expiryDate),
         ));
 

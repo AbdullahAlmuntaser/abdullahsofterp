@@ -18,6 +18,7 @@ class AppConfigService {
   static const String keyAllowSellBelowCost = 'allow_sell_below_cost';
   static const String keyHideSalePrices = 'hide_sale_prices';
   static const String keyLocaleCode = 'locale_code';
+  static const String keyMultiUnitV2 = 'multi_unit_v2';
 
   /// الحصول على قيمة إعداد معينة
   Future<String?> getString(String key) async {
