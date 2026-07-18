@@ -444,6 +444,10 @@ class ProductBatches extends Table with SyncableTable {
   TextColumn get reservedQuantity => text()
       .map(const DecimalConverter())
       .withDefault(Constant(Decimal.zero.toString()))();
+  TextColumn get storedUnitId => text().nullable()();
+  TextColumn get quantityInStoredUnit => text()
+      .map(const DecimalConverter())
+      .nullable()();
 }
 
 /// Item variants (e.g., color, size) for products with multiple attributes

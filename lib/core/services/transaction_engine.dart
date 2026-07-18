@@ -157,6 +157,10 @@ class TransactionEngine {
         Decimal qtyInBaseUnit = item.quantity * item.unitFactor;
 
         final batchId = const Uuid().v4();
+        String? storedUnitId;
+        if (item.unitId != null && item.unitId!.isNotEmpty) {
+          storedUnitId = item.unitId;
+        }
         await db.into(db.productBatches).insert(
               ProductBatchesCompanion.insert(
                 id: Value(batchId),
@@ -172,6 +176,8 @@ class TransactionEngine {
                 costPrice: Value(
                   (finalUnitCost / item.unitFactor).toDecimal(),
                 ),
+                storedUnitId: Value(storedUnitId),
+                quantityInStoredUnit: Value(item.quantity),
                 syncStatus: const Value.absent(),
               ),
             );

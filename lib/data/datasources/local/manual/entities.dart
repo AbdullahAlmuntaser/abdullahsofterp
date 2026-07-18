@@ -292,13 +292,17 @@ class ProductBatch {
   final String batchNumber; final DateTime? expiryDate;
   final Decimal quantity; final Decimal initialQuantity; final Decimal costPrice;
   final Decimal reservedQuantity;
+  final String? storedUnitId;
+  final Decimal quantityInStoredUnit;
   ProductBatch.fromMap(Map<String, dynamic> m) :
     id = m['id'], productId = m['product_id'], warehouseId = m['warehouse_id'],
     batchNumber = m['batch_number'],
     expiryDate = m['expiry_date'] != null ? _dt(m['expiry_date']) : null,
     quantity = _d(m['quantity']), initialQuantity = _d(m['initial_quantity']),
     costPrice = _d(m['cost_price']),
-    reservedQuantity = _d(m['reserved_quantity']);
+    reservedQuantity = _d(m['reserved_quantity']),
+    storedUnitId = m['stored_unit_id'],
+    quantityInStoredUnit = _d(m['quantity_in_stored_unit']);
 }
 
 class StockMovement {

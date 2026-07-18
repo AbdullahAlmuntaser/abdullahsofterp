@@ -106,6 +106,11 @@ class PackagingEngine {
       quantity: Value(batch.quantity - actualDeduction),
     ));
 
+    Decimal? newQtyInStoredUnit;
+    if (batch.quantityInStoredUnit > Decimal.zero && batch.quantity > Decimal.zero) {
+      newQtyInStoredUnit = (actualDeduction * batch.quantityInStoredUnit / batch.quantity)
+          .toDecimal(scaleOnInfinitePrecision: 4);
+    }
     final newBatchId = const Uuid().v4();
     await db.into(db.productBatches).insert(ProductBatchesCompanion.insert(
           id: Value(newBatchId),
@@ -117,6 +122,8 @@ class PackagingEngine {
           initialQuantity: Value(actualDeduction),
           costPrice: Value(batch.costPrice),
           expiryDate: Value(batch.expiryDate),
+          storedUnitId: Value(batch.storedUnitId),
+          quantityInStoredUnit: Value(newQtyInStoredUnit ?? actualDeduction),
         ));
 
     await db.into(db.inventoryTransactions).insert(
