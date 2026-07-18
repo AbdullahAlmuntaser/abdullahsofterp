@@ -78,6 +78,7 @@ class ErpLogic {
   }
 
   /// Checks stock availability before sale.
+  /// Deprecated: use StockDisplayAdapter or direct comparison with base units.
   static bool hasEnoughStock(
     Product product,
     Quantity requestedQty,
