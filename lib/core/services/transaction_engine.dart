@@ -398,9 +398,11 @@ class TransactionEngine {
           Decimal totalDeducted = Decimal.zero;
           for (var batch in batches) {
             if (remainingToDeduct <= Decimal.zero) break;
-            Decimal deductFromThisBatch = batch.quantity >= remainingToDeduct
+            final available = batch.quantity - batch.reservedQuantity;
+            if (available <= Decimal.zero) continue;
+            Decimal deductFromThisBatch = available >= remainingToDeduct
                 ? remainingToDeduct
-                : batch.quantity;
+                : available;
             await (db.update(
               db.productBatches,
             )..where((b) => b.id.equals(batch.id)))

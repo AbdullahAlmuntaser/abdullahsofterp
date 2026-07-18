@@ -231,7 +231,7 @@ class InventoryCostingService {
     final batches = await (_db.select(_db.productBatches)).get();
 
     final productBatches = batches
-        .where((b) => b.productId == productId && b.quantity > Decimal.zero)
+        .where((b) => b.productId == productId && (b.quantity - b.reservedQuantity) > Decimal.zero)
         .toList();
 
     if (productBatches.isEmpty) return [];
@@ -264,7 +264,9 @@ class InventoryCostingService {
         final result = <BatchWithCost>[];
         for (var batch in sortedBatches) {
           if (remaining <= Decimal.zero) break;
-          final deduct = remaining > batch.quantity ? batch.quantity : remaining;
+          final available = batch.quantity - batch.reservedQuantity;
+          final deduct = remaining > available ? available : remaining;
+          if (deduct <= Decimal.zero) continue;
           result.add(BatchWithCost(
             batch: batch,
             remainingQuantity: deduct,
@@ -298,7 +300,9 @@ class InventoryCostingService {
     for (var batch in sortedBatches) {
       if (remaining <= Decimal.zero) break;
 
-      final deduct = remaining > batch.quantity ? batch.quantity : remaining;
+      final available = batch.quantity - batch.reservedQuantity;
+      if (available <= Decimal.zero) continue;
+      final deduct = remaining > available ? available : remaining;
       result.add(BatchWithCost(
         batch: batch,
         remainingQuantity: deduct,

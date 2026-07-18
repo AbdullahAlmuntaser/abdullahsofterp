@@ -67,7 +67,7 @@ class PackagingEngine {
       for (final batch in batches) {
         if (shortfall <= Decimal.zero || breakCount >= maxBreaks) break;
 
-        while (batch.quantity >= unit.unitFactor && shortfall > Decimal.zero) {
+        while ((batch.quantity - batch.reservedQuantity) >= unit.unitFactor && shortfall > Decimal.zero) {
           if (breakCount >= maxBreaks) break;
           final toBreak =
               shortfall >= unit.unitFactor ? unit.unitFactor : shortfall;
@@ -151,7 +151,7 @@ class PackagingEngine {
         .get();
     Decimal total = Decimal.zero;
     for (final b in batches) {
-      total += b.quantity;
+      total += b.quantity - b.reservedQuantity;
     }
     return total;
   }

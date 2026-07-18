@@ -46,7 +46,7 @@ class InventoryDao {
   Future<List<ProductBatch>> getBatches(String productId, String warehouseId) async {
     final rows = _db.query('''
       SELECT * FROM product_batches
-      WHERE product_id = ? AND warehouse_id = ? AND CAST(quantity AS REAL) > 0
+      WHERE product_id = ? AND warehouse_id = ? AND CAST(quantity AS REAL) - CAST(COALESCE(reserved_quantity, '0') AS REAL) > 0
       ORDER BY expiry_date ASC
     ''', [productId, warehouseId]);
     return rows.map((r) => ProductBatch.fromMap(r)).toList();
@@ -55,7 +55,7 @@ class InventoryDao {
   Future<List<ProductBatch>> getBatchesByFefo(String productId, String warehouseId) async {
     final rows = _db.query('''
       SELECT * FROM product_batches
-      WHERE product_id = ? AND warehouse_id = ? AND CAST(quantity AS REAL) > 0
+      WHERE product_id = ? AND warehouse_id = ? AND CAST(quantity AS REAL) - CAST(COALESCE(reserved_quantity, '0') AS REAL) > 0
       ORDER BY expiry_date ASC
     ''', [productId, warehouseId]);
     return rows.map((r) => ProductBatch.fromMap(r)).toList();
@@ -68,8 +68,8 @@ class InventoryDao {
   }) async {
     final id = const Uuid().v4();
     _db.execute('''
-      INSERT INTO product_batches (id, product_id, warehouse_id, batch_number, expiry_date, quantity, initial_quantity, cost_price)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO product_batches (id, product_id, warehouse_id, batch_number, expiry_date, quantity, initial_quantity, cost_price, reserved_quantity)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, '0')
     ''', [id, productId, warehouseId, batchNumber,
           expiryDate?.toIso8601String(), quantity?.toString() ?? '0',
           quantity?.toString() ?? '0', costPrice?.toString() ?? '0']);
@@ -178,7 +178,7 @@ class InventoryDao {
       WHERE expiry_date IS NOT NULL
       AND CAST(julianday(expiry_date) - julianday('now') AS INTEGER) <= ?
       AND CAST(julianday(expiry_date) - julianday('now') AS INTEGER) >= 0
-      AND CAST(quantity AS REAL) > 0
+      AND CAST(quantity AS REAL) - CAST(COALESCE(reserved_quantity, '0') AS REAL) > 0
       ORDER BY expiry_date ASC
     ''', [daysThreshold]);
     return rows.map((r) => ProductBatch.fromMap(r)).toList();
@@ -186,20 +186,22 @@ class InventoryDao {
 
   Future<Decimal> getWarehouseStock(String productId, String warehouseId) async {
     final rows = _db.query('''
-      SELECT quantity FROM product_batches
+      SELECT quantity, reserved_quantity FROM product_batches
       WHERE product_id = ? AND warehouse_id = ?
     ''', [productId, warehouseId]);
     Decimal total = Decimal.zero;
     for (final row in rows) {
       final qty = Decimal.tryParse(row['quantity']?.toString() ?? '0') ?? Decimal.zero;
-      if (qty > Decimal.zero) total += qty;
+      final reserved = Decimal.tryParse(row['reserved_quantity']?.toString() ?? '0') ?? Decimal.zero;
+      final available = qty - reserved;
+      if (available > Decimal.zero) total += available;
     }
     return total;
   }
 
   Future<bool> hasStock(String warehouseId) async {
     final rows = _db.query('''
-      SELECT 1 FROM product_batches WHERE warehouse_id = ? AND CAST(quantity AS REAL) > 0 LIMIT 1
+      SELECT 1 FROM product_batches WHERE warehouse_id = ? AND CAST(quantity AS REAL) - CAST(COALESCE(reserved_quantity, '0') AS REAL) > 0 LIMIT 1
     ''', [warehouseId]);
     return rows.isNotEmpty;
   }

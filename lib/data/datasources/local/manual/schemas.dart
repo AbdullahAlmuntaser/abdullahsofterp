@@ -649,6 +649,7 @@ class SchemaDefinitions {
       quantity TEXT DEFAULT '0',
       initial_quantity TEXT DEFAULT '0',
       cost_price TEXT DEFAULT '0',
+      reserved_quantity TEXT DEFAULT '0',
       created_at TEXT DEFAULT (datetime('now')),
       updated_at TEXT DEFAULT (datetime('now')),
       device_id TEXT,
