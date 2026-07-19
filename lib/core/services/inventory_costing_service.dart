@@ -226,31 +226,34 @@ class InventoryCostingService {
   }
 
   Future<List<BatchWithCost>> getBatchesForSale(
-      String productId, Decimal quantity) async {
+      String productId, Decimal quantity, {String? warehouseId}) async {
     final method = await getProductValuationMethod(productId);
     final batches = await (_db.select(_db.productBatches)).get();
 
-    final productBatches = batches
-        .where((b) => b.productId == productId && (b.quantity - b.reservedQuantity) > Decimal.zero)
-        .toList();
+    var productBatches = batches
+        .where((b) => b.productId == productId && (b.quantity - b.reservedQuantity) > Decimal.zero);
+    if (warehouseId != null && warehouseId.isNotEmpty) {
+      productBatches = productBatches.where((b) => b.warehouseId == warehouseId);
+    }
+    final filteredBatches = productBatches.toList();
 
-    if (productBatches.isEmpty) return [];
+    if (filteredBatches.isEmpty) return [];
 
     List<ProductBatch> sortedBatches;
 
     switch (method) {
       case InventoryValuationMethod.avco:
-        final avgCost = (productBatches.fold<Decimal>(
+        final avgCost = (filteredBatches.fold<Decimal>(
                   Decimal.zero,
                   (sum, b) => sum + b.quantity * b.costPrice,
                 ) /
-                productBatches.fold<Decimal>(
+                filteredBatches.fold<Decimal>(
                   Decimal.zero,
                   (sum, b) => sum + b.quantity,
                 ))
             .toDecimal();
 
-        sortedBatches = List<ProductBatch>.from(productBatches)
+        sortedBatches = List<ProductBatch>.from(filteredBatches)
           ..sort((a, b) {
             if (a.expiryDate == null && b.expiryDate == null) {
               return a.createdAt.compareTo(b.createdAt);
@@ -277,13 +280,13 @@ class InventoryCostingService {
         return result;
 
       case InventoryValuationMethod.lifo:
-        sortedBatches = List<ProductBatch>.from(productBatches)
+        sortedBatches = List<ProductBatch>.from(filteredBatches)
           ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
         break;
 
       case InventoryValuationMethod.fifo:
       default:
-        sortedBatches = List<ProductBatch>.from(productBatches)
+        sortedBatches = List<ProductBatch>.from(filteredBatches)
           ..sort((a, b) {
             if (a.expiryDate == null && b.expiryDate == null) {
               return a.createdAt.compareTo(b.createdAt);

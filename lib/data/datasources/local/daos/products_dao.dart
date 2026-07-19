@@ -373,7 +373,7 @@ class ProductsDao extends DatabaseAccessor<AppDatabase>
         .get();
     return batches.fold<Decimal>(
       Decimal.zero,
-      (sum, b) => sum + b.quantity,
+      (sum, b) => sum + (b.quantity - b.reservedQuantity),
     );
   }
 }

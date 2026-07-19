@@ -112,8 +112,8 @@ void registerCoreModule(GetIt sl) {
       sl<EventBusService>(),
       sl<PostingEngine>(),
       sl<PackagingEngine>(),
+      sl<InventoryCostingService>(),
     );
-    engine.setCostingService(sl<InventoryCostingService>());
     engine.setBudgetService(sl<BudgetService>());
     engine.setApprovalService(sl<ApprovalWorkflowService>());
     return engine;

@@ -25,7 +25,7 @@ class TransactionEngine {
   final PackagingEngine packagingEngine;
   BudgetService? _budgetService;
   ApprovalWorkflowService? _approvalService;
-  InventoryCostingService? _costingService;
+  final InventoryCostingService _costingService;
   SerialNumberService? _serialNumberService;
 
   TransactionEngine(
@@ -33,12 +33,9 @@ class TransactionEngine {
     this.eventBus,
     this._postingEngine,
     this.packagingEngine,
+    this._costingService,
   )   : _auditService = AuditService(db),
         _configService = AppConfigService(db);
-
-  void setCostingService(InventoryCostingService costingService) {
-    _costingService = costingService;
-  }
 
   /// Wire budget validation service
   void setBudgetService(BudgetService budgetService) {
@@ -326,116 +323,91 @@ class TransactionEngine {
           final warehouseStock = await db.productsDao
               .getWarehouseStock(item.productId, sale.warehouseId!);
           if (warehouseStock < remainingToDeduct) {
-            throw Exception(
-              'المخزون غير كافٍ للمنتج: ${product.name} في المستودع المحدد. '
-              'المتوفر: $warehouseStock',
+            await packagingEngine.autoBreakIfNecessary(
+              productId: item.productId,
+              warehouseId: sale.warehouseId!,
+              requiredQtyInBase: remainingToDeduct,
             );
+            final warehouseStockAfter = await db.productsDao
+                .getWarehouseStock(item.productId, sale.warehouseId!);
+            if (warehouseStockAfter < remainingToDeduct) {
+              throw Exception(
+                'المخزون غير كافٍ للمنتج: ${product.name} في المستودع المحدد. '
+                'المتوفر: $warehouseStockAfter',
+              );
+            }
           }
         } else if (product.stock < remainingToDeduct) {
-          throw Exception(
-            'المخزون غير كافٍ للمنتج: ${product.name}. المتوفر: ${product.stock}',
+          await packagingEngine.autoBreakIfNecessary(
+            productId: item.productId,
+            warehouseId: '',
+            requiredQtyInBase: remainingToDeduct,
           );
+          final updatedProduct = await (db.select(db.products)
+                ..where((p) => p.id.equals(item.productId)))
+              .getSingle();
+          if (updatedProduct.stock < remainingToDeduct) {
+            throw Exception(
+              'المخزون غير كافٍ للمنتج: ${product.name}. المتوفر: ${updatedProduct.stock}',
+            );
+          }
         }
 
-        // Auto-break packaging if necessary
-        await packagingEngine.autoBreakIfNecessary(
-          productId: item.productId,
-          warehouseId: sale.warehouseId ?? '',
-          requiredQtyInBase: remainingToDeduct,
+        // Deduct from batches using costing service
+        final batches = await _costingService.getBatchesForSale(
+          item.productId,
+          remainingToDeduct,
+          warehouseId: sale.warehouseId,
+        );
+        Decimal totalDeducted = Decimal.zero;
+        for (var batchData in batches) {
+          if (batchData.remainingQuantity <= Decimal.zero) continue;
+          final deduct = batchData.remainingQuantity;
+          final reserved = batchData.batch.reservedQuantity;
+          final deductFromReserved =
+              reserved >= deduct ? deduct : reserved;
+          await (db.update(
+            db.productBatches,
+          )..where((b) => b.id.equals(batchData.batch.id)))
+              .write(
+            ProductBatchesCompanion(
+              quantity: Value(batchData.batch.quantity - deduct),
+              reservedQuantity:
+                  Value(reserved - deductFromReserved),
+            ),
+          );
+          await db.into(db.inventoryTransactions).insert(
+                InventoryTransactionsCompanion.insert(
+                  productId: item.productId,
+                  warehouseId: batchData.batch.warehouseId,
+                  batchId: Value(batchData.batch.id),
+                  quantity: Value(-(batchData.remainingQuantity)),
+                  type: 'SALE',
+                  referenceId: saleId,
+                ),
+              );
+          totalDeducted += batchData.remainingQuantity;
+          saleCogs += batchData.remainingQuantity * batchData.costPerUnit;
+        }
+        await (db.update(
+          db.products,
+        )..where((p) => p.id.equals(item.productId)))
+            .write(
+          ProductsCompanion(stock: Value(product.stock - totalDeducted)),
         );
 
-        // Deduct from batches using costing service or FIFO
-        if (_costingService != null) {
-          final batches = await _costingService!.getBatchesForSale(
-            item.productId,
-            remainingToDeduct,
-          );
-          Decimal totalDeducted = Decimal.zero;
-          for (var batchData in batches) {
-            if (batchData.remainingQuantity <= Decimal.zero) continue;
-            await (db.update(
-              db.productBatches,
-            )..where((b) => b.id.equals(batchData.batch.id)))
-                .write(
-              ProductBatchesCompanion(
-                quantity: Value(
-                    batchData.batch.quantity - batchData.remainingQuantity),
-              ),
-            );
-            await db.into(db.inventoryTransactions).insert(
-                  InventoryTransactionsCompanion.insert(
-                    productId: item.productId,
-                    warehouseId: batchData.batch.warehouseId,
-                    batchId: Value(batchData.batch.id),
-                    quantity: Value(-(batchData.remainingQuantity)),
-                    type: 'SALE',
-                    referenceId: saleId,
-                  ),
-                );
-            totalDeducted += batchData.remainingQuantity;
-            saleCogs += batchData.remainingQuantity * batchData.costPerUnit;
+        // Release any orphaned reservedQuantity set by autoBreak but not consumed
+        final batchesAfterDeduction = await (db.select(db.productBatches)
+              ..where((b) => b.productId.equals(item.productId)))
+            .get();
+        for (final b in batchesAfterDeduction) {
+          if (b.reservedQuantity > Decimal.zero) {
+            await (db.update(db.productBatches)
+                  ..where((p) => p.id.equals(b.id)))
+                .write(ProductBatchesCompanion(
+              reservedQuantity: Value(Decimal.zero),
+            ));
           }
-          await (db.update(
-            db.products,
-          )..where((p) => p.id.equals(item.productId)))
-              .write(
-            ProductsCompanion(stock: Value(product.stock - totalDeducted)),
-          );
-        } else {
-          // FIFO fallback
-          var batchQuery = db.select(db.productBatches)
-                ..where((b) => b.productId.equals(item.productId))
-                ..where((b) =>
-                    b.quantity.isBiggerThan(Variable(Decimal.zero.toString())));
-          if (sale.warehouseId != null && sale.warehouseId!.isNotEmpty) {
-            batchQuery.where((b) => b.warehouseId.equals(sale.warehouseId!));
-          }
-          final batches = await (batchQuery
-                ..orderBy([
-                  (b) => OrderingTerm(
-                      expression: b.expiryDate.isNull(),
-                      mode: OrderingMode.asc),
-                  (b) => OrderingTerm(
-                      expression: b.expiryDate, mode: OrderingMode.asc),
-                  (b) => OrderingTerm(
-                      expression: b.createdAt, mode: OrderingMode.asc),
-                ]))
-              .get();
-          Decimal totalDeducted = Decimal.zero;
-          for (var batch in batches) {
-            if (remainingToDeduct <= Decimal.zero) break;
-            final available = batch.quantity - batch.reservedQuantity;
-            if (available <= Decimal.zero) continue;
-            Decimal deductFromThisBatch = available >= remainingToDeduct
-                ? remainingToDeduct
-                : available;
-            await (db.update(
-              db.productBatches,
-            )..where((b) => b.id.equals(batch.id)))
-                .write(
-              ProductBatchesCompanion(
-                  quantity: Value(batch.quantity - deductFromThisBatch)),
-            );
-            await db.into(db.inventoryTransactions).insert(
-                  InventoryTransactionsCompanion.insert(
-                    productId: item.productId,
-                    warehouseId: batch.warehouseId,
-                    batchId: Value(batch.id),
-                    quantity: Value(-(deductFromThisBatch)),
-                    type: 'SALE',
-                    referenceId: saleId,
-                  ),
-                );
-            remainingToDeduct -= deductFromThisBatch;
-            totalDeducted += deductFromThisBatch;
-            saleCogs += deductFromThisBatch * batch.costPrice;
-          }
-          await (db.update(
-            db.products,
-          )..where((p) => p.id.equals(item.productId)))
-              .write(
-            ProductsCompanion(stock: Value(product.stock - totalDeducted)),
-          );
         }
       }
 

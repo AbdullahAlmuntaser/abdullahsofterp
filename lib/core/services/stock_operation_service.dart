@@ -51,11 +51,9 @@ class StockOperationService {
 
           if (differenceDecimal < Decimal.zero) {
             Decimal remainingToDeduct = differenceDecimal.abs();
-            final batches = await (db.select(db.productBatches)
+            final allBatches = await (db.select(db.productBatches)
                   ..where((b) =>
-                      b.productId.equals(productId) &
-                      b.quantity.isBiggerThan(
-                          drift.Constant(Decimal.zero.toString())))
+                      b.productId.equals(productId))
                   ..orderBy([
                     (b) => drift.OrderingTerm(
                           expression: b.createdAt,
@@ -63,13 +61,20 @@ class StockOperationService {
                         ),
                   ]))
                 .get();
+            final batches = allBatches
+                .where((b) => (b.quantity - b.reservedQuantity) > Decimal.zero)
+                .toList();
 
             for (var batch in batches) {
               if (remainingToDeduct <= Decimal.zero) break;
+              final available = batch.quantity - batch.reservedQuantity;
               final Decimal deductFromThisBatch =
-                  batch.quantity >= remainingToDeduct
+                  available >= remainingToDeduct
                       ? remainingToDeduct
-                      : batch.quantity;
+                      : available;
+              final deductFromReserved = batch.reservedQuantity >= deductFromThisBatch
+                  ? deductFromThisBatch
+                  : batch.reservedQuantity;
 
               await (db.update(db.productBatches)
                 ..where((b) => b.id.equals(batch.id)))
@@ -77,6 +82,8 @@ class StockOperationService {
                 ProductBatchesCompanion(
                   quantity:
                       drift.Value(batch.quantity - deductFromThisBatch),
+                  reservedQuantity:
+                      drift.Value(batch.reservedQuantity - deductFromReserved),
                 ),
               );
               remainingToDeduct -= deductFromThisBatch;
@@ -261,15 +268,22 @@ class StockOperationService {
             .getSingle();
 
         final qtyDecimal = Decimal.parse(qty.toString());
-        if (sourceBatch.quantity < qtyDecimal) {
+        final sourceAvailable = sourceBatch.quantity - sourceBatch.reservedQuantity;
+        if (sourceAvailable < qtyDecimal) {
           throw Exception(
-              'الكمية غير كافية في الدفعة المصدر لمستودع ${sourceBatch.warehouseId}');
+              'الكمية غير كافية في الدفعة المصدر لمستودع ${sourceBatch.warehouseId}. '
+              'المتاح: $sourceAvailable، المطلوب: $qtyDecimal');
         }
+        final deductFromReserved = sourceBatch.reservedQuantity >= qtyDecimal
+            ? qtyDecimal
+            : sourceBatch.reservedQuantity;
 
         await (db.update(db.productBatches)
           ..where((b) => b.id.equals(batchId)))
             .write(ProductBatchesCompanion(
-                quantity: drift.Value(sourceBatch.quantity - qtyDecimal)));
+          quantity: drift.Value(sourceBatch.quantity - qtyDecimal),
+          reservedQuantity: drift.Value(sourceBatch.reservedQuantity - deductFromReserved),
+        ));
 
         final targetBatch = await (db.select(db.productBatches)
               ..where((b) =>

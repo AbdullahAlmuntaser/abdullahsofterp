@@ -1,6 +1,7 @@
 import 'package:http/http.dart' as http;
 import 'package:drift/drift.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
+import 'package:supermarket/core/utils/stock_display_adapter.dart';
 
 class RestApiService {
   final AppDatabase _db;
@@ -92,6 +93,8 @@ class RestApiService {
             ..where((p) => p.id.equals(parts[1])))
           .getSingleOrNull();
       if (product == null) return {'error': 'Not found', 'status': 404};
+      final adapter = StockDisplayAdapter(_db);
+      final displayStock = await adapter.formatProductStock(product);
       return {
         'id': product.id,
         'name': product.name,
@@ -99,20 +102,24 @@ class RestApiService {
         'sellPrice': product.sellPrice.toString(),
         'buyPrice': product.buyPrice.toString(),
         'stock': product.stock.toString(),
+        'displayStock': displayStock,
         'status': 200,
       };
     }
     final products = await _db.select(_db.products).get();
     return {
-      'products': products
-          .map((p) => {
-                'id': p.id,
-                'name': p.name,
-                'sku': p.sku,
-                'sellPrice': p.sellPrice.toString(),
-                'stock': p.stock.toString(),
-              })
-          .toList(),
+      'products': await Future.wait(products.map((p) async {
+            final adapter = StockDisplayAdapter(_db);
+            final display = await adapter.formatProductStock(p);
+            return {
+              'id': p.id,
+              'name': p.name,
+              'sku': p.sku,
+              'sellPrice': p.sellPrice.toString(),
+              'stock': p.stock.toString(),
+              'displayStock': display,
+            };
+          })),
       'status': 200,
     };
   }

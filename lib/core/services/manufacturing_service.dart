@@ -119,20 +119,21 @@ class ManufacturingService {
 
       Decimal totalCost = Decimal.zero;
       for (var item in items) {
-        final batches = await (db.select(db.productBatches)
+        final allBatches = await (db.select(db.productBatches)
               ..where((b) => b.productId.equals(item.componentProductId))
               ..where((b) => b.warehouseId.equals(whId))
-              ..where(
-                  (b) => b.quantity.isBiggerThan(Constant(Decimal.zero.toString())))
               ..orderBy([
                 (t) => OrderingTerm.asc(t.expiryDate),
                 (t) => OrderingTerm.asc(t.createdAt),
               ]))
             .get();
+        final batches = allBatches
+            .where((b) => (b.quantity - b.reservedQuantity) > Decimal.zero)
+            .toList();
 
         Decimal remaining = item.plannedQuantity;
         Decimal available = batches.fold<Decimal>(
-            Decimal.zero, (sum, b) => sum + b.quantity);
+            Decimal.zero, (sum, b) => sum + (b.quantity - b.reservedQuantity));
 
         if (available < remaining) {
           final productName =
@@ -143,11 +144,16 @@ class ManufacturingService {
 
         for (var batch in batches) {
           if (remaining <= Decimal.zero) break;
-          final deduct = remaining > batch.quantity ? batch.quantity : remaining;
+          final batchAvailable = batch.quantity - batch.reservedQuantity;
+          final deduct = remaining > batchAvailable ? batchAvailable : remaining;
+          final deductFromReserved =
+              batch.reservedQuantity >= deduct ? deduct : batch.reservedQuantity;
           await (db.update(db.productBatches)
                 ..where((b) => b.id.equals(batch.id)))
               .write(ProductBatchesCompanion(
-                  quantity: Value(batch.quantity - deduct)));
+            quantity: Value(batch.quantity - deduct),
+            reservedQuantity: Value(batch.reservedQuantity - deductFromReserved),
+          ));
           await db.stockMovementDao.insertStockMovement(
             StockMovementsCompanion.insert(
               productId: item.componentProductId,
@@ -223,19 +229,21 @@ class ManufacturingService {
       for (final component in components) {
         final requiredQty =
             (component.quantity * producedQuantity / config.scrapFactor).toDecimal();
-        final batches = await (db.select(db.productBatches)
+        final allBatches = await (db.select(db.productBatches)
               ..where((b) =>
                   b.productId.equals(component.componentProductId) &
-                  b.warehouseId.equals(warehouseId) &
-                  b.quantity.isBiggerThan(Constant(Decimal.zero.toString())))
+                  b.warehouseId.equals(warehouseId))
               ..orderBy([
                 (t) => OrderingTerm.asc(t.expiryDate),
                 (t) => OrderingTerm.asc(t.createdAt),
               ]))
             .get();
+        final batches = allBatches
+            .where((b) => (b.quantity - b.reservedQuantity) > Decimal.zero)
+            .toList();
 
         Decimal totalAvailable =
-            batches.fold<Decimal>(Decimal.zero, (sum, b) => sum + b.quantity);
+            batches.fold<Decimal>(Decimal.zero, (sum, b) => sum + (b.quantity - b.reservedQuantity));
         if (totalAvailable < requiredQty) {
           final name = await _getProductName(component.componentProductId);
           throw Exception(
@@ -297,25 +305,32 @@ class ManufacturingService {
     String referenceId,
   ) async {
     Decimal remaining = quantity;
-    final batches = await (db.select(db.productBatches)
+    final allBatches = await (db.select(db.productBatches)
           ..where((b) =>
               b.productId.equals(productId) &
-              b.warehouseId.equals(warehouseId) &
-              b.quantity.isBiggerThan(Constant(Decimal.zero.toString())))
+              b.warehouseId.equals(warehouseId))
           ..orderBy([
             (t) => OrderingTerm.asc(t.expiryDate),
             (t) => OrderingTerm.asc(t.createdAt),
           ]))
         .get();
+    final batches = allBatches
+        .where((b) => (b.quantity - b.reservedQuantity) > Decimal.zero)
+        .toList();
 
     for (final batch in batches) {
       if (remaining <= Decimal.zero) break;
-      final consumeQty = batch.quantity < remaining ? batch.quantity : remaining;
-      final newQty = batch.quantity - consumeQty;
+      final available = batch.quantity - batch.reservedQuantity;
+      final consumeQty = available < remaining ? available : remaining;
+      final deductFromReserved =
+          batch.reservedQuantity >= consumeQty ? consumeQty : batch.reservedQuantity;
       remaining -= consumeQty;
 
       await (db.update(db.productBatches)..where((b) => b.id.equals(batch.id)))
-          .write(ProductBatchesCompanion(quantity: Value(newQty)));
+          .write(ProductBatchesCompanion(
+        quantity: Value(batch.quantity - consumeQty),
+        reservedQuantity: Value(batch.reservedQuantity - deductFromReserved),
+      ));
 
       await db.into(db.inventoryTransactions).insert(
             InventoryTransactionsCompanion.insert(

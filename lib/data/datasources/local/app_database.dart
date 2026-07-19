@@ -130,7 +130,9 @@ class Products extends Table with SyncableTable {
   TextColumn get categoryId => text().nullable().references(Categories, #id)();
   TextColumn get unit =>
       text().withDefault(const Constant('pcs'))(); // Base unit
+  @Deprecated('Use ProductUnits table instead')
   TextColumn get cartonUnit => text().withDefault(const Constant('carton'))();
+  @Deprecated('Use ProductUnits table instead')
   IntColumn get piecesPerCarton => integer().withDefault(const Constant(1))();
   TextColumn get kiloUnit => text().nullable()();
   TextColumn get boxUnit => text().nullable()();
@@ -412,6 +414,7 @@ class PurchaseItems extends Table with SyncableTable {
         Warehouses,
         #id,
       )();
+  @Deprecated('Use ProductUnits table instead')
   BoolColumn get isCarton => boolean().withDefault(const Constant(false))();
 }
 
@@ -974,6 +977,7 @@ class ExchangeRates extends Table {
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 }
 
+@Deprecated('Use ProductUnits table instead')
 class UnitConversions extends Table with SyncableTable {
   TextColumn get productId => text().references(Products, #id)();
   TextColumn get unitName => text()();

@@ -44,19 +44,27 @@ class StockTransferService {
         )..where((t) => t.id.equals(item.batchId)))
             .getSingle();
 
-        if (sourceBatch.quantity < item.quantity) {
+        final sourceAvailable =
+            sourceBatch.quantity - sourceBatch.reservedQuantity;
+        if (sourceAvailable < item.quantity) {
           throw Exception(
-            'Insufficient stock in batch ${sourceBatch.batchNumber} for product ${item.productId}',
+            'Insufficient stock in batch ${sourceBatch.batchNumber} for product ${item.productId}. '
+            'Available: $sourceAvailable, requested: ${item.quantity}',
           );
         }
 
         // 3. Update Source Batch (Deduct)
+        final deductFromReserved = sourceBatch.reservedQuantity >= item.quantity
+            ? item.quantity
+            : sourceBatch.reservedQuantity;
         await (db.update(
           db.productBatches,
         )..where((t) => t.id.equals(sourceBatch.id)))
             .write(
           ProductBatchesCompanion(
             quantity: Value(sourceBatch.quantity - item.quantity),
+            reservedQuantity:
+                Value(sourceBatch.reservedQuantity - deductFromReserved),
           ),
         );
 
@@ -92,6 +100,10 @@ class StockTransferService {
               .write(
             ProductBatchesCompanion(
               quantity: Value(existingDestBatch.quantity + item.quantity),
+              reservedQuantity: Value(existingDestBatch.reservedQuantity),
+              storedUnitId: Value(existingDestBatch.storedUnitId),
+              quantityInStoredUnit:
+                  Value(existingDestBatch.quantityInStoredUnit),
             ),
           );
         } else {
@@ -106,6 +118,8 @@ class StockTransferService {
                   quantity: Value(item.quantity),
                   initialQuantity: Value(item.quantity),
                   costPrice: Value(sourceBatch.costPrice),
+                  storedUnitId: Value(sourceBatch.storedUnitId),
+                  quantityInStoredUnit: Value(sourceBatch.quantityInStoredUnit),
                 ),
               );
         }
@@ -151,13 +165,12 @@ class StockTransferService {
   }
 
   Future<List<ProductBatch>> getBatchesForWarehouse(String warehouseId) async {
-    return await (db.select(db.productBatches)
-          ..where(
-            (t) =>
-                t.warehouseId.equals(warehouseId) &
-                t.quantity.isBiggerThan(Constant(Decimal.zero.toString())),
-          ))
+    final allBatches = await (db.select(db.productBatches)
+          ..where((t) => t.warehouseId.equals(warehouseId)))
         .get();
+    return allBatches
+        .where((b) => (b.quantity - b.reservedQuantity) > Decimal.zero)
+        .toList();
   }
 }
 

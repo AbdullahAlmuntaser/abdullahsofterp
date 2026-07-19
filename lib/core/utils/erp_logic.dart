@@ -90,6 +90,7 @@ class ErpLogic {
   }
 
   /// Formats inventory balance intelligently (e.g., 2 cartons and 5 pieces).
+  @Deprecated('Use StockDisplayAdapter.formatProductStock() instead')
   static String formatInventory({
     required Quantity totalBaseQty,
     required String baseUnitName,

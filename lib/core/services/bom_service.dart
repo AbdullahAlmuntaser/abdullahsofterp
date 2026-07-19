@@ -77,18 +77,20 @@ class BomService {
     // التحقق من توفر المخزون
     for (final component in components) {
       final requiredQty = component.quantity * producedQuantity;
-      final available = await (db.select(db.productBatches)
+      final allBatches = await (db.select(db.productBatches)
             ..where(
               (b) =>
                   b.productId.equals(component.componentProductId) &
-                  b.warehouseId.equals(warehouseId) &
-                  b.quantity.isBiggerThan(Constant(Decimal.zero.toString())),
-            ))
+                  b.warehouseId.equals(warehouseId))
+            ..orderBy([
+              (b) => OrderingTerm.asc(b.expiryDate),
+              (b) => OrderingTerm.asc(b.createdAt),
+            ]))
           .get();
 
       Decimal totalAvailable = Decimal.zero;
-      for (final batch in available) {
-        totalAvailable += batch.quantity;
+      for (final batch in allBatches) {
+        totalAvailable += batch.quantity - batch.reservedQuantity;
       }
 
       if (totalAvailable < requiredQty) {
@@ -155,29 +157,34 @@ class BomService {
   ) async {
     Decimal remaining = quantity;
 
-    final batches = await (db.select(db.productBatches)
+    final allBatches = await (db.select(db.productBatches)
           ..where(
             (b) =>
                 b.productId.equals(productId) &
-                b.warehouseId.equals(warehouseId) &
-                b.quantity.isBiggerThan(Constant(Decimal.zero.toString())),
-          )
+                b.warehouseId.equals(warehouseId))
           ..orderBy([
             (b) => OrderingTerm.asc(b.expiryDate),
             (b) => OrderingTerm.asc(b.createdAt),
           ]))
         .get();
 
+    final batches = allBatches
+        .where((b) => (b.quantity - b.reservedQuantity) > Decimal.zero)
+        .toList();
+
     for (final batch in batches) {
       if (remaining <= Decimal.zero) break;
 
-      final consumeQty =
-          batch.quantity < remaining ? batch.quantity : remaining;
-      final newQty = batch.quantity - consumeQty;
-      remaining -= consumeQty;
+      final available = batch.quantity - batch.reservedQuantity;
+      final consumeQty = available < remaining ? available : remaining;
+      final deductFromReserved =
+          batch.reservedQuantity >= consumeQty ? consumeQty : batch.reservedQuantity;
 
       await (db.update(db.productBatches)..where((b) => b.id.equals(batch.id)))
-          .write(ProductBatchesCompanion(quantity: Value(newQty)));
+          .write(ProductBatchesCompanion(
+        quantity: Value(batch.quantity - consumeQty),
+        reservedQuantity: Value(batch.reservedQuantity - deductFromReserved),
+      ));
 
       // تسجيل حركة المخزون
       await db.into(db.inventoryTransactions).insert(

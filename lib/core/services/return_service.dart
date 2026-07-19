@@ -80,6 +80,9 @@ class ReturnService {
             ProductBatchesCompanion(
               quantity: Value(latestBatch.quantity +
                   Decimal.parse(item.quantity.toString())),
+              reservedQuantity: Value(latestBatch.reservedQuantity),
+              storedUnitId: Value(latestBatch.storedUnitId),
+              quantityInStoredUnit: Value(latestBatch.quantityInStoredUnit),
             ),
           );
           totalCogsToReverse +=
@@ -228,27 +231,34 @@ class ReturnService {
 
         // 4. Update Batches (Decrease newest batches first)
         double remainingToDeduct = item.quantity;
-        final batches = await (db.select(db.productBatches)
-              ..where(
-                (t) =>
-                    t.productId.equals(item.productId) &
-                    t.quantity.isBiggerThan(Constant(Decimal.zero.toString())),
-              )
+        final allBatches = await (db.select(db.productBatches)
+              ..where((t) => t.productId.equals(item.productId))
               ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
             .get();
+        final batches = allBatches
+            .where((b) => (b.quantity - b.reservedQuantity) > Decimal.zero)
+            .toList();
 
         for (var batch in batches) {
           if (remainingToDeduct <= 0) break;
-          double deduct = batch.quantity.toDouble() >= remainingToDeduct
-              ? remainingToDeduct
-              : batch.quantity.toDouble();
+          final available =
+              (batch.quantity - batch.reservedQuantity).toDouble();
+          double deduct =
+              available >= remainingToDeduct ? remainingToDeduct : available;
+          final deductDecimal = Decimal.parse(deduct.toString());
+          final deductFromReserved =
+              batch.reservedQuantity >= deductDecimal
+                  ? deductDecimal
+                  : batch.reservedQuantity;
           await (db.update(
             db.productBatches,
           )..where((t) => t.id.equals(batch.id)))
               .write(
             ProductBatchesCompanion(
-                quantity:
-                    Value(batch.quantity - Decimal.parse(deduct.toString()))),
+              quantity: Value(batch.quantity - deductDecimal),
+              reservedQuantity:
+                  Value(batch.reservedQuantity - deductFromReserved),
+            ),
           );
           remainingToDeduct -= deduct;
         }

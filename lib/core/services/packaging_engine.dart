@@ -3,7 +3,6 @@ import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:supermarket/core/services/inventory_costing_service.dart';
 import 'package:supermarket/core/services/app_config_service.dart';
 import 'package:supermarket/core/utils/stock_display_adapter.dart';
-import 'package:uuid/uuid.dart';
 import 'dart:developer' as developer;
 
 class BreakResult {
@@ -69,12 +68,19 @@ class PackagingEngine {
       for (final batch in batches) {
         if (shortfall <= Decimal.zero || breakCount >= maxBreaks) break;
 
-        while ((batch.quantity - batch.reservedQuantity) >= unit.unitFactor && shortfall > Decimal.zero) {
-          if (breakCount >= maxBreaks) break;
+        while (shortfall > Decimal.zero && breakCount < maxBreaks) {
+          // Reload batch to get current reservedQuantity
+          final currentBatch = await (db.select(db.productBatches)
+                ..where((b) => b.id.equals(batch.id)))
+              .getSingleOrNull();
+          if (currentBatch == null) break;
+          final available = currentBatch.quantity - currentBatch.reservedQuantity;
+          if (available < unit.unitFactor) break;
+
           final toBreak =
               shortfall >= unit.unitFactor ? unit.unitFactor : shortfall;
           final result = await _breakOnePackage(
-            batch: batch,
+            batch: currentBatch,
             packageSize: toBreak,
             productId: productId,
             warehouseId: warehouseId,
@@ -99,55 +105,30 @@ class PackagingEngine {
     required String productId,
     required String warehouseId,
   }) async {
-    final actualDeduction =
-        packageSize < batch.quantity ? packageSize : batch.quantity;
-    final costPerUnit = batch.costPrice;
+    // Reload batch to get current reservedQuantity
+    final currentBatch = await (db.select(db.productBatches)
+          ..where((b) => b.id.equals(batch.id)))
+        .getSingle();
 
-    await (db.update(db.productBatches)..where((b) => b.id.equals(batch.id)))
+    final actualDeduction =
+        packageSize < currentBatch.quantity ? packageSize : currentBatch.quantity;
+    final costPerUnit = currentBatch.costPrice;
+    final newReserved = currentBatch.reservedQuantity + actualDeduction;
+
+    await (db.update(db.productBatches)..where((b) => b.id.equals(currentBatch.id)))
         .write(ProductBatchesCompanion(
-      quantity: Value(batch.quantity - actualDeduction),
+      reservedQuantity: Value(newReserved),
     ));
 
-    Decimal? newQtyInStoredUnit;
-    final storedQty = batch.quantityInStoredUnit;
-    if (storedQty != null && storedQty > Decimal.zero && batch.quantity > Decimal.zero) {
-      newQtyInStoredUnit = (actualDeduction * storedQty / batch.quantity)
-          .toDecimal(scaleOnInfinitePrecision: 4);
-    }
-    final newBatchId = const Uuid().v4();
-    await db.into(db.productBatches).insert(ProductBatchesCompanion.insert(
-          id: Value(newBatchId),
-          productId: productId,
-          warehouseId: warehouseId,
-          batchNumber:
-              'BROKEN-${batch.batchNumber}-${DateTime.now().millisecondsSinceEpoch}',
-          quantity: Value(actualDeduction),
-          initialQuantity: Value(actualDeduction),
-          costPrice: Value(batch.costPrice),
-          expiryDate: Value(batch.expiryDate),
-          storedUnitId: Value(batch.storedUnitId),
-          quantityInStoredUnit: Value(newQtyInStoredUnit ?? actualDeduction),
-        ));
-
-    await db.into(db.inventoryTransactions).insert(
-          InventoryTransactionsCompanion.insert(
-            productId: productId,
-            warehouseId: warehouseId,
-            batchId: Value(newBatchId),
-            quantity: Value(actualDeduction),
-            type: 'PACKAGE_BREAK',
-            referenceId: 'BREAK-${batch.id}',
-          ),
-        );
-
     developer.log(
-      'Auto-broke batch ${batch.batchNumber}: $actualDeduction units @ $costPerUnit each',
+      'Reserved $actualDeduction units from batch ${currentBatch.batchNumber} '
+      '(total reserved: $newReserved, available: ${currentBatch.quantity - newReserved})',
       name: 'packaging_engine',
     );
 
     return BreakResult(
-      sourceBatchId: batch.id,
-      targetBatchId: newBatchId,
+      sourceBatchId: currentBatch.id,
+      targetBatchId: null,
       brokenQuantity: actualDeduction,
       costPerUnit: costPerUnit,
     );
@@ -173,7 +154,14 @@ class PackagingEngine {
           ..where((b) => b.warehouseId.equals(warehouseId))
           ..where(
               (b) => b.quantity.isBiggerOrEqual(Variable(minQty.toString())))
-          ..orderBy([(b) => OrderingTerm(expression: b.expiryDate)]))
+          ..orderBy([
+            (b) => OrderingTerm(
+                expression: b.expiryDate.isNull(), mode: OrderingMode.asc),
+            (b) =>
+                OrderingTerm(expression: b.expiryDate, mode: OrderingMode.asc),
+            (b) =>
+                OrderingTerm(expression: b.createdAt, mode: OrderingMode.asc),
+          ]))
         .get();
   }
 

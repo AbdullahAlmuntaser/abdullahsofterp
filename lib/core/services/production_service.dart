@@ -59,21 +59,27 @@ class ProductionService {
       // 1. Consume Raw Materials from actual batches
       Decimal totalCost = Decimal.zero;
       for (var item in items) {
-        final batches = await (db.select(db.productBatches)
-              ..where((b) => b.productId.equals(item.componentProductId))
-              ..where((b) => b.quantity.isBiggerThan(
-                  Constant(Decimal.zero.toString()))))
+        final allBatches = await (db.select(db.productBatches)
+              ..where(
+                  (b) => b.productId.equals(item.componentProductId)))
             .get();
+        final batches = allBatches
+            .where((b) => (b.quantity - b.reservedQuantity) > Decimal.zero)
+            .toList();
 
         Decimal remaining = item.plannedQuantity;
         for (var batch in batches) {
           if (remaining <= Decimal.zero) break;
-          final deduct = remaining > batch.quantity ? batch.quantity : remaining;
+          final available = batch.quantity - batch.reservedQuantity;
+          final deduct = remaining > available ? available : remaining;
+          final deductFromReserved =
+              batch.reservedQuantity >= deduct ? deduct : batch.reservedQuantity;
 
           await (db.update(db.productBatches)
                 ..where((b) => b.id.equals(batch.id)))
               .write(ProductBatchesCompanion(
             quantity: Value(batch.quantity - deduct),
+            reservedQuantity: Value(batch.reservedQuantity - deductFromReserved),
           ));
 
           await db.stockMovementDao.insertStockMovement(

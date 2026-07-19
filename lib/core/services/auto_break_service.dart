@@ -295,7 +295,7 @@ class AutoBreakService {
 
     Decimal totalBaseQty = Decimal.zero;
     for (final batch in batches) {
-      totalBaseQty += batch.quantity;
+      totalBaseQty += batch.quantity - batch.reservedQuantity;
     }
 
     return totalBaseQty >= targetNode.factor;

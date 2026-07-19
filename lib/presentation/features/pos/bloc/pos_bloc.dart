@@ -321,6 +321,16 @@ class PosBloc extends Bloc<PosEvent, PosState> {
     }
   }
 
+  Future<Decimal> _getTotalReserved(String productId) async {
+    final batches = await (db.select(db.productBatches)
+          ..where((b) => b.productId.equals(productId)))
+        .get();
+    return batches.fold<Decimal>(
+      Decimal.zero,
+      (sum, b) => sum + b.reservedQuantity,
+    );
+  }
+
   @override
   Future<void> close() {
     _productSubscription.cancel();
@@ -559,14 +569,18 @@ class PosBloc extends Bloc<PosEvent, PosState> {
       orElse: () => currentState.cart.first,
     );
 
-    if (!item.product.isService &&
-        (event.quantity * item.unitFactor) > item.product.stock) {
-      emit(PosError(t?.call('posQuantityExceedsStock', args: {
-            'quantity': event.quantity.toString(),
-            'stock': item.product.stock.toString()
-          }) ??
-          "الكمية المطلوبة (${event.quantity}) تتجاوز المخزون المتاح (${item.product.stock})"));
-      return;
+    if (!item.product.isService) {
+      final totalReserved = await _getTotalReserved(item.product.id);
+      final available = item.product.stock - totalReserved;
+      final requested = event.quantity * item.unitFactor;
+      if (requested > available) {
+        emit(PosError(t?.call('posQuantityExceedsStock', args: {
+              'quantity': event.quantity.toString(),
+              'stock': available.toStringAsFixed(0)
+            }) ??
+            "الكمية المطلوبة (${event.quantity.toStringAsFixed(0)}) تتجاوز المخزون المتاح (${available.toStringAsFixed(0)})"));
+        return;
+      }
     }
 
     final updatedCart = currentState.cart.map((item) {
