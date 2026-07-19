@@ -175,6 +175,10 @@ class Products extends Table with SyncableTable {
       .map(const DecimalConverter())
       .nullable()(); // Extra cost for variant over base product
   TextColumn get imagePath => text().nullable()(); // Local image file path
+  TextColumn get displayUnitId => text().nullable().references(
+        ProductUnits,
+        #id,
+      )(); // Preferred display unit for stock formatting
 }
 
 class ProductUnits extends Table with SyncableTable {

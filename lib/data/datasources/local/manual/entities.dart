@@ -85,6 +85,7 @@ class Product {
   final DateTime? expiryDate; final Decimal taxRate; final bool isActive;
   final String? parentProductId; final String? attributes;
   final Decimal? additionalCost; final String? imagePath;
+  final String? displayUnitId;
   Product.fromMap(Map<String, dynamic> m) :
     id = m['id'], name = m['name'], sku = m['sku'],
     barcode = m['barcode'], categoryId = m['category_id'],
@@ -100,7 +101,8 @@ class Product {
     expiryDate = m['expiry_date'] != null ? DateTime.parse(m['expiry_date']) : null,
     taxRate = _d(m['tax_rate']), isActive = _b(m['is_active']),
     parentProductId = m['parent_product_id'], attributes = m['attributes'],
-    additionalCost = _d(m['additional_cost']), imagePath = m['image_path'];
+    additionalCost = _d(m['additional_cost']), imagePath = m['image_path'],
+    displayUnitId = m['display_unit_id'];
 }
 
 class ProductUnit {

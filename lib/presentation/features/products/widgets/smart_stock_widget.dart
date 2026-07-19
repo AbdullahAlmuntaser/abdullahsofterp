@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
-import 'package:supermarket/core/utils/erp_logic.dart' as erp;
-import 'package:supermarket/core/utils/quantity.dart';
+import 'package:supermarket/core/utils/stock_display_adapter.dart';
 
 class SmartStockWidget extends StatelessWidget {
   final Product product;
@@ -13,22 +12,10 @@ class SmartStockWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final db = context.watch<AppDatabase>();
 
-    return StreamBuilder<List<UnitConversion>>(
-      stream: (db.select(
-        db.unitConversions,
-      )..where((t) => t.productId.equals(product.id)))
-          .watch(),
+    return FutureBuilder<String>(
+      future: StockDisplayAdapter(db).formatProductStock(product),
       builder: (context, snapshot) {
-        final conversions = snapshot.data ?? [];
-        final erpConversions = conversions
-            .map((c) =>
-                erp.UnitConversion(unitName: c.unitName, factor: c.factor))
-            .toList();
-        final formattedStock = erp.ErpLogic.formatInventory(
-          totalBaseQty: Quantity(product.stock),
-          baseUnitName: product.unit,
-          conversions: erpConversions,
-        );
+        final formattedStock = snapshot.data ?? '...';
 
         return Text(
           formattedStock,

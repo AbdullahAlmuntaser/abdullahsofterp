@@ -87,6 +87,10 @@ void main() {
     });
 
     test('cleanup handles product with no BROKEN batches', () async {
+      await db.into(db.warehouses).insert(WarehousesCompanion.insert(
+            id: const drift.Value('wh-1'),
+            name: 'Main Warehouse',
+          ));
       await db.into(db.products).insert(ProductsCompanion.insert(
             id: const drift.Value('clean-product'),
             name: 'Clean Product',
@@ -122,6 +126,10 @@ void main() {
     });
 
     test('cleanup handles orphaned BROKEN (no parent)', () async {
+      await db.into(db.warehouses).insert(WarehousesCompanion.insert(
+            id: const drift.Value('wh-1'),
+            name: 'Main Warehouse',
+          ));
       await db.into(db.products).insert(ProductsCompanion.insert(
             id: const drift.Value('orphan-prod'),
             name: 'Orphan Product',
