@@ -109,8 +109,9 @@ class PackagingEngine {
     ));
 
     Decimal? newQtyInStoredUnit;
-    if (batch.quantityInStoredUnit > Decimal.zero && batch.quantity > Decimal.zero) {
-      newQtyInStoredUnit = (actualDeduction * batch.quantityInStoredUnit / batch.quantity)
+    final storedQty = batch.quantityInStoredUnit;
+    if (storedQty != null && storedQty > Decimal.zero && batch.quantity > Decimal.zero) {
+      newQtyInStoredUnit = (actualDeduction * storedQty / batch.quantity)
           .toDecimal(scaleOnInfinitePrecision: 4);
     }
     final newBatchId = const Uuid().v4();

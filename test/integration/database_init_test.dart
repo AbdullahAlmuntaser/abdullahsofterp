@@ -119,7 +119,7 @@ void main() {
       final result = await db.customSelect("PRAGMA user_version").get();
       final version = result.first.data.values.first as int;
 
-      expect(version, equals(52), reason: 'Schema version should be 52');
+      expect(version, equals(53), reason: 'Schema version should be 53');
 
       await db.close();
     });

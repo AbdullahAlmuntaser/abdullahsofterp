@@ -10,7 +10,8 @@ class StockDisplayAdapter {
     ProductBatch batch, {
     List<ProductUnit>? productUnits,
   }) async {
-    if (batch.storedUnitId == null || batch.quantityInStoredUnit <= Decimal.zero) {
+    final storedQty = batch.quantityInStoredUnit;
+    if (storedQty == null || batch.storedUnitId == null || storedQty <= Decimal.zero) {
       return '${batch.quantity.toStringAsFixed(0)} حبة';
     }
 
@@ -20,7 +21,6 @@ class StockDisplayAdapter {
       return '${batch.quantity.toStringAsFixed(0)} حبة';
     }
 
-    final storedQty = batch.quantityInStoredUnit;
     final wholeUnits = Decimal.parse(storedQty.toStringAsFixed(0));
     final remainder = (storedQty - wholeUnits) * storedUnit.unitFactor;
 

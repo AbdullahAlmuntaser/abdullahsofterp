@@ -1,5 +1,5 @@
 import 'package:drift/drift.dart';
-import 'package:supermarket/data/datasources/local/app_database.dart';
+import 'package:supermarket/data/datasources/local/app_database.dart' hide Quotation, QuotationItem;
 import '../models/quotation.dart';
 import '../../domain/repositories/quotation_repository.dart';
 
