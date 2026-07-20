@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
+import 'package:supermarket/core/utils/stock_display_adapter.dart';
 
 class UnitBreakdown {
   final String unitName;
@@ -47,7 +48,17 @@ class _ProductUnitExt {
 
 class InventoryDisplayService {
   final AppDatabase db;
-  InventoryDisplayService(this.db);
+  late final StockDisplayAdapter _adapter;
+
+  InventoryDisplayService(this.db) {
+    _adapter = StockDisplayAdapter(db);
+  }
+
+  StockDisplayAdapter get adapter => _adapter;
+
+  Future<String> formatProductStock(Product product) {
+    return _adapter.formatProductStock(product);
+  }
 
   Future<String> formatForDisplay({
     required Decimal baseQty,

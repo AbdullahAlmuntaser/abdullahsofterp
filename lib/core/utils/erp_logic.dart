@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'package:intl/intl.dart';
+import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'money.dart';
 import 'quantity.dart';
-import 'package:supermarket/data/datasources/local/app_database.dart';
 
 class ErpLogic {
   /// Calculates financial totals for an invoice based on items.
@@ -77,57 +77,4 @@ class ErpLogic {
     return base64.encode(bytes);
   }
 
-  /// Checks stock availability before sale.
-  /// Deprecated: use StockDisplayAdapter or direct comparison with base units.
-  static bool hasEnoughStock(
-    Product product,
-    Quantity requestedQty,
-    bool isCarton,
-  ) {
-    final actualQty =
-        isCarton ? requestedQty * product.piecesPerCarton : requestedQty;
-    return product.stock >= actualQty.value;
-  }
-
-  /// Formats inventory balance intelligently (e.g., 2 cartons and 5 pieces).
-  @Deprecated('Use StockDisplayAdapter.formatProductStock() instead')
-  static String formatInventory({
-    required Quantity totalBaseQty,
-    required String baseUnitName,
-    required List<UnitConversion> conversions,
-  }) {
-    if (totalBaseQty.isZero()) return '0 $baseUnitName';
-
-    final sortedConversions = List<UnitConversion>.from(conversions)
-      ..sort((a, b) => b.factor.compareTo(a.factor));
-
-    List<String> parts = [];
-    Decimal remaining = totalBaseQty.value;
-
-    for (var unit in sortedConversions) {
-      if (unit.factor <= Decimal.one) continue;
-
-      final count =
-          (remaining / unit.factor).toDecimal(scaleOnInfinitePrecision: 0);
-      if (count > Decimal.zero) {
-        parts.add('${count.toStringAsFixed(0)} ${unit.unitName}');
-        remaining -= count * unit.factor;
-      }
-    }
-
-    if (remaining > Decimal.zero || parts.isEmpty) {
-      final formattedRemaining = remaining == remaining.truncate()
-          ? remaining.truncate().toString()
-          : remaining.toStringAsFixed(2);
-      parts.add('$formattedRemaining $baseUnitName');
-    }
-
-    return parts.join(' و ');
-  }
-}
-
-class UnitConversion {
-  final String unitName;
-  final Decimal factor;
-  UnitConversion({required this.unitName, required this.factor});
 }

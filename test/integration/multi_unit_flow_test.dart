@@ -3,11 +3,15 @@ import 'package:drift/native.dart';
 import 'package:drift/drift.dart' as drift;
 import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:supermarket/core/services/packaging_engine.dart';
+import 'package:supermarket/core/services/inventory_costing_service.dart';
+import 'package:supermarket/data/datasources/local/daos/stock_movement_dao.dart';
+import 'package:supermarket/core/utils/stock_display_adapter.dart';
 import 'package:supermarket/core/services/security_service.dart';
 
 void main() {
   late AppDatabase db;
   late PackagingEngine packagingEngine;
+  late InventoryCostingService costingService;
 
   setUpAll(() {
     SecurityService.useFakeKeyForTesting = true;
@@ -16,6 +20,7 @@ void main() {
   setUp(() async {
     db = AppDatabase(NativeDatabase.memory());
     packagingEngine = PackagingEngine(db);
+    costingService = InventoryCostingService(StockMovementDao(db), db);
     await _seedData(db);
   });
 
@@ -214,6 +219,57 @@ void main() {
           await db.productsDao.getWarehouseStock('product-1', 'wh-1');
       expect(available, equals(Decimal.zero),
           reason: 'All stock should be reserved (60 reserved, 0 available)');
+    });
+  });
+
+  group('Integration: StockDisplayAdapter + FIFO', () {
+    test('StockDisplayAdapter.formatProductStock formats correctly', () async {
+      final adapter = StockDisplayAdapter(db);
+      final product = await (db.select(db.products)
+            ..where((p) => p.id.equals('product-1')))
+          .getSingle();
+
+      final formatted = await adapter.formatProductStock(product);
+      expect(formatted, contains('Carton'),
+          reason: '60 units at 12/unit Carton = 5 Cartons');
+    });
+
+    test('getBatchesInFifoOrder returns FIFO-ordered batches', () async {
+      // Add a second batch with later expiry
+      await db.into(db.productBatches).insert(ProductBatchesCompanion.insert(
+            id: const drift.Value('batch-2'),
+            productId: 'product-1',
+            warehouseId: 'wh-1',
+            batchNumber: 'BATCH-002',
+            quantity: drift.Value(Decimal.fromInt(30)),
+            initialQuantity: drift.Value(Decimal.fromInt(30)),
+            costPrice: drift.Value(Decimal.zero),
+            expiryDate: drift.Value(DateTime(2026, 12, 31)),
+            storedUnitId: const drift.Value(null),
+            quantityInStoredUnit: const drift.Value(null),
+          ));
+
+      final fifoBatches = await costingService.getBatchesInFifoOrder(
+        'product-1',
+        onlyAvailable: true,
+      );
+
+      // BATCH-002 (future expiry) should come before BATCH-001 (null expiry)
+      expect(fifoBatches.length, equals(2));
+      expect(fifoBatches.first.batchNumber, equals('BATCH-002'),
+          reason: 'Future expiry should sort before null expiry');
+      expect(fifoBatches.last.batchNumber, equals('BATCH-001'));
+    });
+
+    test('getBatchesInFifoOrder filters by warehouse', () async {
+      final whBatches = await costingService.getBatchesInFifoOrder(
+        'product-1',
+        warehouseId: 'wh-1',
+        onlyAvailable: true,
+      );
+
+      expect(whBatches.length, equals(1));
+      expect(whBatches.first.warehouseId, equals('wh-1'));
     });
   });
 }

@@ -225,17 +225,44 @@ class InventoryCostingService {
     );
   }
 
-  Future<List<BatchWithCost>> getBatchesForSale(
-      String productId, Decimal quantity, {String? warehouseId}) async {
-    final method = await getProductValuationMethod(productId);
-    final batches = await (_db.select(_db.productBatches)).get();
-
-    var productBatches = batches
-        .where((b) => b.productId == productId && (b.quantity - b.reservedQuantity) > Decimal.zero);
+  /// Returns batches ordered by FIFO (expiry date then createdAt) suitable for consumption
+  Future<List<ProductBatch>> getBatchesInFifoOrder(
+    String productId, {
+    String? warehouseId,
+    bool onlyAvailable = false,
+  }) async {
+    final allBatches = await (_db.select(_db.productBatches)).get();
+    var productBatches = allBatches
+        .where((b) => b.productId == productId);
+    if (onlyAvailable) {
+      productBatches = productBatches.where((b) => (b.quantity - b.reservedQuantity) > Decimal.zero);
+    }
     if (warehouseId != null && warehouseId.isNotEmpty) {
       productBatches = productBatches.where((b) => b.warehouseId == warehouseId);
     }
-    final filteredBatches = productBatches.toList();
+    var filtered = productBatches.toList();
+    filtered.sort((a, b) {
+      if (a.expiryDate == null && b.expiryDate == null) {
+        return a.createdAt.compareTo(b.createdAt);
+      }
+      if (a.expiryDate == null) return 1;
+      if (b.expiryDate == null) return -1;
+      final expiryCmp = a.expiryDate!.compareTo(b.expiryDate!);
+      if (expiryCmp != 0) return expiryCmp;
+      return a.createdAt.compareTo(b.createdAt);
+    });
+    return filtered;
+  }
+
+  Future<List<BatchWithCost>> getBatchesForSale(
+      String productId, Decimal quantity, {String? warehouseId}) async {
+    final method = await getProductValuationMethod(productId);
+
+    final filteredBatches = await getBatchesInFifoOrder(
+      productId,
+      warehouseId: warehouseId,
+      onlyAvailable: true,
+    );
 
     if (filteredBatches.isEmpty) return [];
 
@@ -243,25 +270,18 @@ class InventoryCostingService {
 
     switch (method) {
       case InventoryValuationMethod.avco:
-        final avgCost = (filteredBatches.fold<Decimal>(
+        final totalQty = filteredBatches.fold<Decimal>(
+          Decimal.zero,
+          (sum, b) => sum + b.quantity,
+        );
+        final avgCost = totalQty > Decimal.zero
+            ? (filteredBatches.fold<Decimal>(
                   Decimal.zero,
                   (sum, b) => sum + b.quantity * b.costPrice,
-                ) /
-                filteredBatches.fold<Decimal>(
-                  Decimal.zero,
-                  (sum, b) => sum + b.quantity,
-                ))
-            .toDecimal();
+                ) / totalQty).toDecimal()
+            : Decimal.zero;
 
-        sortedBatches = List<ProductBatch>.from(filteredBatches)
-          ..sort((a, b) {
-            if (a.expiryDate == null && b.expiryDate == null) {
-              return a.createdAt.compareTo(b.createdAt);
-            }
-            if (a.expiryDate == null) return 1;
-            if (b.expiryDate == null) return -1;
-            return a.expiryDate!.compareTo(b.expiryDate!);
-          });
+        sortedBatches = filteredBatches;
 
         Decimal remaining = quantity;
         final result = <BatchWithCost>[];
@@ -286,15 +306,7 @@ class InventoryCostingService {
 
       case InventoryValuationMethod.fifo:
       default:
-        sortedBatches = List<ProductBatch>.from(filteredBatches)
-          ..sort((a, b) {
-            if (a.expiryDate == null && b.expiryDate == null) {
-              return a.createdAt.compareTo(b.createdAt);
-            }
-            if (a.expiryDate == null) return 1;
-            if (b.expiryDate == null) return -1;
-            return a.expiryDate!.compareTo(b.expiryDate!);
-          });
+        sortedBatches = filteredBatches;
     }
 
     Decimal remaining = quantity;

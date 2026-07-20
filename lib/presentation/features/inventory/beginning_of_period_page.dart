@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:drift/drift.dart' hide Column;
 import 'package:supermarket/data/datasources/local/app_database.dart';
+import 'package:supermarket/core/services/transaction_engine.dart';
+import 'package:supermarket/core/services/posting_engine.dart';
+import 'package:supermarket/core/services/packaging_engine.dart';
+import 'package:supermarket/core/services/inventory_costing_service.dart';
 import 'package:intl/intl.dart';
 
 class BeginningOfPeriodPage extends StatefulWidget {
@@ -330,54 +334,39 @@ class _BeginningOfPeriodPageState extends State<BeginningOfPeriodPage> {
     try {
       if (!mounted) return;
       final db = context.read<AppDatabase>();
-      int updatedCount = 0;
 
-      await db.transaction(() async {
-        for (final product in _filteredProducts) {
-          final qtyText = _quantityControllers[product.id]?.text ?? '0';
-          final costText = _costControllers[product.id]?.text ?? '0';
-
-          final newQty = Decimal.tryParse(qtyText) ?? Decimal.zero;
-          final newCost = Decimal.tryParse(costText) ?? Decimal.zero;
-
-          if (newQty != product.stock || newCost != product.buyPrice) {
-            await (db.update(db.products)
-                  ..where((p) => p.id.equals(product.id)))
-                .write(ProductsCompanion(
-              stock: Value(newQty),
-              buyPrice: Value(newCost),
-              updatedAt: Value(DateTime.now()),
-            ));
-
-            await db.into(db.inventoryTransactions).insert(
-                  InventoryTransactionsCompanion.insert(
-                    productId: product.id,
-                    warehouseId: _selectedWarehouseId!,
-                    quantity: Value(newQty),
-                    type: 'BEGINNING_BALANCE',
-                    referenceId: product.id,
-                  ),
-                );
-
-            await db.into(db.auditLogs).insert(
-                  AuditLogsCompanion.insert(
-                    action: 'BEGINNING_BALANCE',
-                    targetEntity: 'PRODUCT',
-                    entityId: product.id,
-                    details:
-                        Value('Beginning balance: qty=$newQty, cost=$newCost'),
-                  ),
-                );
-
-            updatedCount++;
-          }
+      final items = <({String productId, Decimal quantity, Decimal cost})>[];
+      for (final product in _filteredProducts) {
+        final qtyText = _quantityControllers[product.id]?.text ?? '0';
+        final costText = _costControllers[product.id]?.text ?? '0';
+        final newQty = Decimal.tryParse(qtyText) ?? Decimal.zero;
+        final newCost = Decimal.tryParse(costText) ?? Decimal.zero;
+        if (newQty != product.stock || newCost != product.buyPrice) {
+          items.add((
+            productId: product.id,
+            quantity: newQty,
+            cost: newCost,
+          ));
         }
-      });
+      }
+
+      final engine = TransactionEngine(
+        db,
+        context.read(),
+        PostingEngine(db),
+        PackagingEngine(db),
+        InventoryCostingService(db.stockMovementDao, db),
+      );
+      await engine.postBeginningBalance(
+        warehouseId: _selectedWarehouseId!,
+        periodDate: _periodDate,
+        items: items,
+      );
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('تم حفظ الأرصدة الأولية لـ $updatedCount منتج'),
+            content: Text('تم حفظ الأرصدة الأولية لـ ${items.length} منتج'),
             backgroundColor: Colors.green,
           ),
         );

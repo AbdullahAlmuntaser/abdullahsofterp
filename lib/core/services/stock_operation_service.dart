@@ -3,6 +3,7 @@ import 'package:uuid/uuid.dart';
 import 'package:supermarket/core/constants/account_codes.dart';
 import 'package:supermarket/core/services/audit_service.dart';
 import 'package:supermarket/core/services/app_config_service.dart';
+import 'package:supermarket/core/services/stock_transfer_service.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
 
 class StockOperationService {
@@ -244,109 +245,19 @@ class StockOperationService {
     String? note,
     String? userId,
   }) async {
-    await db.transaction(() async {
-      final transferId = const Uuid().v4();
+    final transferItems = items.map((item) => TransferItemData(
+      productId: item.productId.value,
+      batchId: item.batchId.value,
+      quantity: Decimal.parse(item.quantity.value.toString()),
+    )).toList();
 
-      await db.into(db.stockTransfers).insert(
-            StockTransfersCompanion.insert(
-              id: drift.Value(transferId),
-              fromWarehouseId: fromWarehouseId,
-              toWarehouseId: toWarehouseId,
-              transferDate: drift.Value(DateTime.now()),
-              note: drift.Value(note),
-              status: const drift.Value('COMPLETED'),
-            ),
-          );
-
-      for (var itemCompanion in items) {
-        final productId = itemCompanion.productId.value;
-        final batchId = itemCompanion.batchId.value;
-        final qty = itemCompanion.quantity.value;
-
-        final sourceBatch = await (db.select(db.productBatches)
-              ..where((b) => b.id.equals(batchId)))
-            .getSingle();
-
-        final qtyDecimal = Decimal.parse(qty.toString());
-        final sourceAvailable = sourceBatch.quantity - sourceBatch.reservedQuantity;
-        if (sourceAvailable < qtyDecimal) {
-          throw Exception(
-              'الكمية غير كافية في الدفعة المصدر لمستودع ${sourceBatch.warehouseId}. '
-              'المتاح: $sourceAvailable، المطلوب: $qtyDecimal');
-        }
-        final deductFromReserved = sourceBatch.reservedQuantity >= qtyDecimal
-            ? qtyDecimal
-            : sourceBatch.reservedQuantity;
-
-        await (db.update(db.productBatches)
-          ..where((b) => b.id.equals(batchId)))
-            .write(ProductBatchesCompanion(
-          quantity: drift.Value(sourceBatch.quantity - qtyDecimal),
-          reservedQuantity: drift.Value(sourceBatch.reservedQuantity - deductFromReserved),
-        ));
-
-        final targetBatch = await (db.select(db.productBatches)
-              ..where((b) =>
-                  b.productId.equals(productId) &
-                  b.warehouseId.equals(toWarehouseId) &
-                  b.batchNumber.equals(sourceBatch.batchNumber)))
-            .getSingleOrNull();
-
-        if (targetBatch != null) {
-          await (db.update(db.productBatches)
-            ..where((b) => b.id.equals(targetBatch.id)))
-              .write(ProductBatchesCompanion(
-                  quantity: drift.Value(targetBatch.quantity + qtyDecimal)));
-        } else {
-          await db.into(db.productBatches).insert(
-                ProductBatchesCompanion.insert(
-                  productId: productId,
-                  warehouseId: toWarehouseId,
-                  batchNumber: sourceBatch.batchNumber,
-                  expiryDate: drift.Value(sourceBatch.expiryDate),
-                  quantity: drift.Value(qtyDecimal),
-                  initialQuantity: drift.Value(qtyDecimal),
-                  costPrice: drift.Value(sourceBatch.costPrice),
-                ),
-              );
-        }
-
-        await db.into(db.stockTransferItems).insert(
-              itemCompanion.copyWith(transferId: drift.Value(transferId)),
-            );
-
-        await db.into(db.inventoryTransactions).insert(
-              InventoryTransactionsCompanion.insert(
-                productId: productId,
-                warehouseId: fromWarehouseId,
-                batchId: drift.Value(batchId),
-                quantity: drift.Value(-qty),
-                type: 'TRANSFER_OUT',
-                referenceId: transferId,
-              ),
-            );
-
-        final targetBatchId = targetBatch?.id ?? const Uuid().v4();
-        await db.into(db.inventoryTransactions).insert(
-              InventoryTransactionsCompanion.insert(
-                productId: productId,
-                warehouseId: toWarehouseId,
-                batchId: drift.Value(targetBatchId),
-                quantity: drift.Value(qty),
-                type: 'TRANSFER_IN',
-                referenceId: transferId,
-              ),
-            );
-      }
-
-      await _auditService.log(
-        action: 'STOCK_TRANSFER',
-        targetEntity: 'StockTransfers',
-        entityId: transferId,
-        userId: userId,
-        details:
-            'Transferred stock from $fromWarehouseId to $toWarehouseId',
-      );
-    });
+    final transferService = StockTransferService(db);
+    await transferService.processTransfer(
+      fromWarehouseId: fromWarehouseId,
+      toWarehouseId: toWarehouseId,
+      items: transferItems,
+      note: note,
+      userId: userId,
+    );
   }
 }

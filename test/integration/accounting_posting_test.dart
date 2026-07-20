@@ -2,7 +2,6 @@ import 'package:drift/drift.dart' hide isNotNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
-import 'package:supermarket/data/datasources/local/daos/stock_movement_dao.dart';
 import 'package:supermarket/core/services/transaction_engine.dart';
 import 'package:supermarket/core/services/posting_engine.dart';
 import 'package:supermarket/core/services/event_bus_service.dart';
@@ -307,7 +306,8 @@ void main() {
       final eventBus = EventBusService();
       final postingEngine = PostingEngine(db);
       final packagingEngine = PackagingEngine(db);
-      final engine = TransactionEngine(db, eventBus, postingEngine, packagingEngine);
+      final costingService = InventoryCostingService(db.stockMovementDao, db);
+      final engine = TransactionEngine(db, eventBus, postingEngine, packagingEngine, costingService);
 
       final saleId = const Uuid().v4();
       await db.into(db.sales).insert(SalesCompanion.insert(
@@ -355,7 +355,8 @@ void main() {
       final eventBus = EventBusService();
       final postingEngine = PostingEngine(db);
       final packagingEngine = PackagingEngine(db);
-      final engine = TransactionEngine(db, eventBus, postingEngine, packagingEngine);
+      final costingService = InventoryCostingService(db.stockMovementDao, db);
+      final engine = TransactionEngine(db, eventBus, postingEngine, packagingEngine, costingService);
 
       final purchaseId = const Uuid().v4();
       await db.into(db.purchases).insert(PurchasesCompanion.insert(

@@ -72,14 +72,6 @@ class UpdateCartItemUnit extends PosEvent {
   List<Object?> get props => [productId, unitName];
 }
 
-class ToggleCartItemUnit extends PosEvent {
-  final String productId;
-  final bool isCarton;
-  const ToggleCartItemUnit(this.productId, this.isCarton);
-  @override
-  List<Object?> get props => [productId, isCarton];
-}
-
 class SearchProducts extends PosEvent {
   final String query;
   const SearchProducts(this.query);

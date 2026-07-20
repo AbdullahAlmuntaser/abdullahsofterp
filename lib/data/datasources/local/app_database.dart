@@ -1413,7 +1413,7 @@ class AppDatabase extends _$AppDatabase {
   static String? encryptionKey;
 
   @override
-  int get schemaVersion => 53;
+  int get schemaVersion => 54;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -1842,6 +1842,27 @@ class AppDatabase extends _$AppDatabase {
               debugPrint('DB Migration v53: idx_quotation_items_quotation: $e');
             }
           }
+          if (from < 54) {
+            // Version 54: Add reservedQuantity + storedUnitId columns to product_batches
+            try {
+              await customStatement(
+                  'ALTER TABLE product_batches ADD COLUMN reserved_quantity TEXT NOT NULL DEFAULT \'0\'');
+            } catch (e) {
+              debugPrint('DB Migration v54: reserved_quantity: $e');
+            }
+            try {
+              await customStatement(
+                  'ALTER TABLE product_batches ADD COLUMN stored_unit_id TEXT');
+            } catch (e) {
+              debugPrint('DB Migration v54: stored_unit_id: $e');
+            }
+            try {
+              await customStatement(
+                  'ALTER TABLE product_batches ADD COLUMN quantity_in_stored_unit TEXT');
+            } catch (e) {
+              debugPrint('DB Migration v54: quantity_in_stored_unit: $e');
+            }
+          }
         },
         beforeOpen: (details) async {
           await customStatement('PRAGMA foreign_keys = ON;');
@@ -2239,7 +2260,9 @@ class AppDatabase extends _$AppDatabase {
     for (final stmt in indexStatements) {
       try {
         await customStatement(stmt);
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('DB: Failed to create index: $e');
+      }
     }
   }
 
@@ -2353,8 +2376,6 @@ class AppDatabase extends _$AppDatabase {
     }
   }
 
-  /// Seeds the default GL accounts required for the posting engine.
-  /// Called automatically on first database creation.
   Future<void> seedDefaultGLAccounts() async {
     final existingAccounts = await select(gLAccounts).get();
     if (existingAccounts.isNotEmpty) return;
@@ -2386,43 +2407,32 @@ class AppDatabase extends _$AppDatabase {
     }
   }
 
-  /// Seeds default posting profiles so the posting engine can resolve accounts.
-  /// Called automatically on first database creation.
   Future<void> seedDefaultPostingProfiles() async {
     final existing = await select(postingProfiles).get();
     if (existing.isNotEmpty) return;
 
-    // Map of (operationType, accountType) -> (accountCode, side)
     const profileDefs = [
-      // SALE profiles
       ('SALE', 'RECEIVABLE', '1030', 'DEBIT'),
       ('SALE', 'REVENUE', '4010', 'CREDIT'),
       ('SALE', 'OUTPUT_VAT', '2020', 'CREDIT'),
       ('SALE', 'COGS', '5010', 'DEBIT'),
       ('SALE', 'INVENTORY', '1040', 'CREDIT'),
-      // PURCHASE profiles
       ('PURCHASE', 'INVENTORY', '1040', 'DEBIT'),
       ('PURCHASE', 'INPUT_VAT', '1050', 'DEBIT'),
       ('PURCHASE', 'PAYABLE', '2010', 'CREDIT'),
-      // SALE_RETURN profiles
       ('SALE_RETURN', 'RECEIVABLE', '1030', 'CREDIT'),
       ('SALE_RETURN', 'RETURN', '4020', 'DEBIT'),
-      // PURCHASE_RETURN profiles
       ('PURCHASE_RETURN', 'PAYABLE', '2010', 'DEBIT'),
       ('PURCHASE_RETURN', 'RETURN', '5011', 'CREDIT'),
-      // CUSTOMER_PAYMENT profiles
       ('CUSTOMER_PAYMENT', 'CASH', '1010', 'DEBIT'),
       ('CUSTOMER_PAYMENT', 'RECEIVABLE', '1030', 'CREDIT'),
-      // SUPPLIER_PAYMENT profiles
       ('SUPPLIER_PAYMENT', 'PAYABLE', '2010', 'DEBIT'),
       ('SUPPLIER_PAYMENT', 'CASH', '1010', 'CREDIT'),
-      // CASH_TRANSACTION profiles
       ('CASH_TRANSACTION', 'CASH', '1010', 'DEBIT'),
     ];
 
     for (final def in profileDefs) {
       final (operationType, accountType, accountCode, side) = def;
-      // Find the GL account by code
       final account = await (select(gLAccounts)
             ..where((a) => a.code.equals(accountCode)))
           .getSingleOrNull();
@@ -2475,12 +2485,9 @@ class AppDatabase extends _$AppDatabase {
   }
 
   Future<void> _migrateToV40(Migrator m) async {
-    // Migration logic from Section C of implementation guide
     try {
       await m.createTable(currencies);
       await m.createTable(exchangeRates);
-
-      // Seed initial currency if table was just created
       await ensureDefaultCurrencies();
     } catch (e) {
       debugPrint('Migration to V40 failed: $e');
@@ -2496,23 +2503,15 @@ class AppDatabase extends _$AppDatabase {
   }
 
   static final List<String> _migrateToV49Statements = [
-    // APInvoices: REAL → cents
     'UPDATE ap_invoices SET total_amount = CAST(ROUND(total_amount * 100) AS INTEGER)',
-    // ARInvoices: REAL → cents
     'UPDATE ar_invoices SET total_amount = CAST(ROUND(total_amount * 100) AS INTEGER)',
-    // HREmployees: REAL → cents
     'UPDATE hr_employees SET basic_salary = CAST(ROUND(basic_salary * 100) AS INTEGER), housing_allowance = CAST(ROUND(housing_allowance * 100) AS INTEGER), transport_allowance = CAST(ROUND(transport_allowance * 100) AS INTEGER), other_allowances = CAST(ROUND(other_allowances * 100) AS INTEGER), total_deductions = CAST(ROUND(total_deductions * 100) AS INTEGER)',
-    // HRPayrollRuns: REAL → cents
     'UPDATE hr_payroll_runs SET total_salaries = CAST(ROUND(total_salaries * 100) AS INTEGER), total_allowances = CAST(ROUND(total_allowances * 100) AS INTEGER), total_deductions = CAST(ROUND(total_deductions * 100) AS INTEGER), net_payable = CAST(ROUND(net_payable * 100) AS INTEGER)',
-    // HRPayrollDetails: REAL → cents
     'UPDATE hr_payroll_details SET basic_salary = CAST(ROUND(basic_salary * 100) AS INTEGER), housing_allowance = CAST(ROUND(housing_allowance * 100) AS INTEGER), transport_allowance = CAST(ROUND(transport_allowance * 100) AS INTEGER), other_allowances = CAST(ROUND(other_allowances * 100) AS INTEGER), gross_salary = CAST(ROUND(gross_salary * 100) AS INTEGER), deductions = CAST(ROUND(deductions * 100) AS INTEGER), net_salary = CAST(ROUND(net_salary * 100) AS INTEGER)',
-    // HRAdditionalDeductions: REAL → cents
     'UPDATE hr_additional_deductions SET amount = CAST(ROUND(amount * 100) AS INTEGER)',
   ];
 
   Future<void> _migrateToV42(Migrator m) async {
-    // Re-create tables with new types (Decimal instead of Real)
-    // We use individual try-catches to ensure one missing table doesn't stop the whole migration
     final tablesToRecreate = [
       (stockTakeItems, 'stock_take_items'),
       (goodReceivedNoteItems, 'good_received_note_items'),
@@ -2535,12 +2534,11 @@ class AppDatabase extends _$AppDatabase {
         debugPrint('Migration to V42: Failed to recreate $name (might not exist): $e');
         try {
           await m.createTable(table);
-        } catch (_) {} // If delete failed because it didn't exist, try creating anyway
+        } catch (_) {}
       }
     }
 
     try {
-      // Currency Unification: Copy AccCurrencies to Currencies
       final accCurrenciesExists = await customSelect(
         "SELECT name FROM sqlite_master WHERE type='table' AND name='acc_currencies'",
       ).getSingleOrNull();
@@ -2571,13 +2569,13 @@ class AppDatabase extends _$AppDatabase {
       return 0.0;
     }
   }
+
   Stream<List<Product>> watchLowStockProducts() {
     return productsDao.watchLowStockProducts();
   }
 
   Future<int> getUnsyncedCount() async {
     try {
-      // Assuming 1 is pending status
       final countExp = syncQueue.id.count();
       final query = selectOnly(syncQueue)
         ..addColumns([countExp])
@@ -2596,7 +2594,6 @@ class AppDatabase extends _$AppDatabase {
     int batchSize = 50,
   }) async {
     debugPrint('HR backfill triggered: dryRun=$dryRun, rollback=$rollback');
-    // Implement backfill logic if needed
   }
 }
 
@@ -2638,12 +2635,10 @@ Future<void> _backupAndDelete(File file, String suffix) async {
   final backupPath = "${file.path}.${suffix}_$timestamp";
 
   try {
-    // Preserve original file for debugging before deletion
     await file.copy(backupPath);
     debugPrint("DB: File backed up to $backupPath (${await file.length()} bytes)");
   } catch (copyError) {
     debugPrint("DB: WARNING - Failed to create backup: $copyError");
-    // Continue with deletion even if backup fails — the file is already corrupted
   }
 
   try {
@@ -2657,7 +2652,6 @@ Future<void> _backupAndDelete(File file, String suffix) async {
 /// Converts an unencrypted SQLite database at [file] to the SQLCipher format
 /// using [key].
 Future<File> _convertToEncrypted(File file, String key) async {
-  // Pre-check: verify SQLCipher was loaded
   if (!isSqlCipherLoaded) {
     throw Exception(
         'CONVERSION_FAILED: SQLCipher library is not loaded. '
@@ -2676,8 +2670,6 @@ Future<File> _convertToEncrypted(File file, String key) async {
   try {
     final db = sqlite.sqlite3.open(file.path);
     try {
-      // Set cipher_page_size before ATTACH to ensure the encrypted database
-      // uses the same cipher_page_size as _openNativeDatabase.
       db.execute('PRAGMA cipher_page_size = 4096');
       db.execute(
           "ATTACH DATABASE '$escapedTempPath' AS encrypted KEY '$escapedKey'");
@@ -2687,7 +2679,6 @@ Future<File> _convertToEncrypted(File file, String key) async {
       db.dispose();
     }
 
-    // Verify the encrypted file exists and is valid
     if (!await tempFile.exists()) {
       throw Exception(
           'CONVERSION_FAILED: Encrypted temporary file was not created at $tempPath');
@@ -2695,7 +2686,6 @@ Future<File> _convertToEncrypted(File file, String key) async {
 
     final verifyDb = sqlite.sqlite3.open(tempPath);
     try {
-      // Use identical cipher_page_size setting as _openNativeDatabase
       verifyDb.execute('PRAGMA cipher_page_size = 4096');
       verifyDb.execute("PRAGMA key = '$escapedKey'");
       final result = verifyDb.select("PRAGMA integrity_check;");
@@ -2708,7 +2698,6 @@ Future<File> _convertToEncrypted(File file, String key) async {
       verifyDb.dispose();
     }
 
-    // Backup the original unencrypted file before replacing
     final backupPath = '${file.path}.unencrypted_backup_$timestamp';
     await file.copy(backupPath);
     debugPrint("DB ENCRYPT: Unencrypted backup saved to: $backupPath");
@@ -2774,11 +2763,6 @@ Future<QueryExecutor> _connectWithRecovery({bool isRetry = false}) async {
       }
     }
 
-    // ═══════════════════════════════════════════════════════════════════════
-    // Pre-validation: test the encryption key before the main open below.
-    // If the key doesn't match, the database is deleted so _openNativeDatabase
-    // can create a fresh encrypted database with the correct key.
-    // ═══════════════════════════════════════════════════════════════════════
     if (encryptionKey != null && await file.exists() && isSqlCipherLoaded) {
       debugPrint("DB PRE-VALIDATE: Verifying encryption key against existing database...");
       final escapedKey = encryptionKey.replaceAll("'", "''");
@@ -2824,7 +2808,6 @@ Future<QueryExecutor> _connectWithRecovery({bool isRetry = false}) async {
           (s.contains('code 26') || s.contains('DATABASE_ENCRYPTION_ERROR') || s.contains('file is not a database'))) {
         debugPrint("DB: Encryption error detected. Attempting recovery...");
 
-        // Step 1: Try legacy KDF
         if (await file.exists()) {
           debugPrint("DB: Step 1 - Trying SQLCipher 3 legacy settings...");
           try {
@@ -2834,7 +2817,6 @@ Future<QueryExecutor> _connectWithRecovery({bool isRetry = false}) async {
           }
         }
 
-        // Step 2: Always delete and recreate on encryption error
         if (await file.exists()) {
           final fileSize = await file.length();
           debugPrint("DB: Step 2 - Deleting corrupted file ($fileSize bytes) and recreating...");
@@ -2873,7 +2855,6 @@ Future<QueryExecutor> _openNativeDatabase(
       "useLegacyKdf=$useLegacyKdf, "
       "sqlCipherLoaded=$isSqlCipherLoaded");
 
-  // Pre-check: verify SQLCipher was loaded before attempting to open
   if (encryptionKey != null && !isSqlCipherLoaded) {
     throw Exception(
         'NO_SQLCIPHER: The SQLCipher native library was not loaded. '
@@ -2881,12 +2862,6 @@ Future<QueryExecutor> _openNativeDatabase(
         'Ensure sqlcipher_flutter_libs is properly included in the build.');
   }
 
-  // Use the synchronous NativeDatabase(File, setup:) constructor (NOT
-  // createInBackground) to avoid the background isolate closure capture
-  // issue. The setup callback here runs in the main isolate where captured
-  // variables like encryptionKey are correctly available.
-  // Drift docs confirm: createInBackground's setup "must be a static or
-  // top-level function" because it runs in another isolate.
   return NativeDatabase(
     file,
     logStatements: kDebugMode,

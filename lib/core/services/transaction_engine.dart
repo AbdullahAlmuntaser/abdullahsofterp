@@ -670,27 +670,24 @@ class TransactionEngine {
 
       for (var item in items) {
         Decimal remainingToDeduct = item.quantity;
-        final batches = await (db.select(db.productBatches)
-              ..where((b) => b.productId.equals(item.productId))
-              ..where((b) =>
-                  b.quantity.isBiggerThan(Constant(Decimal.zero.toString())))
-              ..orderBy([
-                (b) => OrderingTerm(
-                    expression: b.expiryDate.isNull(), mode: OrderingMode.asc),
-                (b) => OrderingTerm(
-                    expression: b.expiryDate, mode: OrderingMode.asc),
-              ]))
-            .get();
+        final batches = await _costingService.getBatchesInFifoOrder(
+          item.productId,
+          onlyAvailable: true,
+        );
 
         for (var batch in batches) {
           if (remainingToDeduct <= Decimal.zero) break;
-          Decimal deduct = batch.quantity >= remainingToDeduct
-              ? remainingToDeduct
-              : batch.quantity;
+          final available = batch.quantity - batch.reservedQuantity;
+          final deduct = remainingToDeduct > available ? available : remainingToDeduct;
+          if (deduct <= Decimal.zero) continue;
+          final deductFromReserved =
+              batch.reservedQuantity >= deduct ? deduct : batch.reservedQuantity;
           await (db.update(db.productBatches)
                 ..where((b) => b.id.equals(batch.id)))
               .write(ProductBatchesCompanion(
-                  quantity: Value(batch.quantity - deduct)));
+            quantity: Value(batch.quantity - deduct),
+            reservedQuantity: Value(batch.reservedQuantity - deductFromReserved),
+          ));
           await db.into(db.inventoryTransactions).insert(
                 InventoryTransactionsCompanion.insert(
                   productId: item.productId,
@@ -1044,6 +1041,45 @@ class TransactionEngine {
       }
     }
     return result;
+  }
+
+  /// ==================== POST BEGINNING BALANCE ====================
+  Future<void> postBeginningBalance({
+    required String warehouseId,
+    required DateTime periodDate,
+    required List<({String productId, Decimal quantity, Decimal cost})> items,
+    String? userId,
+  }) async {
+    await db.transaction(() async {
+      for (final item in items) {
+        await (db.update(db.products)
+              ..where((p) => p.id.equals(item.productId)))
+            .write(ProductsCompanion(
+          stock: Value(item.quantity),
+          buyPrice: Value(item.cost),
+          updatedAt: Value(DateTime.now()),
+        ));
+
+        await db.into(db.inventoryTransactions).insert(
+              InventoryTransactionsCompanion.insert(
+                productId: item.productId,
+                warehouseId: warehouseId,
+                quantity: Value(item.quantity),
+                type: 'BEGINNING_BALANCE',
+                referenceId: item.productId,
+                date: Value(periodDate),
+              ),
+            );
+
+        await _auditService.log(
+          userId: userId,
+          action: 'BEGINNING_BALANCE',
+          targetEntity: 'PRODUCT',
+          entityId: item.productId,
+          details: 'Beginning balance: qty=${item.quantity}, cost=${item.cost}',
+        );
+      }
+    });
   }
 }
 
