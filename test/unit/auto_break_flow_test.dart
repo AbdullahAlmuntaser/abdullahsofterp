@@ -299,14 +299,14 @@ void main() {
     test('no BROKEN batch number generated when using reservedQuantity', () {
       // Old behavior: 'BROKEN-${batch.batchNumber}-${timestamp}'
       // New behavior: no new batch ID, no BROKEN prefix
-      final batchNumber = 'BATCH-001';
+      const batchNumber = 'BATCH-001';
       final oldBrokenId = 'BROKEN-$batchNumber-${DateTime.now().millisecondsSinceEpoch}';
       final startsWithBroken = oldBrokenId.startsWith('BROKEN-');
       expect(startsWithBroken, isTrue);
 
       // In new design, no BROKEN batch is created at all
       // So BROKEN prefix should not appear anywhere in the flow
-      final newBehaviorCreatesBrokenBatch = false;
+      const newBehaviorCreatesBrokenBatch = false;
       expect(newBehaviorCreatesBrokenBatch, isFalse);
     });
 

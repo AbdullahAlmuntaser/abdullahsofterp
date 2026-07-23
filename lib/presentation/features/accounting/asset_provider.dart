@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:supermarket/core/services/asset_service.dart';
-import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:supermarket/l10n/app_localizations.dart';
 import 'package:drift/drift.dart' show Insertable;
 

@@ -1,12 +1,9 @@
 import 'package:drift/drift.dart';
 import '../app_database.dart';
 
-part 'audit_dao.g.dart';
-
-@DriftAccessor(tables: [AuditLogs])
-class AuditDao extends DatabaseAccessor<AppDatabase> with _$AuditDaoMixin {
+class AuditDao extends DatabaseAccessor<AppDatabase> {
   AuditDao(super.db);
 
   Future<int> insertLog(AuditLogsCompanion entry) =>
-      into(auditLogs).insert(entry);
+      into(db.auditLogs).insert(entry);
 }

@@ -1,13 +1,17 @@
 import 'package:drift/drift.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
+import 'package:supermarket/core/exceptions/concurrency_exception.dart';
 import 'package:supermarket/core/services/audit_service.dart';
+import 'package:supermarket/core/services/posting_engine.dart';
+import 'package:supermarket/core/constants/app_enums.dart';
 import 'package:uuid/uuid.dart';
 
 class StockTransferService {
   final AppDatabase db;
+  final PostingEngine postingEngine;
   late final AuditService _auditService;
 
-  StockTransferService(this.db) {
+  StockTransferService(this.db, this.postingEngine) {
     _auditService = AuditService(db);
   }
 
@@ -37,6 +41,8 @@ class StockTransferService {
             ),
           );
 
+      Decimal transferValue = Decimal.zero;
+
       for (var item in items) {
         // 2. Get Source Batch
         final sourceBatch = await (db.select(
@@ -57,16 +63,21 @@ class StockTransferService {
         final deductFromReserved = sourceBatch.reservedQuantity >= item.quantity
             ? item.quantity
             : sourceBatch.reservedQuantity;
-        await (db.update(
+        final changes = await (db.update(
           db.productBatches,
-        )..where((t) => t.id.equals(sourceBatch.id)))
+        )..where((t) => t.id.equals(sourceBatch.id) & t.version.equals(sourceBatch.version)))
             .write(
           ProductBatchesCompanion(
             quantity: Value(sourceBatch.quantity - item.quantity),
             reservedQuantity:
                 Value(sourceBatch.reservedQuantity - deductFromReserved),
-          ),
+          ).copyWith(version: Value(sourceBatch.version + 1)),
         );
+        if (changes == 0) {
+          throw ConcurrencyException('ProductBatch ${sourceBatch.id} was modified by another transaction');
+        }
+
+        transferValue += item.quantity * sourceBatch.costPrice;
 
         // Record Deduct Transaction
         await db.into(db.inventoryTransactions).insert(
@@ -94,9 +105,9 @@ class StockTransferService {
         String destBatchId;
         if (existingDestBatch != null) {
           destBatchId = existingDestBatch.id;
-          await (db.update(
+          final changes = await (db.update(
             db.productBatches,
-          )..where((t) => t.id.equals(destBatchId)))
+          )..where((t) => t.id.equals(destBatchId) & t.version.equals(existingDestBatch.version)))
               .write(
             ProductBatchesCompanion(
               quantity: Value(existingDestBatch.quantity + item.quantity),
@@ -104,8 +115,11 @@ class StockTransferService {
               storedUnitId: Value(existingDestBatch.storedUnitId),
               quantityInStoredUnit:
                   Value(existingDestBatch.quantityInStoredUnit),
-            ),
+            ).copyWith(version: Value(existingDestBatch.version + 1)),
           );
+          if (changes == 0) {
+            throw ConcurrencyException('ProductBatch $destBatchId was modified by another transaction');
+          }
         } else {
           destBatchId = const Uuid().v4();
           await db.into(db.productBatches).insert(
@@ -148,7 +162,23 @@ class StockTransferService {
             );
       }
 
-      // 6. Log Audit
+      // 6. GL Entry for stock transfer
+      if (transferValue > Decimal.zero) {
+        await postingEngine.post(
+          type: TransactionType.transfer,
+          referenceId: transferId,
+          context: {
+            'amount': transferValue,
+            'fromWarehouseId': fromWarehouseId,
+            'toWarehouseId': toWarehouseId,
+            'description': 'تحويل مخزون #${transferId.substring(0, 8)}',
+            'branchId': fromWarehouseId,
+            'date': DateTime.now(),
+          },
+        );
+      }
+
+      // 7. Log Audit
       await _auditService.log(
         action: 'STOCK_TRANSFER',
         targetEntity: 'StockTransfers',

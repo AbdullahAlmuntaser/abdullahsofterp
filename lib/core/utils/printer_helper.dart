@@ -1,5 +1,4 @@
 import 'package:esc_pos_utils_plus/esc_pos_utils_plus.dart';
-import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:intl/intl.dart';
 import 'package:printing/printing.dart';
 import 'package:pdf/pdf.dart';

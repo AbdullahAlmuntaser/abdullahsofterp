@@ -204,11 +204,11 @@ class _PurchaseItemRowState extends State<PurchaseItemRow> {
               ],
             ),
             if (widget.item.selectedUnit != null &&
-                widget.item.selectedUnit!.factor > Decimal.one)
+                widget.item.selectedUnit!.unitFactor > Decimal.one)
               Padding(
                 padding: const EdgeInsets.only(top: 8.0),
                 child: Text(
-                  'إجمالي الكمية بالوحدة الأساسية: ${(widget.item.quantity * widget.item.selectedUnit!.factor.toDouble()).toStringAsFixed(2)} ${widget.item.product.unit}',
+                  'إجمالي الكمية بالوحدة الأساسية: ${(widget.item.quantity * widget.item.selectedUnit!.unitFactor.toDouble()).toStringAsFixed(2)} ${widget.item.product.unit}',
                   style: const TextStyle(
                     color: Colors.blue,
                     fontWeight: FontWeight.bold,
@@ -223,14 +223,14 @@ class _PurchaseItemRowState extends State<PurchaseItemRow> {
   }
 
   Widget _buildUnitSelector(AppDatabase db) {
-    return StreamBuilder<List<UnitConversion>>(
+    return StreamBuilder<List<ProductUnit>>(
       stream: (db.select(
-        db.unitConversions,
+        db.productUnits,
       )..where((t) => t.productId.equals(widget.item.product.id)))
           .watch(),
       builder: (context, snapshot) {
         final conversions = snapshot.data ?? [];
-        return DropdownButtonFormField<UnitConversion?>(
+        return DropdownButtonFormField<ProductUnit?>(
           value: widget.item.selectedUnit,
           decoration: const InputDecoration(labelText: 'الوحدة', isDense: true),
           items: [
@@ -244,7 +244,7 @@ class _PurchaseItemRowState extends State<PurchaseItemRow> {
           ],
           onChanged: (value) {
             setState(() {
-              final newFactor = value?.factor.toDouble() ?? 1.0;
+              final newFactor = value?.unitFactor.toDouble() ?? 1.0;
 
               // تحديث السعر بناءً على الوحدة الجديدة (السعر = السعر الأساسي * عامل التحويل)
               // يفترض أن السعر الأساسي (buyPrice) هو للوحدة الأساسية

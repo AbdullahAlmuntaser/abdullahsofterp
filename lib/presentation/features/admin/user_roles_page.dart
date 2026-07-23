@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:drift/drift.dart' show Expression;
+import 'package:drift/drift.dart' show Expression, Value;
 import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:supermarket/l10n/app_localizations.dart';
 import 'package:bcrypt/bcrypt.dart';
@@ -311,14 +311,18 @@ class _UserRolesPageState extends State<UserRolesPage> {
 
               final db = Provider.of<AppDatabase>(context, listen: false);
               final navigator = Navigator.of(context);
+              final salt = BCrypt.gensalt();
+              final hash = BCrypt.hashpw(passwordController.text, salt);
               await db.into(db.users).insert(
                     UsersCompanion.insert(
                       username: usernameController.text,
-                      password: BCrypt.hashpw(passwordController.text, BCrypt.gensalt()),
+                      password: hash,
                       role: selectedRole,
                       fullName: fullNameController.text.isEmpty
                           ? usernameController.text
                           : fullNameController.text,
+                      passwordHash: Value(hash),
+                      passwordSalt: Value(salt),
                     ),
                   );
 

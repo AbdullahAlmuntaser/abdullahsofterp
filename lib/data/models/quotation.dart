@@ -1,6 +1,10 @@
 import 'package:json_annotation/json_annotation.dart';
+import 'package:decimal/decimal.dart';
 
 part 'quotation.g.dart';
+
+Decimal _decimalFromJson(dynamic v) => v == null ? Decimal.zero : Decimal.tryParse(v.toString()) ?? Decimal.zero;
+String _decimalToJson(Decimal d) => d.toString();
 
 @JsonSerializable()
 class Quotation {
@@ -12,10 +16,14 @@ class Quotation {
   final DateTime date;
   final DateTime? expiryDate;
   final String status;
-  final double subtotal;
-  final double discountTotal;
-  final double taxTotal;
-  final double totalAmount;
+  @JsonKey(fromJson: _decimalFromJson, toJson: _decimalToJson)
+  final Decimal subtotal;
+  @JsonKey(fromJson: _decimalFromJson, toJson: _decimalToJson)
+  final Decimal discountTotal;
+  @JsonKey(fromJson: _decimalFromJson, toJson: _decimalToJson)
+  final Decimal taxTotal;
+  @JsonKey(fromJson: _decimalFromJson, toJson: _decimalToJson)
+  final Decimal totalAmount;
   final String? notes;
   final int? createdBy;
   final DateTime? createdAt;
@@ -30,10 +38,10 @@ class Quotation {
     required this.date,
     this.expiryDate,
     this.status = 'draft',
-    this.subtotal = 0,
-    this.discountTotal = 0,
-    this.taxTotal = 0,
-    this.totalAmount = 0,
+    required this.subtotal,
+    required this.discountTotal,
+    required this.taxTotal,
+    required this.totalAmount,
     this.notes,
     this.createdBy,
     this.createdAt,
@@ -49,13 +57,20 @@ class QuotationItem {
   final int? id;
   final int quotationId;
   final int productId;
-  final double quantity;
-  final double unitPrice;
-  final double discountPercent;
-  final double discountAmount;
-  final double taxPercent;
-  final double taxAmount;
-  final double totalAmount;
+  @JsonKey(fromJson: _decimalFromJson, toJson: _decimalToJson)
+  final Decimal quantity;
+  @JsonKey(fromJson: _decimalFromJson, toJson: _decimalToJson)
+  final Decimal unitPrice;
+  @JsonKey(fromJson: _decimalFromJson, toJson: _decimalToJson)
+  final Decimal discountPercent;
+  @JsonKey(fromJson: _decimalFromJson, toJson: _decimalToJson)
+  final Decimal discountAmount;
+  @JsonKey(fromJson: _decimalFromJson, toJson: _decimalToJson)
+  final Decimal taxPercent;
+  @JsonKey(fromJson: _decimalFromJson, toJson: _decimalToJson)
+  final Decimal taxAmount;
+  @JsonKey(fromJson: _decimalFromJson, toJson: _decimalToJson)
+  final Decimal totalAmount;
   final String? notes;
 
   QuotationItem({
@@ -64,10 +79,10 @@ class QuotationItem {
     required this.productId,
     required this.quantity,
     required this.unitPrice,
-    this.discountPercent = 0,
-    this.discountAmount = 0,
-    this.taxPercent = 0,
-    this.taxAmount = 0,
+    required this.discountPercent,
+    required this.discountAmount,
+    required this.taxPercent,
+    required this.taxAmount,
     required this.totalAmount,
     this.notes,
   });

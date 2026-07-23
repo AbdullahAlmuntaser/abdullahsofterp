@@ -91,6 +91,22 @@ class SupplierPaymentEvent extends AppEvent {
   });
 }
 
+class SaleCancelledEvent extends AppEvent {
+  final Sale sale;
+  final String? userId;
+  final String? reason;
+
+  SaleCancelledEvent(this.sale, {this.userId, this.reason});
+}
+
+class PurchaseCancelledEvent extends AppEvent {
+  final Purchase purchase;
+  final String? userId;
+  final String? reason;
+
+  PurchaseCancelledEvent(this.purchase, {this.userId, this.reason});
+}
+
 class CashTransactionEvent extends AppEvent {
   final Decimal amount;
   final String type; // IN, OUT

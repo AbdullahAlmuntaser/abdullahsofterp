@@ -56,20 +56,6 @@ class AccBankStatementLines extends Table {
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 }
 
-// جدول سجل التدقيقات (Audit Log) - نسخة متقدمة
-class AccAuditLogs extends Table {
-  IntColumn get id => integer().autoIncrement()();
-  TextColumn get logTableName => text()();
-  TextColumn get recordId =>
-      text()(); // Changed to Text to match SyncableTable IDs
-  TextColumn get action => text()(); // INSERT, UPDATE, DELETE
-  TextColumn get oldValues => text().nullable()(); // JSON
-  TextColumn get newValues => text().nullable()(); // JSON
-  TextColumn get userId => text().nullable().references(Users, #id)();
-  DateTimeColumn get timestamp => dateTime().withDefault(currentDateAndTime)();
-  TextColumn get ipAddress => text().nullable()();
-}
-
 // Fixed assets are defined in tables/fixed_assets_tables.dart
 
 // HR/Payroll tables are defined in tables/payroll_tables.dart

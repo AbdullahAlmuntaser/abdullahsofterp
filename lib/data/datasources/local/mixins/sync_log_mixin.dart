@@ -1,4 +1,4 @@
-part of 'package:supermarket/data/datasources/local/app_database.dart';
+part of '../app_database.dart';
 
 mixin SyncLogMixin on DatabaseAccessor<AppDatabase> {
   Future<void> logSyncOperation({

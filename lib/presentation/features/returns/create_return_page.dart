@@ -5,6 +5,8 @@ import 'package:supermarket/l10n/app_localizations.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:supermarket/core/auth/auth_provider.dart';
 import 'package:supermarket/core/services/return_service.dart';
+import 'package:supermarket/core/services/transaction_engine.dart';
+import 'package:supermarket/injection_container.dart';
 import 'dart:math';
 
 enum ReturnType { sale, purchase }
@@ -213,6 +215,7 @@ class _CreateReturnPageState extends State<CreateReturnPage> {
   Future<void> _processReturn() async {
     final returnService = Provider.of<ReturnService>(context, listen: false);
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final transactionEngine = sl<TransactionEngine>();
     final l10n = AppLocalizations.of(context)!;
 
     try {
@@ -222,8 +225,9 @@ class _CreateReturnPageState extends State<CreateReturnPage> {
             .where((item) => (_returnQuantities[item.productId] ?? 0) > 0)
             .map((item) => ReturnItemData(
                   productId: item.productId,
-                  quantity: _returnQuantities[item.productId] ?? 0,
-                  price: item.price,
+                  quantity: Decimal.parse(
+                      (_returnQuantities[item.productId] ?? 0).toString()),
+                  price: Decimal.parse(item.price.toString()),
                 ))
             .toList();
 
@@ -237,9 +241,14 @@ class _CreateReturnPageState extends State<CreateReturnPage> {
           return;
         }
 
-        await returnService.processSalesReturn(
+        final returnId = await returnService.processSalesReturn(
           saleId: sale.id,
           items: items,
+          userId: authProvider.currentUser?.id,
+        );
+
+        await transactionEngine.postSaleReturn(
+          returnId,
           userId: authProvider.currentUser?.id,
         );
       } else {
@@ -248,8 +257,9 @@ class _CreateReturnPageState extends State<CreateReturnPage> {
             .where((item) => (_returnQuantities[item.productId] ?? 0) > 0)
             .map((item) => ReturnItemData(
                   productId: item.productId,
-                  quantity: _returnQuantities[item.productId] ?? 0,
-                  price: item.price,
+                  quantity: Decimal.parse(
+                      (_returnQuantities[item.productId] ?? 0).toString()),
+                  price: Decimal.parse(item.price.toString()),
                 ))
             .toList();
 
@@ -263,9 +273,14 @@ class _CreateReturnPageState extends State<CreateReturnPage> {
           return;
         }
 
-        await returnService.processPurchaseReturn(
+        final returnId = await returnService.processPurchaseReturn(
           purchaseId: purchase.id,
           items: items,
+          userId: authProvider.currentUser?.id,
+        );
+
+        await transactionEngine.postPurchaseReturn(
+          returnId,
           userId: authProvider.currentUser?.id,
         );
       }

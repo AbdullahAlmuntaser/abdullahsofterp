@@ -1,14 +1,11 @@
 import 'package:drift/drift.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
 
-part 'cashbox_dao.g.dart';
-
-@DriftAccessor(tables: [CashboxTransactions, GLAccounts])
-class CashboxDao extends DatabaseAccessor<AppDatabase> with _$CashboxDaoMixin {
+class CashboxDao extends DatabaseAccessor<AppDatabase> {
   CashboxDao(super.db);
 
   Stream<List<CashboxTransaction>> watchAllTransactions() =>
-      (select(cashboxTransactions)
+      (select(db.cashboxTransactions)
             ..orderBy([
               (t) =>
                   OrderingTerm(expression: t.createdAt, mode: OrderingMode.desc)
@@ -16,27 +13,27 @@ class CashboxDao extends DatabaseAccessor<AppDatabase> with _$CashboxDaoMixin {
           .watch();
 
   Future<int> insertTransaction(CashboxTransactionsCompanion companion) =>
-      into(cashboxTransactions).insert(companion);
+      into(db.cashboxTransactions).insert(companion);
 
   Future<List<CashboxTransaction>> getTransactionsByReference(
           String referenceId) =>
-      (select(cashboxTransactions)
+      (select(db.cashboxTransactions)
             ..where((t) => t.referenceId.equals(referenceId)))
           .get();
 
   Future<Decimal> getCashboxBalance({String? userId}) async {
-    final query = selectOnly(cashboxTransactions)
-      ..addColumns([cashboxTransactions.amount, cashboxTransactions.type]);
+    final query = selectOnly(db.cashboxTransactions)
+      ..addColumns([db.cashboxTransactions.amount, db.cashboxTransactions.type]);
     if (userId != null) {
-      query.where(cashboxTransactions.userId.equals(userId));
+      query.where(db.cashboxTransactions.userId.equals(userId));
     }
 
     final rows = await query.get();
     Decimal balance = Decimal.zero;
     for (final row in rows) {
       final amount =
-          (row.read(cashboxTransactions.amount) as Decimal?) ?? Decimal.zero;
-      final type = row.read(cashboxTransactions.type);
+          (row.read(db.cashboxTransactions.amount) as Decimal?) ?? Decimal.zero;
+      final type = row.read(db.cashboxTransactions.type);
       if (type == 'IN') {
         balance += amount;
       } else if (type == 'OUT') {

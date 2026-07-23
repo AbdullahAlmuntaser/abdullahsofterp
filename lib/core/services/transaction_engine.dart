@@ -12,6 +12,7 @@ import 'package:supermarket/core/services/posting_engine.dart';
 import 'package:supermarket/core/services/budget_service.dart';
 import 'package:supermarket/core/services/approval_workflow_service.dart';
 import 'package:supermarket/core/services/serial_number_service.dart';
+import 'package:supermarket/core/exceptions/concurrency_exception.dart';
 import 'package:uuid/uuid.dart';
 
 /// Single source of truth for all business transactions.
@@ -366,16 +367,20 @@ class TransactionEngine {
           final reserved = batchData.batch.reservedQuantity;
           final deductFromReserved =
               reserved >= deduct ? deduct : reserved;
-          await (db.update(
+          final currentBatch = batchData.batch;
+          final changes = await (db.update(
             db.productBatches,
-          )..where((b) => b.id.equals(batchData.batch.id)))
+          )..where((b) => b.id.equals(currentBatch.id) & b.version.equals(currentBatch.version)))
               .write(
             ProductBatchesCompanion(
-              quantity: Value(batchData.batch.quantity - deduct),
+              quantity: Value(currentBatch.quantity - deduct),
               reservedQuantity:
                   Value(reserved - deductFromReserved),
-            ),
+            ).copyWith(version: Value(currentBatch.version + 1)),
           );
+          if (changes == 0) {
+            throw ConcurrencyException('ProductBatch ${currentBatch.id} was modified by another transaction');
+          }
           await db.into(db.inventoryTransactions).insert(
                 InventoryTransactionsCompanion.insert(
                   productId: item.productId,
@@ -402,11 +407,14 @@ class TransactionEngine {
             .get();
         for (final b in batchesAfterDeduction) {
           if (b.reservedQuantity > Decimal.zero) {
-            await (db.update(db.productBatches)
-                  ..where((p) => p.id.equals(b.id)))
+            final changes = await (db.update(db.productBatches)
+                  ..where((p) => p.id.equals(b.id) & p.version.equals(b.version)))
                 .write(ProductBatchesCompanion(
               reservedQuantity: Value(Decimal.zero),
-            ));
+            ).copyWith(version: Value(b.version + 1)));
+            if (changes == 0) {
+              throw ConcurrencyException('ProductBatch ${b.id} was modified by another transaction');
+            }
           }
         }
       }
@@ -517,6 +525,8 @@ class TransactionEngine {
       )..where((s) => s.id.equals(saleReturn.saleId)))
           .getSingle();
 
+      Decimal returnCogs = Decimal.zero;
+
       for (var item in items) {
         Decimal returnQty = item.quantity;
         final defaultWarehouse = await _configService.getDefaultWarehouseId();
@@ -532,12 +542,16 @@ class TransactionEngine {
             : null;
 
         if (batch != null) {
-          await (db.update(db.productBatches)
-                ..where((b) => b.id.equals(batch.id)))
+          final changes = await (db.update(db.productBatches)
+                ..where((b) => b.id.equals(batch.id) & b.version.equals(batch.version)))
               .write(
             ProductBatchesCompanion(
-                quantity: Value(batch.quantity + returnQty)),
+                quantity: Value(batch.quantity + returnQty)).copyWith(version: Value(batch.version + 1)),
           );
+          if (changes == 0) {
+            throw ConcurrencyException('ProductBatch ${batch.id} was modified by another transaction');
+          }
+          returnCogs += returnQty * batch.costPrice;
         } else {
           final existingBatches = await (db.select(db.productBatches)
                 ..where((b) => b.productId.equals(item.productId))
@@ -553,12 +567,16 @@ class TransactionEngine {
               .get();
           if (existingBatches.isNotEmpty) {
             final targetBatch = existingBatches.first;
-            await (db.update(db.productBatches)
-                  ..where((b) => b.id.equals(targetBatch.id)))
+            final changes = await (db.update(db.productBatches)
+                  ..where((b) => b.id.equals(targetBatch.id) & b.version.equals(targetBatch.version)))
                 .write(
               ProductBatchesCompanion(
-                  quantity: Value(targetBatch.quantity + returnQty)),
+                  quantity: Value(targetBatch.quantity + returnQty)).copyWith(version: Value(targetBatch.version + 1)),
             );
+            if (changes == 0) {
+              throw ConcurrencyException('ProductBatch ${targetBatch.id} was modified by another transaction');
+            }
+            returnCogs += returnQty * targetBatch.costPrice;
           } else {
             final newBatchId = const Uuid().v4();
             await db.into(db.productBatches).insert(
@@ -573,6 +591,7 @@ class TransactionEngine {
                     costPrice: Value(product.buyPrice),
                   ),
                 );
+            returnCogs += returnQty * product.buyPrice;
           }
         }
 
@@ -594,10 +613,13 @@ class TransactionEngine {
           if (batchesAfterReturn.isNotEmpty) {
             final targetBatch = batchesAfterReturn
                 .reduce((a, b) => a.quantity > b.quantity ? a : b);
-            await (db.update(db.productBatches)
-                  ..where((b) => b.id.equals(targetBatch.id)))
+            final changes = await (db.update(db.productBatches)
+                  ..where((b) => b.id.equals(targetBatch.id) & b.version.equals(targetBatch.version)))
                 .write(ProductBatchesCompanion(
-                    quantity: Value(targetBatch.quantity + mismatch)));
+                    quantity: Value(targetBatch.quantity + mismatch)).copyWith(version: Value(targetBatch.version + 1)));
+            if (changes == 0) {
+              throw ConcurrencyException('ProductBatch ${targetBatch.id} was modified by another transaction');
+            }
           }
         }
 
@@ -630,6 +652,7 @@ class TransactionEngine {
         referenceId: returnId,
         context: {
           'amount': saleReturn.amountReturned,
+          'cogs': returnCogs,
           'originalSaleId': saleReturn.saleId,
           'paymentMethod': sale.isCredit ? 'credit' : 'cash',
           'description': 'مردود مبيعات #${returnId.substring(0, 8)}',
@@ -668,6 +691,8 @@ class TransactionEngine {
       )..where((p) => p.id.equals(purchaseReturn.purchaseId)))
           .getSingle();
 
+      Decimal returnCogs = Decimal.zero;
+
       for (var item in items) {
         Decimal remainingToDeduct = item.quantity;
         final batches = await _costingService.getBatchesInFifoOrder(
@@ -682,12 +707,15 @@ class TransactionEngine {
           if (deduct <= Decimal.zero) continue;
           final deductFromReserved =
               batch.reservedQuantity >= deduct ? deduct : batch.reservedQuantity;
-          await (db.update(db.productBatches)
-                ..where((b) => b.id.equals(batch.id)))
+          final changes = await (db.update(db.productBatches)
+                ..where((b) => b.id.equals(batch.id) & b.version.equals(batch.version)))
               .write(ProductBatchesCompanion(
             quantity: Value(batch.quantity - deduct),
             reservedQuantity: Value(batch.reservedQuantity - deductFromReserved),
-          ));
+          ).copyWith(version: Value(batch.version + 1)));
+          if (changes == 0) {
+            throw ConcurrencyException('ProductBatch ${batch.id} was modified by another transaction');
+          }
           await db.into(db.inventoryTransactions).insert(
                 InventoryTransactionsCompanion.insert(
                   productId: item.productId,
@@ -698,6 +726,7 @@ class TransactionEngine {
                   referenceId: returnId,
                 ),
               );
+          returnCogs += deduct * batch.costPrice;
           remainingToDeduct -= deduct;
         }
 
@@ -727,6 +756,7 @@ class TransactionEngine {
         referenceId: returnId,
         context: {
           'amount': purchaseReturn.amountReturned,
+          'cogs': returnCogs,
           'originalPurchaseId': purchaseReturn.purchaseId,
           'paymentMethod': purchase.isCredit ? 'credit' : 'cash',
           'description': 'مردود مشتريات #${returnId.substring(0, 8)}',
@@ -737,6 +767,277 @@ class TransactionEngine {
 
       eventBus.fire(
           PurchaseReturnCreatedEvent(purchaseReturn, items, userId: userId));
+    });
+  }
+
+  /// ==================== CANCEL SALE ====================
+  Future<void> cancelSale(String saleId, {String? userId, String? reason}) async {
+    await _checkAccountingPeriodOpen();
+
+    await db.transaction(() async {
+      final sale = await (db.select(db.sales)
+            ..where((s) => s.id.equals(saleId)))
+          .getSingleOrNull();
+      if (sale == null) throw Exception('الفاتورة غير موجودة');
+      if (sale.status != DocumentStatus.posted) {
+        throw Exception('يمكن فقط إلغاء الفواتير المرحلة');
+      }
+
+      final items = await (db.select(db.saleItems)
+            ..where((si) => si.saleId.equals(saleId)))
+          .get();
+
+      if (items.isEmpty) {
+        throw Exception('لا يمكن إلغاء فاتورة مبيعات بدون أصناف.');
+      }
+
+      // 1. Reverse stock movements for each item
+      for (var item in items) {
+        final saleTransactions = await (db.select(db.inventoryTransactions)
+              ..where((t) => t.referenceId.equals(saleId))
+              ..where((t) => t.type.equals('SALE'))
+              ..where((t) => t.productId.equals(item.productId)))
+            .get();
+
+        Decimal totalReversed = Decimal.zero;
+        for (var tx in saleTransactions) {
+          final qtyToRestore = tx.quantity.abs();
+          totalReversed += qtyToRestore;
+
+          if (tx.batchId != null && tx.batchId!.isNotEmpty) {
+            final batch = await (db.select(db.productBatches)
+                  ..where((b) => b.id.equals(tx.batchId!)))
+                .getSingleOrNull();
+            if (batch != null) {
+              final changes = await (db.update(db.productBatches)
+                    ..where((b) => b.id.equals(batch.id) & b.version.equals(batch.version)))
+                  .write(ProductBatchesCompanion(
+                    quantity: Value(batch.quantity + qtyToRestore),
+                  ).copyWith(version: Value(batch.version + 1)));
+              if (changes == 0) {
+                throw ConcurrencyException(
+                    'ProductBatch ${batch.id} was modified by another transaction');
+              }
+            }
+          }
+        }
+
+        final product = await (db.select(db.products)
+              ..where((p) => p.id.equals(item.productId)))
+            .getSingle();
+        final changes = await (db.update(db.products)
+              ..where((p) => p.id.equals(item.productId) & p.version.equals(product.version)))
+            .write(ProductsCompanion(
+              stock: Value(product.stock + totalReversed),
+            ).copyWith(version: Value(product.version + 1)));
+        if (changes == 0) {
+          throw ConcurrencyException(
+              'Product ${product.id} was modified by another transaction');
+        }
+      }
+
+      // 2. Reverse customer balance for credit sales
+      if (sale.isCredit && sale.customerId != null) {
+        final customer = await (db.select(db.customers)
+              ..where((c) => c.id.equals(sale.customerId!)))
+            .getSingle();
+        await (db.update(db.customers)..where((c) => c.id.equals(customer.id)))
+            .write(CustomersCompanion(
+              balance: Value(customer.balance - sale.total),
+            ));
+      }
+
+      // 3. Reverse GL entries: mark originals cancelled + create reversal entries
+      final existingEntries = await (db.select(db.gLEntries)
+            ..where((e) => e.referenceId.equals(saleId))
+            ..where((e) => e.referenceType.equals('SALE') | e.referenceType.equals('COGS')))
+          .get();
+
+      for (final entry in existingEntries) {
+        await (db.update(db.gLEntries)
+              ..where((e) => e.id.equals(entry.id)))
+            .write(const GLEntriesCompanion(
+              status: Value('CANCELLED'),
+            ));
+
+        final reversalEntryId = const Uuid().v4();
+        final originalLines = await (db.select(db.gLLines)
+              ..where((l) => l.entryId.equals(entry.id)))
+            .get();
+
+        await db.into(db.gLEntries).insert(GLEntriesCompanion.insert(
+          id: Value(reversalEntryId),
+          description: Value('إلغاء: ${entry.description}'),
+          date: Value(DateTime.now()),
+          referenceType: const Value('SALE_CANCELLATION'),
+          referenceId: Value(saleId),
+          status: const Value('POSTED'),
+          postedAt: Value(DateTime.now()),
+          branchId: Value(entry.branchId),
+        ));
+
+        for (final line in originalLines) {
+          await db.into(db.gLLines).insert(GLLinesCompanion.insert(
+            entryId: reversalEntryId,
+            accountId: line.accountId,
+            debit: Value(line.credit),
+            credit: Value(line.debit),
+          ));
+        }
+      }
+
+      // 4. Mark sale as cancelled
+      await (db.update(db.sales)..where((s) => s.id.equals(saleId)))
+          .write(const SalesCompanion(status: Value(DocumentStatus.cancelled)));
+
+      await _auditService.log(
+        action: 'CANCEL_SALE',
+        targetEntity: 'Sales',
+        entityId: saleId,
+        userId: userId,
+        details: 'Cancelled sale: ${reason ?? 'No reason provided'}',
+      );
+
+      eventBus.fire(SaleCancelledEvent(sale, userId: userId, reason: reason));
+    });
+  }
+
+  /// ==================== CANCEL PURCHASE ====================
+  Future<void> cancelPurchase(String purchaseId, {String? userId, String? reason}) async {
+    await _checkAccountingPeriodOpen();
+
+    await db.transaction(() async {
+      final purchase = await (db.select(db.purchases)
+            ..where((p) => p.id.equals(purchaseId)))
+          .getSingleOrNull();
+      if (purchase == null) throw Exception('فاتورة المشتريات غير موجودة');
+      if (purchase.status != DocumentStatus.posted) {
+        throw Exception('يمكن فقط إلغاء فواتير المشتريات المرحلة');
+      }
+
+      final items = await (db.select(db.purchaseItems)
+            ..where((pi) => pi.purchaseId.equals(purchaseId)))
+          .get();
+
+      if (items.isEmpty) {
+        throw Exception('لا يمكن إلغاء فاتورة مشتريات بدون أصناف.');
+      }
+
+      // 1. Reverse stock movements for each item (deduct from batches)
+      for (var item in items) {
+        final purchaseTransactions = await (db.select(db.inventoryTransactions)
+              ..where((t) => t.referenceId.equals(purchaseId))
+              ..where((t) => t.type.equals('PURCHASE'))
+              ..where((t) => t.productId.equals(item.productId)))
+            .get();
+
+        Decimal totalDeducted = Decimal.zero;
+        for (var tx in purchaseTransactions) {
+          final qtyToDeduct = tx.quantity.abs();
+          totalDeducted += qtyToDeduct;
+
+          if (tx.batchId != null && tx.batchId!.isNotEmpty) {
+            final batch = await (db.select(db.productBatches)
+                  ..where((b) => b.id.equals(tx.batchId!)))
+                .getSingleOrNull();
+            if (batch != null) {
+              if (batch.quantity < qtyToDeduct) {
+                throw Exception(
+                    'لا يمكن إلغاء فاتورة المشتريات: تم بيع جزء من الكمية للصنف ${item.productId}');
+              }
+              final changes = await (db.update(db.productBatches)
+                    ..where((b) => b.id.equals(batch.id) & b.version.equals(batch.version)))
+                  .write(ProductBatchesCompanion(
+                    quantity: Value(batch.quantity - qtyToDeduct),
+                  ).copyWith(version: Value(batch.version + 1)));
+              if (changes == 0) {
+                throw ConcurrencyException(
+                    'ProductBatch ${batch.id} was modified by another transaction');
+              }
+            }
+          }
+        }
+
+        final product = await (db.select(db.products)
+              ..where((p) => p.id.equals(item.productId)))
+            .getSingle();
+        final changes = await (db.update(db.products)
+              ..where((p) => p.id.equals(item.productId) & p.version.equals(product.version)))
+            .write(ProductsCompanion(
+              stock: Value(product.stock - totalDeducted),
+            ).copyWith(version: Value(product.version + 1)));
+        if (changes == 0) {
+          throw ConcurrencyException(
+              'Product ${product.id} was modified by another transaction');
+        }
+      }
+
+      // 2. Reverse supplier balance for credit purchases
+      if (purchase.isCredit && purchase.supplierId != null) {
+        final supplier = await (db.select(db.suppliers)
+              ..where((s) => s.id.equals(purchase.supplierId!)))
+            .getSingle();
+        await (db.update(db.suppliers)
+              ..where((s) => s.id.equals(supplier.id)))
+            .write(SuppliersCompanion(
+              balance: Value(supplier.balance - purchase.total),
+            ));
+      }
+
+      // 3. Reverse GL entries: mark originals cancelled + create reversal entries
+      final existingEntries = await (db.select(db.gLEntries)
+            ..where((e) => e.referenceId.equals(purchaseId))
+            ..where((e) => e.referenceType.equals('PURCHASE')))
+          .get();
+
+      for (final entry in existingEntries) {
+        await (db.update(db.gLEntries)
+              ..where((e) => e.id.equals(entry.id)))
+            .write(const GLEntriesCompanion(
+              status: Value('CANCELLED'),
+            ));
+
+        final reversalEntryId = const Uuid().v4();
+        final originalLines = await (db.select(db.gLLines)
+              ..where((l) => l.entryId.equals(entry.id)))
+            .get();
+
+        await db.into(db.gLEntries).insert(GLEntriesCompanion.insert(
+          id: Value(reversalEntryId),
+          description: Value('إلغاء: ${entry.description}'),
+          date: Value(DateTime.now()),
+          referenceType: const Value('PURCHASE_CANCELLATION'),
+          referenceId: Value(purchaseId),
+          status: const Value('POSTED'),
+          postedAt: Value(DateTime.now()),
+          branchId: Value(entry.branchId),
+        ));
+
+        for (final line in originalLines) {
+          await db.into(db.gLLines).insert(GLLinesCompanion.insert(
+            entryId: reversalEntryId,
+            accountId: line.accountId,
+            debit: Value(line.credit),
+            credit: Value(line.debit),
+          ));
+        }
+      }
+
+      // 4. Mark purchase as cancelled
+      await (db.update(db.purchases)..where((p) => p.id.equals(purchaseId)))
+          .write(const PurchasesCompanion(
+              status: Value(DocumentStatus.cancelled)));
+
+      await _auditService.log(
+        action: 'CANCEL_PURCHASE',
+        targetEntity: 'Purchases',
+        entityId: purchaseId,
+        userId: userId,
+        details: 'Cancelled purchase: ${reason ?? 'No reason provided'}',
+      );
+
+      eventBus.fire(
+          PurchaseCancelledEvent(purchase, userId: userId, reason: reason));
     });
   }
 
@@ -1051,6 +1352,8 @@ class TransactionEngine {
     String? userId,
   }) async {
     await db.transaction(() async {
+      Decimal totalValue = Decimal.zero;
+
       for (final item in items) {
         await (db.update(db.products)
               ..where((p) => p.id.equals(item.productId)))
@@ -1071,12 +1374,27 @@ class TransactionEngine {
               ),
             );
 
+        totalValue += item.quantity * item.cost;
+
         await _auditService.log(
           userId: userId,
           action: 'BEGINNING_BALANCE',
           targetEntity: 'PRODUCT',
           entityId: item.productId,
           details: 'Beginning balance: qty=${item.quantity}, cost=${item.cost}',
+        );
+      }
+
+      if (totalValue > Decimal.zero) {
+        await _postingEngine.post(
+          type: TransactionType.initial,
+          referenceId: 'BB-$warehouseId',
+          context: {
+            'amount': totalValue,
+            'description': 'رصيد افتتاحي للمستودع',
+            'branchId': warehouseId,
+            'date': periodDate,
+          },
         );
       }
     });

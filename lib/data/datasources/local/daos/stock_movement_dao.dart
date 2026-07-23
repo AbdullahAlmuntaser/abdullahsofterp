@@ -1,29 +1,21 @@
 import 'package:drift/drift.dart';
 import '../app_database.dart';
 
-part 'stock_movement_dao.g.dart';
-
-@DriftAccessor(tables: [StockMovements])
-class StockMovementDao extends DatabaseAccessor<AppDatabase>
-    with _$StockMovementDaoMixin {
+class StockMovementDao extends DatabaseAccessor<AppDatabase> {
   StockMovementDao(super.db);
 
   Future<int> insertStockMovement(StockMovementsCompanion entry) =>
-      into(stockMovements).insert(entry);
-  Future<StockMovement?> getStockMovementById(String id) => (select(
-        stockMovements,
-      )..where((tbl) => tbl.id.equals(id)))
+      into(db.stockMovements).insert(entry);
+  Future<StockMovement?> getStockMovementById(String id) => (select(db.stockMovements)..where((tbl) => tbl.id.equals(id)))
           .getSingleOrNull();
   Future<List<StockMovement>> getAllStockMovements() =>
-      select(stockMovements).get();
+      select(db.stockMovements).get();
   Future<bool> updateStockMovement(StockMovement entry) =>
-      update(stockMovements).replace(entry);
+      update(db.stockMovements).replace(entry);
   Future<int> deleteStockMovement(String id) =>
-      (delete(stockMovements)..where((tbl) => tbl.id.equals(id))).go();
+      (delete(db.stockMovements)..where((tbl) => tbl.id.equals(id))).go();
   Future<List<StockMovement>> getStockMovementsByProduct(String productId) =>
-      (select(
-        stockMovements,
-      )..where((tbl) => tbl.productId.equals(productId)))
+      (select(db.stockMovements)..where((tbl) => tbl.productId.equals(productId)))
           .get();
 
   Future<List<StockMovement>> getProductMovementReport({
@@ -32,7 +24,7 @@ class StockMovementDao extends DatabaseAccessor<AppDatabase>
     required DateTime endDate,
     String? warehouseId,
   }) {
-    var query = select(stockMovements)
+    var query = select(db.stockMovements)
       ..where((t) => t.productId.equals(productId))
       ..where((t) => t.movementDate.isBetweenValues(startDate, endDate));
 

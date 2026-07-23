@@ -84,7 +84,7 @@ class PurchaseItemData {
   DateTime? expiryDate;
   String? batchNumber;
   String? serialNumbers;
-  UnitConversion? selectedUnit;
+  ProductUnit? selectedUnit;
   double retailPrice;
   double wholesalePrice;
 
@@ -209,7 +209,7 @@ class PurchaseProvider with ChangeNotifier {
     double? discount,
     DateTime? expiry,
     String? batch,
-    UnitConversion? unit,
+    ProductUnit? unit,
   }) {
     if (quantity != null) items[index].quantity = quantity;
     if (unitPrice != null) items[index].unitPrice = unitPrice;
@@ -243,7 +243,7 @@ class PurchaseProvider with ChangeNotifier {
             )),
             unitId: Value(item.selectedUnit?.unitName),
             unitFactor: Value(
-                Decimal.parse((item.selectedUnit?.factor ?? 1.0).toString())),
+                Decimal.parse((item.selectedUnit?.unitFactor ?? 1.0).toString())),
             batchNumber: Value(item.batchNumber),
             expiryDate: Value(item.expiryDate),
           ),
@@ -570,7 +570,7 @@ class PurchaseProvider with ChangeNotifier {
     double? discount,
     DateTime? expiry,
     String? batch,
-    UnitConversion? unit,
+    ProductUnit? unit,
   }) {
     updateItem(
       index,

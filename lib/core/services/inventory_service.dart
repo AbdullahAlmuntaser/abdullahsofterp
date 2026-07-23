@@ -1,5 +1,6 @@
 import 'package:supermarket/core/services/inventory_report_service.dart';
 import 'package:supermarket/core/services/stock_operation_service.dart';
+import 'package:supermarket/core/services/posting_engine.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:supermarket/core/models/inventory/inventory_models.dart';
 import 'package:supermarket/core/services/audit_service.dart';
@@ -11,9 +12,9 @@ class InventoryService {
 
   InventoryService(this.reports, this.operations);
 
-  InventoryService.fromDb(AppDatabase db, AuditService audit, AppConfigService config)
+  InventoryService.fromDb(AppDatabase db, AuditService audit, AppConfigService config, PostingEngine postingEngine)
       : reports = InventoryReportService(db),
-        operations = StockOperationService(db, audit, config);
+        operations = StockOperationService(db, audit, config, postingEngine);
 
   Stream<List<InventoryTransactionReport>> watchInventoryTransactions({
     String? productId,
@@ -30,7 +31,7 @@ class InventoryService {
       reports.watchProductBatches(
           productId: productId, warehouseId: warehouseId);
 
-  Future<double> getTotalInventoryValue() =>
+  Future<Decimal> getTotalInventoryValue() =>
       reports.getTotalInventoryValue();
 
   Stream<List<Product>> watchLowStockProducts() =>

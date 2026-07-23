@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import 'package:supermarket/core/exceptions/concurrency_exception.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:uuid/uuid.dart';
 
@@ -86,21 +87,37 @@ class InventoryReservationService {
     final newFulfilled = reservation.fulfilledQuantity + fulfilledQuantity;
     final newStatus = newFulfilled >= reservation.reservedQuantity ? 'COMPLETED' : 'PARTIAL';
 
-    await (db.update(db.inventoryReservations)
-          ..where((ir) => ir.id.equals(reservationId)))
+    final changes = await (db.update(db.inventoryReservations)
+          ..where((ir) => ir.id.equals(reservationId) & ir.version.equals(reservation.version)))
         .write(InventoryReservationsCompanion(
       fulfilledQuantity: Value(newFulfilled),
       status: Value(newStatus),
-    ));
+    ).copyWith(version: Value(reservation.version + 1)));
+
+    if (changes == 0) {
+      throw ConcurrencyException(
+          'InventoryReservation $reservationId was modified by another transaction');
+    }
   }
 
   /// Cancel a reservation
   Future<void> cancelReservation(String reservationId) async {
-    await (db.update(db.inventoryReservations)
+    final reservation = await (db.select(db.inventoryReservations)
           ..where((ir) => ir.id.equals(reservationId)))
+        .getSingleOrNull();
+
+    if (reservation == null) throw Exception('الحجز غير موجود');
+
+    final changes = await (db.update(db.inventoryReservations)
+          ..where((ir) => ir.id.equals(reservationId) & ir.version.equals(reservation.version)))
         .write(const InventoryReservationsCompanion(
       status: Value('CANCELLED'),
-    ));
+    ).copyWith(version: Value(reservation.version + 1)));
+
+    if (changes == 0) {
+      throw ConcurrencyException(
+          'InventoryReservation $reservationId was modified by another transaction');
+    }
   }
 
   /// Get reservations for a reference (e.g., sales order)

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:supermarket/core/services/zakat_service.dart';
-import 'package:supermarket/data/datasources/local/app_database.dart';
 
 class ZakatProvider with ChangeNotifier {
   final ZakatService _service;

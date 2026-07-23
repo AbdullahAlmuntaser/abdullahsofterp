@@ -5,7 +5,6 @@ targets:
         generate_for:
           include:
             - lib/data/datasources/local/app_database.dart
-            - lib/data/datasources/local/daos/*.dart
       json_serializable:
         generate_for:
           exclude:

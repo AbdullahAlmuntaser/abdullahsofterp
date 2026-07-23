@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
+import 'package:supermarket/core/exceptions/concurrency_exception.dart';
 import 'package:uuid/uuid.dart';
 
 class ProductionService {
@@ -75,12 +76,15 @@ class ProductionService {
           final deductFromReserved =
               batch.reservedQuantity >= deduct ? deduct : batch.reservedQuantity;
 
-          await (db.update(db.productBatches)
-                ..where((b) => b.id.equals(batch.id)))
+          final changes = await (db.update(db.productBatches)
+                ..where((b) => b.id.equals(batch.id) & b.version.equals(batch.version)))
               .write(ProductBatchesCompanion(
             quantity: Value(batch.quantity - deduct),
             reservedQuantity: Value(batch.reservedQuantity - deductFromReserved),
-          ));
+          ).copyWith(version: Value(batch.version + 1)));
+          if (changes == 0) {
+            throw ConcurrencyException('ProductBatch ${batch.id} was modified by another transaction');
+          }
 
           await db.stockMovementDao.insertStockMovement(
             StockMovementsCompanion.insert(

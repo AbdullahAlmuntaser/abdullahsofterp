@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:drift/drift.dart' as drift;
 import 'package:supermarket/core/services/inventory_service.dart';
+import 'package:supermarket/core/services/posting_engine.dart';
 import 'package:supermarket/core/services/audit_service.dart';
 import 'package:supermarket/core/services/app_config_service.dart';
 import 'package:uuid/uuid.dart';
@@ -432,6 +433,7 @@ class _StockTakePageState extends State<StockTakePage> {
         db,
         AuditService(db),
         AppConfigService(db),
+        PostingEngine(db),
       );
       final auditItems = await (db.select(db.stockTakeItems)
             ..where((t) => t.stockTakeId.equals(stockTake.id)))

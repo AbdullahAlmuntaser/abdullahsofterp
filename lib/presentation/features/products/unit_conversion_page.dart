@@ -36,11 +36,11 @@ class _UnitConversionPageState extends State<UnitConversionPage> {
   Future<void> _addConversion() async {
     if (_formKey.currentState!.validate()) {
       final db = context.read<AppDatabase>();
-      await db.into(db.unitConversions).insert(
-            UnitConversionsCompanion.insert(
+      await db.into(db.productUnits).insert(
+            ProductUnitsCompanion.insert(
               productId: widget.productId,
               unitName: _unitNameController.text,
-              factor: drift.Value(Decimal.parse(_factorController.text)),
+              unitFactor: drift.Value(Decimal.parse(_factorController.text)),
               barcode: drift.Value(
                 _barcodeController.text.isEmpty
                     ? null
@@ -75,9 +75,9 @@ class _UnitConversionPageState extends State<UnitConversionPage> {
       body: Column(
         children: [
           Expanded(
-            child: StreamBuilder<List<UnitConversion>>(
+            child: StreamBuilder<List<ProductUnit>>(
               stream: (db.select(
-                db.unitConversions,
+                db.productUnits,
               )..where((t) => t.productId.equals(widget.productId)))
                   .watch(),
               builder: (context, snapshot) {
@@ -102,7 +102,7 @@ class _UnitConversionPageState extends State<UnitConversionPage> {
                       ),
                       child: ListTile(
                         title: Text(
-                          '${conv.unitName} (المعامل: ${conv.factor})',
+                          '${conv.unitName} (المعامل: ${conv.unitFactor})',
                         ),
                         subtitle: Text(
                           'باركود: ${conv.barcode ?? "لا يوجد"} | السعر: ${conv.sellPrice ?? "افتراضي"}',
@@ -111,7 +111,7 @@ class _UnitConversionPageState extends State<UnitConversionPage> {
                           icon: const Icon(Icons.delete, color: Colors.red),
                           onPressed: () async {
                             await (db.delete(
-                              db.unitConversions,
+                              db.productUnits,
                             )..where((t) => t.id.equals(conv.id)))
                                 .go();
                           },

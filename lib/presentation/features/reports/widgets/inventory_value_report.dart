@@ -22,7 +22,7 @@ class InventoryValueReport extends StatelessWidget {
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 16),
-            FutureBuilder<double>(
+            FutureBuilder<Decimal>(
               future: db.calculateTotalInventoryValue(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
@@ -31,7 +31,7 @@ class InventoryValueReport extends StatelessWidget {
                 if (snapshot.hasError) {
                   return Text('Error: ${snapshot.error}');
                 }
-                final totalValue = snapshot.data ?? 0.0;
+                final totalValue = snapshot.data ?? Decimal.zero;
                 return Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [

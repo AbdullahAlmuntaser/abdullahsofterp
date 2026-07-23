@@ -3,15 +3,18 @@ import 'package:uuid/uuid.dart';
 import 'package:supermarket/core/constants/account_codes.dart';
 import 'package:supermarket/core/services/audit_service.dart';
 import 'package:supermarket/core/services/app_config_service.dart';
+import 'package:supermarket/core/services/posting_engine.dart';
 import 'package:supermarket/core/services/stock_transfer_service.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
+import 'package:supermarket/core/exceptions/concurrency_exception.dart';
 
 class StockOperationService {
   final AppDatabase db;
   final AuditService _auditService;
   final AppConfigService _configService;
+  final PostingEngine _postingEngine;
 
-  StockOperationService(this.db, this._auditService, this._configService);
+  StockOperationService(this.db, this._auditService, this._configService, this._postingEngine);
 
   Future<void> performInventoryAudit({
     required InventoryAuditsCompanion auditCompanion,
@@ -77,16 +80,19 @@ class StockOperationService {
                   ? deductFromThisBatch
                   : batch.reservedQuantity;
 
-              await (db.update(db.productBatches)
-                ..where((b) => b.id.equals(batch.id)))
+              final changes = await (db.update(db.productBatches)
+                ..where((b) => b.id.equals(batch.id) & b.version.equals(batch.version)))
                   .write(
                 ProductBatchesCompanion(
                   quantity:
                       drift.Value(batch.quantity - deductFromThisBatch),
                   reservedQuantity:
                       drift.Value(batch.reservedQuantity - deductFromReserved),
-                ),
+                ).copyWith(version: drift.Value(batch.version + 1)),
               );
+              if (changes == 0) {
+                throw ConcurrencyException('ProductBatch ${batch.id} was modified by another transaction');
+              }
               remainingToDeduct -= deductFromThisBatch;
               totalInventoryAdjustmentValue -=
                   deductFromThisBatch * batch.costPrice;
@@ -211,9 +217,59 @@ class StockOperationService {
 
       final newStock = product.stock - quantity;
 
-      await (db.update(db.products)
-        ..where((p) => p.id.equals(itemId)))
-          .write(ProductsCompanion(stock: drift.Value(newStock)));
+      final productChanges = await (db.update(db.products)
+        ..where((p) => p.id.equals(itemId) & p.version.equals(product.version)))
+          .write(ProductsCompanion(
+            stock: drift.Value(newStock),
+          ).copyWith(version: drift.Value(product.version + 1)));
+      if (productChanges == 0) {
+        throw ConcurrencyException('Product $itemId was modified by another transaction');
+      }
+
+      // Deduct from batches using FEFO (earliest expiry first, then earliest created)
+      Decimal remainingToDeduct = quantity;
+      final allBatches = await (db.select(db.productBatches)
+            ..where((b) =>
+                b.productId.equals(itemId) &
+                b.warehouseId.equals(warehouseId)))
+          .get();
+      final batches = allBatches
+          .where((b) => (b.quantity - b.reservedQuantity) > Decimal.zero)
+          .toList();
+      batches.sort((a, b) {
+        if (a.expiryDate == null && b.expiryDate == null) {
+          return a.createdAt.compareTo(b.createdAt);
+        }
+        if (a.expiryDate == null) return 1;
+        if (b.expiryDate == null) return -1;
+        final expiryCmp = a.expiryDate!.compareTo(b.expiryDate!);
+        if (expiryCmp != 0) return expiryCmp;
+        return a.createdAt.compareTo(b.createdAt);
+      });
+
+      for (var batch in batches) {
+        if (remainingToDeduct <= Decimal.zero) break;
+        final available = batch.quantity - batch.reservedQuantity;
+        final Decimal deductFromThisBatch =
+            available >= remainingToDeduct ? remainingToDeduct : available;
+        final deductFromReserved = batch.reservedQuantity >= deductFromThisBatch
+            ? deductFromThisBatch
+            : batch.reservedQuantity;
+
+        final changes = await (db.update(db.productBatches)
+          ..where((b) => b.id.equals(batch.id) & b.version.equals(batch.version)))
+            .write(
+          ProductBatchesCompanion(
+            quantity: drift.Value(batch.quantity - deductFromThisBatch),
+            reservedQuantity:
+                drift.Value(batch.reservedQuantity - deductFromReserved),
+          ).copyWith(version: drift.Value(batch.version + 1)),
+        );
+        if (changes == 0) {
+          throw ConcurrencyException('ProductBatch ${batch.id} was modified by another transaction');
+        }
+        remainingToDeduct -= deductFromThisBatch;
+      }
 
       await db.into(db.stockMovements).insert(
             StockMovementsCompanion.insert(
@@ -251,7 +307,7 @@ class StockOperationService {
       quantity: Decimal.parse(item.quantity.value.toString()),
     )).toList();
 
-    final transferService = StockTransferService(db);
+    final transferService = StockTransferService(db, _postingEngine);
     await transferService.processTransfer(
       fromWarehouseId: fromWarehouseId,
       toWarehouseId: toWarehouseId,

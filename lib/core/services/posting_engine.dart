@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:supermarket/core/services/inventory_costing_service.dart';
 import 'package:supermarket/core/constants/app_enums.dart';
+import 'package:supermarket/core/constants/account_codes.dart';
 import 'package:uuid/uuid.dart';
 import 'app_config_service.dart';
 
@@ -59,6 +60,12 @@ class PostingEngine {
         case TransactionType.cashReceipt:
         case TransactionType.cashPayment:
           await _postCashTransaction(referenceId, context);
+          break;
+        case TransactionType.initial:
+          await _postBeginningBalance(referenceId, context);
+          break;
+        case TransactionType.transfer:
+          await _postStockTransfer(referenceId, context);
           break;
         default:
           await _postGeneric(referenceId, context);
@@ -246,6 +253,7 @@ class PostingEngine {
       String referenceId, Map<String, dynamic> context) async {
     final dao = db.accountingDao;
     final amount = _readAmount(context['amount']);
+    final cogs = _readAmount(context['cogs']);
     final paymentMethod = context['paymentMethod'] as String? ?? 'cash';
     final branchId = context['branchId'] as String? ??
         await _configService.getDefaultBranchId();
@@ -295,12 +303,54 @@ class PostingEngine {
     ];
     validatePostingLinesRaw(lines);
     await dao.createEntry(entry, lines);
+
+    // COGS Reversal: reverse the original COGS entry from the sale
+    if (cogs > Decimal.zero) {
+      final cogsEntryId = const Uuid().v4();
+      final inventoryAccount =
+          await _getAccountByProfileOrCode(profiles, 'INVENTORY', '1040');
+      final cogsAccount =
+          await _getAccountByProfileOrCode(profiles, 'COGS', '5010');
+
+      final cogsEntry = GLEntriesCompanion.insert(
+        id: Value(cogsEntryId),
+        description: 'COGS Reversal for Return #${_truncateRef(referenceId)}',
+        date: Value(date),
+        referenceType: const Value('COGS_REVERSAL'),
+        referenceId: Value(referenceId),
+        status: const Value('POSTED'),
+        postedAt: Value(DateTime.now()),
+        branchId: Value(branchId),
+      );
+
+      final cogsLines = [
+        GLLinesCompanion.insert(
+          entryId: cogsEntryId,
+          accountId: inventoryAccount,
+          debit: Value(cogs),
+          credit: Value(Decimal.zero),
+          branchId: Value(branchId),
+        ),
+        GLLinesCompanion.insert(
+          entryId: cogsEntryId,
+          accountId: cogsAccount,
+          debit: Value(Decimal.zero),
+          credit: Value(cogs),
+          branchId: Value(branchId),
+        ),
+      ];
+      validatePostingLinesRaw(cogsLines);
+      await dao.createEntry(cogsEntry, cogsLines);
+    }
   }
 
   Future<void> _postPurchaseReturn(
       String referenceId, Map<String, dynamic> context) async {
     final dao = db.accountingDao;
     final amount = _readAmount(context['amount']);
+    final cogs = _readAmount(context['cogs']) != Decimal.zero
+        ? _readAmount(context['cogs'])
+        : amount;
     final paymentMethod = context['paymentMethod'] as String? ?? 'cash';
     final branchId = context['branchId'] as String? ??
         await _configService.getDefaultBranchId();
@@ -343,6 +393,167 @@ class PostingEngine {
       GLLinesCompanion.insert(
         entryId: entryId,
         accountId: returnAccount,
+        debit: Value(Decimal.zero),
+        credit: Value(amount),
+        branchId: Value(branchId),
+      ),
+    ];
+    validatePostingLinesRaw(lines);
+    await dao.createEntry(entry, lines);
+
+    // Inventory reversal: return goods to supplier reduces inventory
+    if (cogs > Decimal.zero) {
+      final invEntryId = const Uuid().v4();
+      final inventoryAccount =
+          await _getAccountByProfileOrCode(profiles, 'INVENTORY', '1040');
+
+      final invEntry = GLEntriesCompanion.insert(
+        id: Value(invEntryId),
+        description:
+            'Inventory reversal for Return #${_truncateRef(referenceId)}',
+        date: Value(date),
+        referenceType: const Value('PURCHASE_RETURN_INV'),
+        referenceId: Value(referenceId),
+        status: const Value('POSTED'),
+        postedAt: Value(DateTime.now()),
+        branchId: Value(branchId),
+      );
+
+      final invLines = [
+        GLLinesCompanion.insert(
+          entryId: invEntryId,
+          accountId: returnAccount,
+          debit: Value(cogs),
+          credit: Value(Decimal.zero),
+          branchId: Value(branchId),
+        ),
+        GLLinesCompanion.insert(
+          entryId: invEntryId,
+          accountId: inventoryAccount,
+          debit: Value(Decimal.zero),
+          credit: Value(cogs),
+          branchId: Value(branchId),
+        ),
+      ];
+      validatePostingLinesRaw(invLines);
+      await dao.createEntry(invEntry, invLines);
+    }
+  }
+
+  Future<void> _postBeginningBalance(
+      String referenceId, Map<String, dynamic> context) async {
+    final dao = db.accountingDao;
+    final amount = _readAmount(context['amount']);
+    final branchId = context['branchId'] as String? ??
+        await _configService.getDefaultBranchId();
+    final date = context['date'] as DateTime? ?? DateTime.now();
+    final entryId = const Uuid().v4();
+
+    final inventoryAccount =
+        await dao.getAccountByCode(AccountCodes.inventory);
+    final equityAccount =
+        await dao.getAccountByCode(AccountCodes.retainedEarnings);
+
+    if (inventoryAccount == null || equityAccount == null) {
+      throw Exception('Missing GL accounts for beginning balance entry.');
+    }
+
+    final entry = GLEntriesCompanion.insert(
+      id: Value(entryId),
+      description: context['description'] ??
+          'Beginning Balance #${_truncateRef(referenceId)}',
+      date: Value(date),
+      referenceType: const Value('BEGINNING_BALANCE'),
+      referenceId: Value(referenceId),
+      status: const Value('POSTED'),
+      postedAt: Value(DateTime.now()),
+      branchId: Value(branchId),
+    );
+
+    final lines = [
+      GLLinesCompanion.insert(
+        entryId: entryId,
+        accountId: inventoryAccount.id,
+        debit: Value(amount),
+        credit: Value(Decimal.zero),
+        branchId: Value(branchId),
+      ),
+      GLLinesCompanion.insert(
+        entryId: entryId,
+        accountId: equityAccount.id,
+        debit: Value(Decimal.zero),
+        credit: Value(amount),
+        branchId: Value(branchId),
+      ),
+    ];
+    validatePostingLinesRaw(lines);
+    await dao.createEntry(entry, lines);
+  }
+
+  Future<void> _postStockTransfer(
+      String referenceId, Map<String, dynamic> context) async {
+    final dao = db.accountingDao;
+    final amount = _readAmount(context['amount']);
+    final branchId = context['branchId'] as String? ??
+        await _configService.getDefaultBranchId();
+    final date = context['date'] as DateTime? ?? DateTime.now();
+
+    final fromWarehouseId = context['fromWarehouseId'] as String?;
+    final toWarehouseId = context['toWarehouseId'] as String?;
+
+    String srcAccountId;
+    String dstAccountId;
+    if (fromWarehouseId != null && toWarehouseId != null) {
+      final fromWarehouse = await (db.select(db.warehouses)
+            ..where((w) => w.id.equals(fromWarehouseId)))
+          .getSingleOrNull();
+      final toWarehouse = await (db.select(db.warehouses)
+            ..where((w) => w.id.equals(toWarehouseId)))
+          .getSingleOrNull();
+      srcAccountId = fromWarehouse?.accountId ?? '';
+      dstAccountId = toWarehouse?.accountId ?? '';
+    } else {
+      srcAccountId = '';
+      dstAccountId = '';
+    }
+
+    if (srcAccountId.isEmpty || dstAccountId.isEmpty) {
+      final inventoryAccount =
+          await dao.getAccountByCode(AccountCodes.inventory);
+      if (srcAccountId.isEmpty) srcAccountId = inventoryAccount?.id ?? '';
+      if (dstAccountId.isEmpty) dstAccountId = inventoryAccount?.id ?? '';
+    }
+
+    if (srcAccountId.isEmpty || dstAccountId.isEmpty) {
+      throw Exception('Missing GL accounts for stock transfer.');
+    }
+
+    if (srcAccountId == dstAccountId) return;
+
+    final entryId = const Uuid().v4();
+    final entry = GLEntriesCompanion.insert(
+      id: Value(entryId),
+      description: context['description'] ??
+          'Stock Transfer #${_truncateRef(referenceId)}',
+      date: Value(date),
+      referenceType: const Value('STOCK_TRANSFER'),
+      referenceId: Value(referenceId),
+      status: const Value('POSTED'),
+      postedAt: Value(DateTime.now()),
+      branchId: Value(branchId),
+    );
+
+    final lines = [
+      GLLinesCompanion.insert(
+        entryId: entryId,
+        accountId: dstAccountId,
+        debit: Value(amount),
+        credit: Value(Decimal.zero),
+        branchId: Value(branchId),
+      ),
+      GLLinesCompanion.insert(
+        entryId: entryId,
+        accountId: srcAccountId,
         debit: Value(Decimal.zero),
         credit: Value(amount),
         branchId: Value(branchId),

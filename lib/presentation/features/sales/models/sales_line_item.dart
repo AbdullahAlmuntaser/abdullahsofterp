@@ -1,5 +1,4 @@
 
-import 'package:supermarket/data/datasources/local/app_database.dart';
 class SalesLineItem {
   Product? product;
   double quantity;

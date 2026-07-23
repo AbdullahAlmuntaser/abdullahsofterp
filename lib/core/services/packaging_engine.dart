@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
+import 'package:supermarket/core/exceptions/concurrency_exception.dart';
 import 'package:supermarket/core/services/inventory_costing_service.dart';
 import 'package:supermarket/core/services/app_config_service.dart';
 import 'package:supermarket/core/utils/stock_display_adapter.dart';
@@ -115,10 +116,13 @@ class PackagingEngine {
     final costPerUnit = currentBatch.costPrice;
     final newReserved = currentBatch.reservedQuantity + actualDeduction;
 
-    await (db.update(db.productBatches)..where((b) => b.id.equals(currentBatch.id)))
+    final changes = await (db.update(db.productBatches)..where((b) => b.id.equals(currentBatch.id) & b.version.equals(currentBatch.version)))
         .write(ProductBatchesCompanion(
       reservedQuantity: Value(newReserved),
-    ));
+    ).copyWith(version: Value(currentBatch.version + 1)));
+    if (changes == 0) {
+      throw ConcurrencyException('ProductBatch ${currentBatch.id} was modified by another transaction');
+    }
 
     developer.log(
       'Reserved $actualDeduction units from batch ${currentBatch.batchNumber} '

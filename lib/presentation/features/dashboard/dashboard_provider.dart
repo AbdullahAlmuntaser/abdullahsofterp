@@ -7,7 +7,7 @@ import 'package:supermarket/core/services/audit_service.dart';
 class DashboardData {
   final double totalSalesToday;
   final double netProfitToday;
-  final double inventoryValue;
+  final Decimal inventoryValue;
   final int lowStockCount;
   final int creditLimitExceededCount;
   final int totalCustomers;
@@ -66,7 +66,7 @@ class DashboardProvider with ChangeNotifier {
           .toDouble();
 
       // 2. القيمة الإجمالية للمخزون
-      double invValue = await db.calculateTotalInventoryValue();
+      final invValue = await db.calculateTotalInventoryValue();
 
       // 3. المنتجات منخفضة المخزون
       final lowStock = await (db.select(db.products)

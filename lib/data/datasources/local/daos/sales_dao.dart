@@ -3,35 +3,17 @@ import 'package:supermarket/core/constants/app_enums.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:uuid/uuid.dart';
 
-part 'sales_dao.g.dart';
-
-@DriftAccessor(
-  tables: [
-    Sales,
-    SaleItems,
-    Products,
-    Customers,
-    SyncQueue,
-    AuditLogs,
-    SalesReturns,
-    SalesReturnItems,
-    ProductBatches,
-    SalesOrders,
-    SalesOrderItems,
-  ],
-)
-class SalesDao extends DatabaseAccessor<AppDatabase>
-    with _$SalesDaoMixin, SyncLogMixin {
+class SalesDao extends DatabaseAccessor<AppDatabase> {
   SalesDao(super.db);
 
-  Stream<List<Sale>> watchAllSales() => select(sales).watch();
+  Stream<List<Sale>> watchAllSales() => select(db.sales).watch();
 
   Stream<List<SaleItem>> watchSaleItems(String saleId) {
-    return (select(saleItems)..where((si) => si.saleId.equals(saleId))).watch();
+    return (select(db.saleItems)..where((si) => si.saleId.equals(saleId))).watch();
   }
 
   Stream<Decimal> watchTotalRevenueToday() {
-    final query = select(sales)
+    final query = select(db.sales)
       ..where(
         (s) => s.createdAt.isBiggerOrEqualValue(
           DateTime.now().subtract(const Duration(days: 1)),
@@ -46,7 +28,7 @@ class SalesDao extends DatabaseAccessor<AppDatabase>
   }
 
   Stream<double> watchTotalSalesToday() {
-    final query = select(sales)
+    final query = select(db.sales)
       ..where(
         (s) => s.createdAt.isBiggerOrEqualValue(
           DateTime.now().subtract(const Duration(days: 1)),
@@ -58,17 +40,17 @@ class SalesDao extends DatabaseAccessor<AppDatabase>
   /// حساب أرباح اليوم
   Stream<Decimal> watchTotalProfitToday() {
     final startOfDay = DateTime.now().subtract(const Duration(days: 1));
-    final query = select(saleItems).join([
-      innerJoin(sales, sales.id.equalsExp(saleItems.saleId)),
-      innerJoin(products, products.id.equalsExp(saleItems.productId)),
+    final query = select(db.saleItems).join([
+      innerJoin(db.sales, db.sales.id.equalsExp(db.saleItems.saleId)),
+      innerJoin(db.products, db.products.id.equalsExp(db.saleItems.productId)),
     ])
-      ..where(sales.createdAt.isBiggerOrEqual(Variable(startOfDay)));
+      ..where(db.sales.createdAt.isBiggerOrEqual(Variable(startOfDay)));
 
     return query.watch().map((rows) {
       Decimal profit = Decimal.zero;
       for (var row in rows) {
-        final item = row.readTable(saleItems);
-        final product = row.readTable(products);
+        final item = row.readTable(db.saleItems);
+        final product = row.readTable(db.products);
         profit += (item.price - product.buyPrice) * item.quantity;
       }
       return profit;
@@ -76,12 +58,12 @@ class SalesDao extends DatabaseAccessor<AppDatabase>
   }
 
   Future<List<Sale>> getSalesForCustomer(String customerId) {
-    return (select(sales)..where((s) => s.customerId.equals(customerId))).get();
+    return (select(db.sales)..where((s) => s.customerId.equals(customerId))).get();
   }
 
   Future<List<Sale>> getInvoicesByDateRange(
       DateTime startDate, DateTime endDate) {
-    return (select(sales)
+    return (select(db.sales)
           ..where((s) =>
               s.createdAt.isBiggerOrEqualValue(startDate) &
               s.createdAt.isSmallerOrEqualValue(endDate))
@@ -90,11 +72,11 @@ class SalesDao extends DatabaseAccessor<AppDatabase>
   }
 
   Future<List<SaleItem>> getInvoiceItems(String saleId) {
-    return (select(saleItems)..where((si) => si.saleId.equals(saleId))).get();
+    return (select(db.saleItems)..where((si) => si.saleId.equals(saleId))).get();
   }
 
   Future<Sale?> getSaleById(String id) {
-    return (select(sales)..where((s) => s.id.equals(id))).getSingleOrNull();
+    return (select(db.sales)..where((s) => s.id.equals(id))).getSingleOrNull();
   }
 
   Future<void> createSale({
@@ -109,11 +91,11 @@ class SalesDao extends DatabaseAccessor<AppDatabase>
     return transaction(() async {
       // 1. Insert Sale
       final saleId = saleCompanion.id.value;
-      await into(sales).insert(saleCompanion);
+      await into(db.sales).insert(saleCompanion);
 
       // 2. Insert Items
       for (var item in itemsCompanions) {
-        await into(saleItems).insert(item);
+        await into(db.saleItems).insert(item);
       }
 
       // 3. Sync Queue
@@ -124,7 +106,7 @@ class SalesDao extends DatabaseAccessor<AppDatabase>
       );
 
       // 4. Audit Log
-      await into(auditLogs).insert(
+      await into(db.auditLogs).insert(
         AuditLogsCompanion.insert(
           userId: Value(userId),
           action: 'CREATE',
@@ -143,10 +125,10 @@ class SalesDao extends DatabaseAccessor<AppDatabase>
   }) async {
     return transaction(() async {
       final returnId = returnCompanion.id.value;
-      await into(salesReturns).insert(returnCompanion);
+      await into(db.salesReturns).insert(returnCompanion);
 
       for (var item in itemsCompanions) {
-        await into(salesReturnItems).insert(item);
+        await into(db.salesReturnItems).insert(item);
       }
 
       await logSyncOperation(
@@ -155,7 +137,7 @@ class SalesDao extends DatabaseAccessor<AppDatabase>
         operation: 'CREATE',
       );
 
-      await into(auditLogs).insert(
+      await into(db.auditLogs).insert(
         AuditLogsCompanion.insert(
           userId: Value(userId),
           action: 'CREATE',
@@ -171,16 +153,16 @@ class SalesDao extends DatabaseAccessor<AppDatabase>
 
   Future<List<Product>> getMostSoldProducts({int limit = 10}) async {
     final quantitySum =
-        CustomExpression<double>('SUM(${saleItems.quantity.name})');
-    final query = selectOnly(saleItems)
-      ..addColumns([saleItems.productId, quantitySum])
-      ..groupBy([saleItems.productId])
+        CustomExpression<double>('SUM(${db.saleItems.quantity.name})');
+    final query = selectOnly(db.saleItems)
+      ..addColumns([db.saleItems.productId, quantitySum])
+      ..groupBy([db.saleItems.productId])
       ..orderBy([OrderingTerm.desc(quantitySum)])
       ..limit(limit);
 
     final rows = await query.get();
     final productIds =
-        rows.map((row) => row.read(saleItems.productId)!).toList();
+        rows.map((row) => row.read(db.saleItems.productId)!).toList();
 
     if (productIds.isEmpty) return [];
 
@@ -189,19 +171,19 @@ class SalesDao extends DatabaseAccessor<AppDatabase>
 
   Future<List<TopProduct>> getTopSellingProducts({int limit = 5}) async {
     final quantitySum =
-        CustomExpression<double>('SUM(${saleItems.quantity.name})');
-    final query = select(saleItems).join([
-      innerJoin(products, products.id.equalsExp(saleItems.productId)),
+        CustomExpression<double>('SUM(${db.saleItems.quantity.name})');
+    final query = select(db.saleItems).join([
+      innerJoin(db.products, db.products.id.equalsExp(db.saleItems.productId)),
     ])
       ..addColumns([quantitySum])
-      ..groupBy([saleItems.productId])
+      ..groupBy([db.saleItems.productId])
       ..orderBy([OrderingTerm.desc(quantitySum)])
       ..limit(limit);
 
     final rows = await query.get();
     return rows.map((row) {
       return TopProduct(
-        product: row.readTable(products),
+        product: row.readTable(db.products),
         totalQuantity: (row.read(quantitySum) ?? 0).toDouble(),
       );
     }).toList();
@@ -215,25 +197,25 @@ class SalesDao extends DatabaseAccessor<AppDatabase>
     final reportEndDate = endDate ?? DateTime.now();
 
     final revenueSum = CustomExpression<double>(
-        'SUM(${saleItems.quantity.name} * ${saleItems.price.name})');
+        'SUM(${db.saleItems.quantity.name} * ${db.saleItems.price.name})');
     final costSum = CustomExpression<double>(
-        'SUM(${saleItems.quantity.name} * ${products.buyPrice.name})');
+        'SUM(${db.saleItems.quantity.name} * ${db.products.buyPrice.name})');
     final quantitySum =
-        CustomExpression<double>('SUM(${saleItems.quantity.name})');
+        CustomExpression<double>('SUM(${db.saleItems.quantity.name})');
 
-    final query = select(saleItems).join([
-      innerJoin(sales, sales.id.equalsExp(saleItems.saleId)),
-      innerJoin(products, products.id.equalsExp(saleItems.productId)),
+    final query = select(db.saleItems).join([
+      innerJoin(db.sales, db.sales.id.equalsExp(db.saleItems.saleId)),
+      innerJoin(db.products, db.products.id.equalsExp(db.saleItems.productId)),
     ])
       ..addColumns([revenueSum, costSum, quantitySum])
-      ..where(sales.createdAt
+      ..where(db.sales.createdAt
           .isBetween(Variable(reportStartDate), Variable(reportEndDate)))
-      ..groupBy([saleItems.productId]);
+      ..groupBy([db.saleItems.productId]);
 
     final rows = await query.get();
 
     return rows.map((row) {
-      final product = row.readTable(products);
+      final product = row.readTable(db.products);
       final revenue = (row.read(revenueSum) ?? 0).toDouble();
       final cost = (row.read(costSum) ?? 0).toDouble();
 
@@ -252,16 +234,16 @@ class SalesDao extends DatabaseAccessor<AppDatabase>
   // إدارة طلبات المبيعات (Sales Orders)
 
   Future<List<SalesOrder>> getAllSalesOrders() async {
-    return (select(salesOrders)).get();
+    return (select(db.salesOrders)).get();
   }
 
   Future<SalesOrder?> getSalesOrderById(String orderId) async {
-    return (select(salesOrders)..where((o) => o.id.equals(orderId)))
+    return (select(db.salesOrders)..where((o) => o.id.equals(orderId)))
         .getSingleOrNull();
   }
 
   Future<List<SalesOrderItem>> getSalesOrderItems(String orderId) async {
-    return (select(salesOrderItems)..where((i) => i.orderId.equals(orderId)))
+    return (select(db.salesOrderItems)..where((i) => i.orderId.equals(orderId)))
         .get();
   }
 
@@ -276,13 +258,13 @@ class SalesDao extends DatabaseAccessor<AppDatabase>
 
     return transaction(() async {
       final orderId = orderCompanion.id.value;
-      await into(salesOrders).insert(orderCompanion);
+      await into(db.salesOrders).insert(orderCompanion);
 
       for (var item in itemsCompanions) {
-        await into(salesOrderItems).insert(item);
+        await into(db.salesOrderItems).insert(item);
       }
 
-      await into(auditLogs).insert(
+      await into(db.auditLogs).insert(
         AuditLogsCompanion.insert(
           userId: Value(userId),
           action: 'CREATE',
@@ -296,11 +278,11 @@ class SalesDao extends DatabaseAccessor<AppDatabase>
 
   Future<void> updateSalesOrderStatus(String orderId, String newStatus) async {
     return transaction(() async {
-      await (update(salesOrders)..where((o) => o.id.equals(orderId))).write(
+      await (update(db.salesOrders)..where((o) => o.id.equals(orderId))).write(
         SalesOrdersCompanion(status: Value(newStatus)),
       );
 
-      await into(auditLogs).insert(
+      await into(db.auditLogs).insert(
         AuditLogsCompanion.insert(
           action: 'UPDATE',
           targetEntity: 'SALES_ORDER',
@@ -313,11 +295,11 @@ class SalesDao extends DatabaseAccessor<AppDatabase>
 
   Future<void> deleteSalesOrder(String orderId) async {
     return transaction(() async {
-      await (delete(salesOrderItems)..where((i) => i.orderId.equals(orderId)))
+      await (delete(db.salesOrderItems)..where((i) => i.orderId.equals(orderId)))
           .go();
-      await (delete(salesOrders)..where((o) => o.id.equals(orderId))).go();
+      await (delete(db.salesOrders)..where((o) => o.id.equals(orderId))).go();
 
-      await into(auditLogs).insert(
+      await into(db.auditLogs).insert(
         AuditLogsCompanion.insert(
           action: 'DELETE',
           targetEntity: 'SALES_ORDER',
@@ -330,7 +312,7 @@ class SalesDao extends DatabaseAccessor<AppDatabase>
 
   Future<void> deleteSale(String saleId) async {
     return transaction(() async {
-      final existing = await (select(sales)..where((s) => s.id.equals(saleId)))
+      final existing = await (select(db.sales)..where((s) => s.id.equals(saleId)))
           .getSingleOrNull();
       if (existing == null) {
         throw Exception('فاتورة المبيعات غير موجودة.');
@@ -341,8 +323,8 @@ class SalesDao extends DatabaseAccessor<AppDatabase>
         );
       }
 
-      await (delete(saleItems)..where((i) => i.saleId.equals(saleId))).go();
-      await (delete(sales)..where((s) => s.id.equals(saleId))).go();
+      await (delete(db.saleItems)..where((i) => i.saleId.equals(saleId))).go();
+      await (delete(db.sales)..where((s) => s.id.equals(saleId))).go();
 
       await logSyncOperation(
         table: 'sales',
@@ -350,7 +332,7 @@ class SalesDao extends DatabaseAccessor<AppDatabase>
         operation: 'DELETE',
       );
 
-      await into(auditLogs).insert(
+      await into(db.auditLogs).insert(
         AuditLogsCompanion.insert(
           action: 'DELETE',
           targetEntity: 'SALES_INVOICE',
@@ -372,7 +354,7 @@ class SalesDao extends DatabaseAccessor<AppDatabase>
     }
 
     return transaction(() async {
-      final existing = await (select(sales)..where((s) => s.id.equals(saleId)))
+      final existing = await (select(db.sales)..where((s) => s.id.equals(saleId)))
           .getSingleOrNull();
       if (existing == null) {
         throw Exception('فاتورة المبيعات غير موجودة.');
@@ -383,12 +365,12 @@ class SalesDao extends DatabaseAccessor<AppDatabase>
         );
       }
 
-      await (update(sales)..where((s) => s.id.equals(saleId)))
+      await (update(db.sales)..where((s) => s.id.equals(saleId)))
           .write(saleCompanion);
 
-      await (delete(saleItems)..where((i) => i.saleId.equals(saleId))).go();
+      await (delete(db.saleItems)..where((i) => i.saleId.equals(saleId))).go();
       for (var item in itemsCompanions) {
-        await into(saleItems).insert(item);
+        await into(db.saleItems).insert(item);
       }
 
       await logSyncOperation(
@@ -397,7 +379,7 @@ class SalesDao extends DatabaseAccessor<AppDatabase>
         operation: 'UPDATE',
       );
 
-      await into(auditLogs).insert(
+      await into(db.auditLogs).insert(
         AuditLogsCompanion.insert(
           userId: Value(userId),
           action: 'UPDATE',
@@ -410,12 +392,12 @@ class SalesDao extends DatabaseAccessor<AppDatabase>
   }
 
   Future<List<SalesOrder>> getSalesOrdersByCustomer(String customerId) async {
-    return (select(salesOrders)..where((o) => o.customerId.equals(customerId)))
+    return (select(db.salesOrders)..where((o) => o.customerId.equals(customerId)))
         .get();
   }
 
   Future<List<SalesOrder>> getSalesOrdersByStatus(String status) async {
-    return (select(salesOrders)..where((o) => o.status.equals(status))).get();
+    return (select(db.salesOrders)..where((o) => o.status.equals(status))).get();
   }
 
   // ==================== Customer Payment Links ====================

@@ -1,9 +1,7 @@
 import 'dart:io';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
-import 'package:path/path.dart' as p;
 import 'package:supermarket/data/datasources/local/app_database.dart';
-import 'package:supermarket/native_sql_override.dart';
 
 /// PATCH-08: Clean up existing BROKEN batches.
 ///
@@ -31,7 +29,7 @@ Future<void> main(List<String> args) async {
     exit(1);
   }
 
-  if (!File(dbPath!).existsSync()) {
+  if (!File(dbPath).existsSync()) {
     print('ERROR: Database file not found: $dbPath');
     exit(1);
   }
@@ -42,7 +40,7 @@ Future<void> main(List<String> args) async {
 
   // Count broken batches first
   print('Step 0: Counting BROKEN batches...');
-  final db = AppDatabase(_openConnection(dbPath!));
+  final db = AppDatabase(_openConnection(dbPath));
   try {
     final allBatches = await (db.select(db.productBatches)).get();
     final brokenBatches = allBatches.where((b) => b.batchNumber.startsWith('BROKEN-')).toList();

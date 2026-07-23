@@ -88,12 +88,51 @@ class InventoryReportService {
     });
   }
 
-  Future<double> getTotalInventoryValue() {
+  Future<Decimal> getTotalInventoryValue() {
     return db.calculateTotalInventoryValue();
   }
 
   Stream<List<Product>> watchLowStockProducts() {
     return db.watchLowStockProducts();
+  }
+
+  Future<List<BatchReport>> getBatchTrackingReport({
+    String? productId,
+    String? warehouseId,
+  }) async {
+    final query = db.select(db.productBatches).join([
+      drift.innerJoin(
+        db.products,
+        db.products.id.equalsExp(db.productBatches.productId),
+      ),
+      drift.leftOuterJoin(
+        db.warehouses,
+        db.warehouses.id.equalsExp(db.productBatches.warehouseId),
+      ),
+    ]);
+
+    if (productId != null) {
+      query.where(db.productBatches.productId.equals(productId));
+    }
+    if (warehouseId != null) {
+      query.where(db.productBatches.warehouseId.equals(warehouseId));
+    }
+
+    query.orderBy([
+      drift.OrderingTerm(
+        expression: db.productBatches.createdAt,
+        mode: drift.OrderingMode.desc,
+      ),
+    ]);
+
+    final rows = await query.get();
+    return rows.map((row) {
+      return BatchReport(
+        batch: row.readTable(db.productBatches),
+        product: row.readTable(db.products),
+        warehouse: row.readTableOrNull(db.warehouses),
+      );
+    }).toList();
   }
 
   Stream<List<BatchReport>> watchExpiringSoonBatches({int days = 30}) {

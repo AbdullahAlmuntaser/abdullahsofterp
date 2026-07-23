@@ -118,16 +118,16 @@ class _AddPurchasePageState extends State<AddPurchasePage> {
           .getSingleOrNull();
       if (product == null) continue;
 
-      final conversions = await (db.select(db.unitConversions)
+      final conversions = await (db.select(db.productUnits)
             ..where((u) => u.productId.equals(product.id)))
           .get();
-      UnitConversion? selectedUnit;
+      ProductUnit? selectedUnit;
       for (final conversion in conversions) {
         final matchesUnitId = item.unitId != null &&
             (conversion.id == item.unitId ||
                 conversion.unitName == item.unitId);
         final matchesFactor = item.unitId == null &&
-            (conversion.factor - item.unitFactor).abs() <
+            (conversion.unitFactor - item.unitFactor).abs() <
                 Decimal.parse('0.0001');
         if (matchesUnitId || matchesFactor) {
           selectedUnit = conversion;

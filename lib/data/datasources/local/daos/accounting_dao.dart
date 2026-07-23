@@ -4,8 +4,6 @@ import 'package:supermarket/core/models/accounting/account_tree_node.dart';
 import 'package:supermarket/core/constants/account_types.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
 
-part 'accounting_dao.g.dart';
-
 class TrialBalanceItem {
   final GLAccount account;
   final Decimal totalDebit;
@@ -76,20 +74,7 @@ class BalanceSheet {
   });
 }
 
-@DriftAccessor(
-  tables: [
-    GLAccounts,
-    CostCenters,
-    GLEntries,
-    GLLines,
-    Reconciliations,
-    AccountingPeriods,
-    AccountTransactions,
-    SyncQueue,
-  ],
-)
-class AccountingDao extends DatabaseAccessor<AppDatabase>
-    with _$AccountingDaoMixin, SyncLogMixin {
+class AccountingDao extends DatabaseAccessor<AppDatabase> {
   AccountingDao(super.db);
 
   Future<bool> isDateInClosedPeriod(DateTime date) async {
@@ -115,24 +100,20 @@ class AccountingDao extends DatabaseAccessor<AppDatabase>
   }
 
   // --- GL Accounts ---
-  Future<List<GLAccount>> getAllAccounts() => (select(
-        gLAccounts,
-      )..orderBy([(t) => OrderingTerm(expression: t.code)]))
+  Future<List<GLAccount>> getAllAccounts() => (select(db.gLAccounts)..orderBy([(t) => OrderingTerm(expression: t.code)]))
           .get();
 
-  Stream<List<GLAccount>> watchAccounts() => (select(
-        gLAccounts,
-      )..orderBy([(t) => OrderingTerm(expression: t.code)]))
+  Stream<List<GLAccount>> watchAccounts() => (select(db.gLAccounts)..orderBy([(t) => OrderingTerm(expression: t.code)]))
           .watch();
 
   Future<GLAccount?> getAccountByCode(String code) =>
-      (select(gLAccounts)..where((t) => t.code.equals(code))).getSingleOrNull();
+      (select(db.gLAccounts)..where((t) => t.code.equals(code))).getSingleOrNull();
 
   Future<GLAccount?> getAccountById(String id) =>
-      (select(gLAccounts)..where((t) => t.id.equals(id))).getSingleOrNull();
+      (select(db.gLAccounts)..where((t) => t.id.equals(id))).getSingleOrNull();
 
   Future<String> createAccount(GLAccountsCompanion account) async {
-    final row = await into(gLAccounts).insertReturning(account);
+    final row = await into(db.gLAccounts).insertReturning(account);
     await logSyncOperation(
       table: 'gl_accounts',
       entityId: row.id,
@@ -142,7 +123,7 @@ class AccountingDao extends DatabaseAccessor<AppDatabase>
   }
 
   Future<bool> updateAccount(GLAccount account) async {
-    final result = await update(gLAccounts).replace(account);
+    final result = await update(db.gLAccounts).replace(account);
     if (result) {
       await logSyncOperation(
         table: 'gl_accounts',
@@ -154,18 +135,18 @@ class AccountingDao extends DatabaseAccessor<AppDatabase>
   }
 
   Future<List<GLAccount>> getAccountsByType(String type) =>
-      (select(gLAccounts)..where((tbl) => tbl.accountType.equals(enums.AccountType.values.byName(type.toLowerCase()).index))).get();
+      (select(db.gLAccounts)..where((tbl) => tbl.accountType.equals(enums.AccountType.values.byName(type.toLowerCase()).index))).get();
 
   // --- Cost Centers ---
-  Future<List<CostCenter>> getAllCostCenters() => (select(costCenters)).get();
-  Stream<List<CostCenter>> watchCostCenters() => (select(costCenters)).watch();
+  Future<List<CostCenter>> getAllCostCenters() => (select(db.costCenters)).get();
+  Stream<List<CostCenter>> watchCostCenters() => (select(db.costCenters)).watch();
   Future<String> createCostCenter(CostCentersCompanion cc) async {
-    final row = await into(costCenters).insertReturning(cc);
+    final row = await into(db.costCenters).insertReturning(cc);
     return row.id;
   }
 
   Future<bool> updateCostCenter(CostCenter cc) =>
-      update(costCenters).replace(cc);
+      update(db.costCenters).replace(cc);
 
   Future<void> createEntry(
     GLEntriesCompanion entry,
@@ -176,7 +157,7 @@ class AccountingDao extends DatabaseAccessor<AppDatabase>
           entry.referenceType.value != null &&
           entry.referenceId.present &&
           entry.referenceId.value != null) {
-        final duplicate = await (select(gLEntries)
+        final duplicate = await (select(db.gLEntries)
               ..where((e) => e.referenceType.equals(entry.referenceType.value!))
               ..where((e) => e.referenceId.equals(entry.referenceId.value!)))
             .getSingleOrNull();
@@ -198,7 +179,7 @@ class AccountingDao extends DatabaseAccessor<AppDatabase>
         );
       }
 
-      final entryRow = await into(gLEntries).insertReturning(entry);
+      final entryRow = await into(db.gLEntries).insertReturning(entry);
 
       await logSyncOperation(
         table: 'gl_entries',
@@ -213,7 +194,7 @@ class AccountingDao extends DatabaseAccessor<AppDatabase>
               line.branchId.present ? line.branchId : Value(entryRow.branchId),
         );
 
-        final lineRow = await into(gLLines).insertReturning(lineToInsert);
+        final lineRow = await into(db.gLLines).insertReturning(lineToInsert);
 
         await _recordAccountTransaction(lineRow, entryRow);
       }
@@ -266,7 +247,7 @@ class AccountingDao extends DatabaseAccessor<AppDatabase>
   }
 
   Stream<List<GLEntry>> watchRecentEntries({int limit = 50}) {
-    return (select(gLEntries)
+    return (select(db.gLEntries)
           ..orderBy([
             (t) => OrderingTerm(expression: t.date, mode: OrderingMode.desc),
           ])
@@ -275,16 +256,16 @@ class AccountingDao extends DatabaseAccessor<AppDatabase>
   }
 
   Future<List<GLLineWithAccount>> getLinesForEntry(String entryId) async {
-    final query = select(gLLines).join([
-      innerJoin(gLAccounts, gLAccounts.id.equalsExp(gLLines.accountId)),
+    final query = select(db.gLLines).join([
+      innerJoin(db.gLAccounts, db.gLAccounts.id.equalsExp(db.gLLines.accountId)),
     ])
-      ..where(gLLines.entryId.equals(entryId));
+      ..where(db.gLLines.entryId.equals(entryId));
 
     final rows = await query.get();
     return rows.map((row) {
       return GLLineWithAccount(
-        row.readTable(gLLines),
-        row.readTable(gLAccounts),
+        row.readTable(db.gLLines),
+        row.readTable(db.gLAccounts),
       );
     }).toList();
   }
@@ -293,9 +274,7 @@ class AccountingDao extends DatabaseAccessor<AppDatabase>
     DateTime startDate,
     DateTime endDate,
   ) {
-    return (select(
-      gLEntries,
-    )..where((tbl) =>
+    return (select(db.gLEntries)..where((tbl) =>
             tbl.date.isBetween(Variable(startDate), Variable(endDate))))
         .get();
   }
@@ -360,15 +339,15 @@ class AccountingDao extends DatabaseAccessor<AppDatabase>
     final account = await getAccountById(accountId);
     if (account == null) return Decimal.zero;
 
-    var predicate = gLLines.accountId.equals(accountId) &
-        gLEntries.date.isSmallerOrEqual(Variable(asOfDate));
+    var predicate = db.gLLines.accountId.equals(accountId) &
+        db.gLEntries.date.isSmallerOrEqual(Variable(asOfDate));
 
     if (branchId != null) {
-      predicate = predicate & gLLines.branchId.equals(branchId);
+      predicate = predicate & db.gLLines.branchId.equals(branchId);
     }
 
-    final rows = await (select(gLLines).join([
-      innerJoin(gLEntries, gLEntries.id.equalsExp(db.gLLines.entryId)),
+    final rows = await (select(db.gLLines).join([
+      innerJoin(db.gLEntries, db.gLEntries.id.equalsExp(db.gLLines.entryId)),
     ])
           ..where(predicate))
         .get();
@@ -378,8 +357,8 @@ class AccountingDao extends DatabaseAccessor<AppDatabase>
     Decimal debit = Decimal.zero;
     Decimal credit = Decimal.zero;
     for (final row in rows) {
-      debit += row.readTable(gLLines).debit;
-      credit += row.readTable(gLLines).credit;
+      debit += row.readTable(db.gLLines).debit;
+      credit += row.readTable(db.gLLines).credit;
     }
 
     if (account.type == AccountType.asset ||
@@ -400,15 +379,15 @@ class AccountingDao extends DatabaseAccessor<AppDatabase>
     final account = await getAccountById(accountId);
     if (account == null) return Decimal.zero;
 
-    var predicate = gLLines.accountId.equals(accountId) &
-        gLEntries.date.isBetween(Variable(startDate), Variable(endDate));
+    var predicate = db.gLLines.accountId.equals(accountId) &
+        db.gLEntries.date.isBetween(Variable(startDate), Variable(endDate));
 
     if (branchId != null) {
-      predicate = predicate & gLLines.branchId.equals(branchId);
+      predicate = predicate & db.gLLines.branchId.equals(branchId);
     }
 
-    final rows = await (select(gLLines).join([
-      innerJoin(gLEntries, gLEntries.id.equalsExp(db.gLLines.entryId)),
+    final rows = await (select(db.gLLines).join([
+      innerJoin(db.gLEntries, db.gLEntries.id.equalsExp(db.gLLines.entryId)),
     ])
           ..where(predicate))
         .get();
@@ -418,8 +397,8 @@ class AccountingDao extends DatabaseAccessor<AppDatabase>
     Decimal debit = Decimal.zero;
     Decimal credit = Decimal.zero;
     for (final row in rows) {
-      debit += row.readTable(gLLines).debit;
-      credit += row.readTable(gLLines).credit;
+      debit += row.readTable(db.gLLines).debit;
+      credit += row.readTable(db.gLLines).credit;
     }
 
     if (account.type == AccountType.asset ||
@@ -437,20 +416,20 @@ class AccountingDao extends DatabaseAccessor<AppDatabase>
   }) async {
     final allAccounts = await getAllAccounts();
 
-    var predicate = gLEntries.date.isSmallerOrEqual(Variable(asOfDate));
+    var predicate = db.gLEntries.date.isSmallerOrEqual(Variable(asOfDate));
     if (branchId != null) {
-      predicate = predicate & gLLines.branchId.equals(branchId);
+      predicate = predicate & db.gLLines.branchId.equals(branchId);
     }
 
-    final rows = await (select(gLLines).join([
-      innerJoin(gLEntries, gLEntries.id.equalsExp(db.gLLines.entryId)),
+    final rows = await (select(db.gLLines).join([
+      innerJoin(db.gLEntries, db.gLEntries.id.equalsExp(db.gLLines.entryId)),
     ])
           ..where(predicate))
         .get();
 
     final Map<String, ({Decimal debit, Decimal credit})> balanceMap = {};
     for (final row in rows) {
-      final line = row.readTable(gLLines);
+      final line = row.readTable(db.gLLines);
       final entry = balanceMap[line.accountId] ??
           (debit: Decimal.zero, credit: Decimal.zero);
       balanceMap[line.accountId] = (
@@ -475,20 +454,20 @@ class AccountingDao extends DatabaseAccessor<AppDatabase>
     final allAccounts = await getAllAccounts();
 
     var predicate =
-        gLEntries.date.isBetween(Variable(startDate), Variable(endDate));
+        db.gLEntries.date.isBetween(Variable(startDate), Variable(endDate));
     if (branchId != null) {
-      predicate = predicate & gLLines.branchId.equals(branchId);
+      predicate = predicate & db.gLLines.branchId.equals(branchId);
     }
 
-    final rows = await (select(gLLines).join([
-      innerJoin(gLEntries, gLEntries.id.equalsExp(db.gLLines.entryId)),
+    final rows = await (select(db.gLLines).join([
+      innerJoin(db.gLEntries, db.gLEntries.id.equalsExp(db.gLLines.entryId)),
     ])
           ..where(predicate))
         .get();
 
     final Map<String, ({Decimal debit, Decimal credit})> balanceMap = {};
     for (final row in rows) {
-      final line = row.readTable(gLLines);
+      final line = row.readTable(db.gLLines);
       final entry = balanceMap[line.accountId] ??
           (debit: Decimal.zero, credit: Decimal.zero);
       balanceMap[line.accountId] = (
@@ -511,18 +490,18 @@ class AccountingDao extends DatabaseAccessor<AppDatabase>
     DateTime endDate, {
     String? branchId,
   }) {
-    var predicate = gLLines.accountId.equals(accountId) &
-        gLEntries.date.isBetween(Variable(startDate), Variable(endDate));
+    var predicate = db.gLLines.accountId.equals(accountId) &
+        db.gLEntries.date.isBetween(Variable(startDate), Variable(endDate));
 
     if (branchId != null) {
-      predicate = predicate & gLLines.branchId.equals(branchId);
+      predicate = predicate & db.gLLines.branchId.equals(branchId);
     }
 
-    return (select(gLLines).join([
-      innerJoin(gLEntries, gLEntries.id.equalsExp(db.gLLines.entryId)),
+    return (select(db.gLLines).join([
+      innerJoin(db.gLEntries, db.gLEntries.id.equalsExp(db.gLLines.entryId)),
     ])
           ..where(predicate))
-        .map((row) => row.readTable(gLLines))
+        .map((row) => row.readTable(db.gLLines))
         .get();
   }
 
@@ -533,23 +512,23 @@ class AccountingDao extends DatabaseAccessor<AppDatabase>
     String? branchId,
   }) async {
     var predicate =
-        gLEntries.date.isBetween(Variable(startDate), Variable(endDate));
+        db.gLEntries.date.isBetween(Variable(startDate), Variable(endDate));
 
     if (branchId != null) {
-      predicate = predicate & gLLines.branchId.equals(branchId);
+      predicate = predicate & db.gLLines.branchId.equals(branchId);
     }
 
-    final query = select(gLLines).join([
-      innerJoin(gLEntries, gLEntries.id.equalsExp(db.gLLines.entryId)),
-      innerJoin(gLAccounts, gLAccounts.id.equalsExp(db.gLLines.accountId)),
+    final query = select(db.gLLines).join([
+      innerJoin(db.gLEntries, db.gLEntries.id.equalsExp(db.gLLines.entryId)),
+      innerJoin(db.gLAccounts, db.gLAccounts.id.equalsExp(db.gLLines.accountId)),
     ])
       ..where(predicate);
 
     final rows = await query.get();
     return rows.map((row) {
       return GLLineWithAccount(
-        row.readTable(gLLines),
-        row.readTable(gLAccounts),
+        row.readTable(db.gLLines),
+        row.readTable(db.gLAccounts),
       );
     }).toList();
   }
@@ -635,27 +614,27 @@ class AccountingDao extends DatabaseAccessor<AppDatabase>
     String? branchId,
   }) async {
     var predicate =
-        gLEntries.date.isBetween(Variable(startDate), Variable(endDate));
+        db.gLEntries.date.isBetween(Variable(startDate), Variable(endDate));
 
     if (branchId != null) {
-      predicate = predicate & gLLines.branchId.equals(branchId);
+      predicate = predicate & db.gLLines.branchId.equals(branchId);
     }
 
-    final rows = await (select(gLLines).join([
-      innerJoin(gLEntries, gLEntries.id.equalsExp(gLLines.entryId)),
-      innerJoin(gLAccounts, gLAccounts.id.equalsExp(gLLines.accountId)),
+    final rows = await (select(db.gLLines).join([
+      innerJoin(db.gLEntries, db.gLEntries.id.equalsExp(db.gLLines.entryId)),
+      innerJoin(db.gLAccounts, db.gLAccounts.id.equalsExp(db.gLLines.accountId)),
       leftOuterJoin(
-          costCenters, costCenters.id.equalsExp(gLLines.costCenterId)),
+          db.costCenters, db.costCenters.id.equalsExp(db.gLLines.costCenterId)),
     ])
           ..where(predicate)
-          ..where(gLAccounts.accountType.equals(enums.AccountType.expense.index)))
+          ..where(db.gLAccounts.accountType.equals(enums.AccountType.expense.index)))
         .get();
 
     final Map<String, Decimal> ccTotals = {};
     for (final row in rows) {
-      final line = row.readTable(gLLines);
+      final line = row.readTable(db.gLLines);
       final ccName =
-          row.readTableOrNull(costCenters)?.name ?? 'بدون مركز تكلفة';
+          row.readTableOrNull(db.costCenters)?.name ?? 'بدون مركز تكلفة';
       ccTotals[ccName] =
           (ccTotals[ccName] ?? Decimal.zero) + line.debit - line.credit;
     }

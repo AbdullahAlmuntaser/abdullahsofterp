@@ -119,17 +119,24 @@ class _StaffManagementPageState extends State<StaffManagementPage> {
 
                     if (fullName.isNotEmpty && username.isNotEmpty) {
                       if (isEditing) {
-                        String finalPassword = user.password;
+                        String pwd = user.password;
+                        String? pwdHash = user.passwordHash;
+                        String? pwdSalt = user.passwordSalt;
                         if (password.isNotEmpty) {
-                          finalPassword =
-                              BCrypt.hashpw(password, BCrypt.gensalt());
+                          final salt = BCrypt.gensalt();
+                          final hash = BCrypt.hashpw(password, salt);
+                          pwd = hash;
+                          pwdHash = hash;
+                          pwdSalt = salt;
                         }
                         final oldRole = user.role;
                         await db.usersDao.updateUser(user.copyWith(
                           fullName: fullName,
                           username: username,
                           role: selectedRole,
-                          password: finalPassword,
+                          password: pwd,
+                          passwordHash: pwdHash,
+                          passwordSalt: pwdSalt,
                         ));
                         if (oldRole != selectedRole) {
                           await db.into(db.auditLogs).insert(
@@ -144,13 +151,17 @@ class _StaffManagementPageState extends State<StaffManagementPage> {
                         }
                       } else {
                         if (password.isEmpty) return;
+                        final salt = BCrypt.gensalt();
+                        final hash = BCrypt.hashpw(password, salt);
                         final newUserId = const Uuid().v4();
                         await db.usersDao.addUser(UsersCompanion.insert(
                           id: drift.Value(newUserId),
                           fullName: fullName,
                           username: username,
-                          password: BCrypt.hashpw(password, BCrypt.gensalt()),
+                          password: hash,
                           role: selectedRole,
+                          passwordHash: drift.Value(hash),
+                          passwordSalt: drift.Value(salt),
                         ));
                         await db.into(db.auditLogs).insert(
                               AuditLogsCompanion.insert(

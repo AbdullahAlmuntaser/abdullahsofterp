@@ -76,10 +76,10 @@ class AuditService {
     Map<String, dynamic>? oldValues,
     Map<String, dynamic>? newValues,
   }) async {
-    await db.into(db.accAuditLogs).insert(
-          AccAuditLogsCompanion.insert(
-            logTableName: logTableName,
-            recordId: recordId,
+    await db.into(db.auditLogs).insert(
+          AuditLogsCompanion.insert(
+            targetEntity: logTableName,
+            entityId: recordId,
             action: action,
             oldValues: Value(oldValues != null ? jsonEncode(oldValues) : null),
             newValues: Value(newValues != null ? jsonEncode(newValues) : null),
@@ -88,17 +88,17 @@ class AuditService {
         );
   }
 
-  Future<List<AccAuditLog>> getAuditLogForTable(
+  Future<List<AuditLog>> getAuditLogForTable(
       String logTableName, String recordId) async {
-    return (db.select(db.accAuditLogs)
+    return (db.select(db.auditLogs)
           ..where((t) =>
-              t.logTableName.equals(logTableName) & t.recordId.equals(recordId))
+              t.targetEntity.equals(logTableName) & t.entityId.equals(recordId))
           ..orderBy([(t) => OrderingTerm.desc(t.timestamp)]))
         .get();
   }
 
-  Future<List<AccAuditLog>> getAuditLogForUser(String userId) async {
-    return (db.select(db.accAuditLogs)
+  Future<List<AuditLog>> getAuditLogForUser(String userId) async {
+    return (db.select(db.auditLogs)
           ..where((t) => t.userId.equals(userId))
           ..orderBy([(t) => OrderingTerm.desc(t.timestamp)]))
         .get();

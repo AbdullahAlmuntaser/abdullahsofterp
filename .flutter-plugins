@@ -27,7 +27,6 @@ image_picker_ios=/home/user/.pub-cache/hosted/pub.dev/image_picker_ios-0.8.12+2/
 image_picker_linux=/home/user/.pub-cache/hosted/pub.dev/image_picker_linux-0.2.1+2/
 image_picker_macos=/home/user/.pub-cache/hosted/pub.dev/image_picker_macos-0.2.1+2/
 image_picker_windows=/home/user/.pub-cache/hosted/pub.dev/image_picker_windows-0.2.1+1/
-integration_test=/nix/store/ksyk5yalwyxsyd964w32z77zv7cxl8bj-flutter-wrapped-3.22.0-sdk-links/packages/integration_test/
 mobile_scanner=/home/user/.pub-cache/hosted/pub.dev/mobile_scanner-5.2.3/
 path_provider=/home/user/.pub-cache/hosted/pub.dev/path_provider-2.1.5/
 path_provider_android=/home/user/.pub-cache/hosted/pub.dev/path_provider_android-2.2.10/

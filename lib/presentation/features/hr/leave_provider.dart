@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:supermarket/core/services/leave_management_service.dart';
-import 'package:supermarket/data/datasources/local/app_database.dart';
 
 class LeaveProvider with ChangeNotifier {
   final LeaveManagementService _service;

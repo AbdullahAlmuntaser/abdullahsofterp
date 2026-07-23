@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:drift/drift.dart' show Value;
-import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:supermarket/core/services/credit_note_service.dart';
 
 class CreditNoteProvider with ChangeNotifier {

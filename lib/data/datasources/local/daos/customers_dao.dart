@@ -4,8 +4,6 @@ import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:supermarket/core/utils/name_normalizer.dart';
 import 'package:uuid/uuid.dart';
 
-part 'customers_dao.g.dart';
-
 class CustomerSearchResult {
   final Customer customer;
   final double similarity; // 0.0 to 1.0
@@ -36,45 +34,30 @@ class CustomerTransaction {
   });
 }
 
-@DriftAccessor(
-  tables: [
-    Customers,
-    CustomerPayments,
-    Sales,
-    SalesReturns,
-    GLAccounts,
-    GLEntries,
-    GLLines,
-    ARInvoices,
-  ],
-)
-class CustomersDao extends DatabaseAccessor<AppDatabase>
-    with _$CustomersDaoMixin {
+class CustomersDao extends DatabaseAccessor<AppDatabase> {
   CustomersDao(super.db);
 
   Stream<List<Customer>> watchAllCustomers() {
-    return (select(
-      customers,
-    )..where((tbl) => tbl.isActive.equals(true)))
+    return (select(db.customers)..where((tbl) => tbl.isActive.equals(true)))
         .watch();
   }
 
   Stream<int> watchTotalCustomers() {
-    return select(customers).watch().map((rows) => rows.length);
+    return select(db.customers).watch().map((rows) => rows.length);
   }
 
   Future<Customer?> getCustomerById(String id) {
-    return (select(customers)..where((c) => c.id.equals(id))).getSingleOrNull();
+    return (select(db.customers)..where((c) => c.id.equals(id))).getSingleOrNull();
   }
 
   // AR Invoices
   Stream<List<ARInvoice>> watchARInvoices(String customerId) {
-    return (select(aRInvoices)..where((t) => t.customerId.equals(customerId)))
+    return (select(db.aRInvoices)..where((t) => t.customerId.equals(customerId)))
         .watch();
   }
 
   Stream<List<ARInvoice>> watchAllARInvoices() {
-    return (select(aRInvoices)
+    return (select(db.aRInvoices)
           ..orderBy([
             (t) =>
                 OrderingTerm(expression: t.invoiceDate, mode: OrderingMode.desc)
@@ -83,11 +66,11 @@ class CustomersDao extends DatabaseAccessor<AppDatabase>
   }
 
   Future<int> createARInvoice(ARInvoicesCompanion entry) {
-    return into(aRInvoices).insert(entry);
+    return into(db.aRInvoices).insert(entry);
   }
 
   Future<List<ARInvoice>> getUnpaidARInvoices(String customerId) {
-    return (select(aRInvoices)
+    return (select(db.aRInvoices)
           ..where((t) =>
               t.customerId.equals(customerId) &
               t.status.isIn(['POSTED', 'PARTIAL'])))
@@ -95,7 +78,7 @@ class CustomersDao extends DatabaseAccessor<AppDatabase>
   }
 
   Future<List<ARInvoice>> getDueARInvoices(DateTime endDate) {
-    return (select(aRInvoices)
+    return (select(db.aRInvoices)
           ..where((t) =>
               t.status.isIn(['POSTED', 'PARTIAL']) &
               t.dueDate.isSmallerOrEqual(Variable(endDate))))
@@ -107,16 +90,14 @@ class CustomersDao extends DatabaseAccessor<AppDatabase>
     return transaction(() async {
       // 1. البحث عن الحساب الرئيسي للعملاء (مثلاً '1201')
       // إذا لم يوجد، نستخدم حساب الأصول المتداولة الرئيسي
-      final parentAccount = await (select(
-        gLAccounts,
-      )..where((t) => t.code.equals('1201')))
+      final parentAccount = await (select(db.gLAccounts)..where((t) => t.code.equals('1201')))
           .getSingleOrNull();
 
       final accountId = const Uuid().v4();
       final customerId = const Uuid().v4();
 
       // 2. إنشاء حساب في دفتر الأستاذ العام
-      await into(gLAccounts).insert(
+      await into(db.gLAccounts).insert(
         GLAccountsCompanion.insert(
           id: Value(accountId),
           code: '1201-${customerId.substring(0, 5)}',
@@ -135,26 +116,26 @@ class CustomersDao extends DatabaseAccessor<AppDatabase>
         id: Value(customerId),
         accountId: Value(accountId),
       );
-      await into(customers).insert(finalEntry);
+      await into(db.customers).insert(finalEntry);
 
       return customerId;
     });
   }
 
   Future<bool> updateCustomer(Customer entry) {
-    return update(customers).replace(entry);
+    return update(db.customers).replace(entry);
   }
 
   Future<int> deleteCustomer(Customer entry) {
     // نفضل التغيير إلى غير نشط بدلاً من الحذف الفعلي للحفاظ على السجلات المالية
-    return (update(customers)..where((t) => t.id.equals(entry.id))).write(
+    return (update(db.customers)..where((t) => t.id.equals(entry.id))).write(
       const CustomersCompanion(isActive: Value(false)),
     );
   }
 
   /// بحث متقدم عن العملاء
   Future<List<Customer>> searchCustomers(String query) {
-    return (select(customers)
+    return (select(db.customers)
           ..where(
             (t) =>
                 t.name.contains(query) |
@@ -166,9 +147,7 @@ class CustomersDao extends DatabaseAccessor<AppDatabase>
   }
 
   Future<List<CustomerPayment>> getPaymentsForCustomer(String customerId) {
-    return (select(
-      customerPayments,
-    )..where((p) => p.customerId.equals(customerId)))
+    return (select(db.customerPayments)..where((p) => p.customerId.equals(customerId)))
         .get();
   }
 
@@ -218,7 +197,7 @@ class CustomersDao extends DatabaseAccessor<AppDatabase>
     }
 
     // 2. جلب فواتير الذمم المدينة (AR Invoices)
-    final arInvoicesList = await (select(aRInvoices)
+    final arInvoicesList = await (select(db.aRInvoices)
           ..where((t) => t.customerId.equals(customerId)))
         .get();
     for (var inv in arInvoicesList) {
@@ -292,9 +271,7 @@ class CustomersDao extends DatabaseAccessor<AppDatabase>
     final normalizedQuery = NameNormalizer.normalize(query);
 
     // Get all active customers
-    final allCustomers = await (select(
-      customers,
-    )..where((c) => c.isActive.equals(true)))
+    final allCustomers = await (select(db.customers)..where((c) => c.isActive.equals(true)))
         .get();
 
     final results = <CustomerSearchResult>[];
@@ -347,7 +324,7 @@ class CustomersDao extends DatabaseAccessor<AppDatabase>
   /// Find exact match by normalized name
   Future<Customer?> findByNormalizedName(String name) async {
     final normalized = NameNormalizer.normalize(name);
-    return (select(customers)
+    return (select(db.customers)
           ..where((c) => c.normalizedName.equals(normalized))
           ..where((c) => c.isActive.equals(true)))
         .getSingleOrNull();
@@ -361,7 +338,7 @@ class CustomersDao extends DatabaseAccessor<AppDatabase>
       final customerId = const Uuid().v4();
 
       // 1. Create customer with normalized name
-      await into(customers).insert(
+      await into(db.customers).insert(
         CustomersCompanion.insert(
           id: Value(customerId),
           name: name,
@@ -381,7 +358,7 @@ class CustomersDao extends DatabaseAccessor<AppDatabase>
 
   /// Get all quick customers (created from POS)
   Future<List<Customer>> getQuickCustomers() {
-    return (select(customers)
+    return (select(db.customers)
           ..where((c) => c.isQuickCustomer.equals(true))
           ..where((c) => c.isActive.equals(true)))
         .get();
@@ -389,7 +366,7 @@ class CustomersDao extends DatabaseAccessor<AppDatabase>
 
   /// Watch only regular (non-quick) customers for credit sales
   Stream<List<Customer>> watchRegularCustomers() {
-    return (select(customers)
+    return (select(db.customers)
           ..where((c) => c.isActive.equals(true))
           ..where((c) => c.isQuickCustomer.equals(false)))
         .watch();

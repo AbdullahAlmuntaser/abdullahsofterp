@@ -1,3 +1,4 @@
+import 'package:decimal/decimal.dart';
 import '../../data/models/quotation.dart';
 import '../../domain/repositories/quotation_repository.dart';
 
@@ -38,19 +39,19 @@ class CreateQuotation {
     return await repository.createQuotation(newQuotation, items);
   }
 
-  double _calculateSubtotal(List<QuotationItem> items) {
-    return items.fold(0, (sum, item) => sum + (item.quantity * item.unitPrice));
+  Decimal _calculateSubtotal(List<QuotationItem> items) {
+    return items.fold(Decimal.zero, (sum, item) => sum + (item.quantity * item.unitPrice));
   }
 
-  double _calculateDiscountTotal(List<QuotationItem> items) {
-    return items.fold(0, (sum, item) => sum + item.discountAmount);
+  Decimal _calculateDiscountTotal(List<QuotationItem> items) {
+    return items.fold(Decimal.zero, (sum, item) => sum + item.discountAmount);
   }
 
-  double _calculateTaxTotal(List<QuotationItem> items) {
-    return items.fold(0, (sum, item) => sum + item.taxAmount);
+  Decimal _calculateTaxTotal(List<QuotationItem> items) {
+    return items.fold(Decimal.zero, (sum, item) => sum + item.taxAmount);
   }
 
-  double _calculateTotal(List<QuotationItem> items) {
-    return items.fold(0, (sum, item) => sum + item.totalAmount);
+  Decimal _calculateTotal(List<QuotationItem> items) {
+    return items.fold(Decimal.zero, (sum, item) => sum + item.totalAmount);
   }
 }

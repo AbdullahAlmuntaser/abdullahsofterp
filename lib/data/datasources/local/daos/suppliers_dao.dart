@@ -3,8 +3,6 @@ import 'package:supermarket/core/constants/app_enums.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:uuid/uuid.dart';
 
-part 'suppliers_dao.g.dart';
-
 class SupplierTransaction {
   final DateTime date;
   final String description;
@@ -23,37 +21,24 @@ class SupplierTransaction {
   });
 }
 
-@DriftAccessor(
-  tables: [
-    Suppliers,
-    SupplierPayments,
-    Purchases,
-    PurchaseReturns,
-    GLAccounts,
-    GLEntries,
-    GLLines,
-    APInvoices,
-  ],
-)
-class SuppliersDao extends DatabaseAccessor<AppDatabase>
-    with _$SuppliersDaoMixin {
+class SuppliersDao extends DatabaseAccessor<AppDatabase> {
   SuppliersDao(super.db);
 
   Stream<List<Supplier>> watchAllSuppliers() =>
-      (select(suppliers)..where((tbl) => tbl.isActive.equals(true))).watch();
+      (select(db.suppliers)..where((tbl) => tbl.isActive.equals(true))).watch();
 
   Future<Supplier?> getSupplierById(String id) {
-    return (select(suppliers)..where((s) => s.id.equals(id))).getSingleOrNull();
+    return (select(db.suppliers)..where((s) => s.id.equals(id))).getSingleOrNull();
   }
 
   // AP Invoices
   Stream<List<APInvoice>> watchAPInvoices(String supplierId) {
-    return (select(aPInvoices)..where((t) => t.supplierId.equals(supplierId)))
+    return (select(db.aPInvoices)..where((t) => t.supplierId.equals(supplierId)))
         .watch();
   }
 
   Stream<List<APInvoice>> watchAllAPInvoices() {
-    return (select(aPInvoices)
+    return (select(db.aPInvoices)
           ..orderBy([
             (t) =>
                 OrderingTerm(expression: t.invoiceDate, mode: OrderingMode.desc)
@@ -62,11 +47,11 @@ class SuppliersDao extends DatabaseAccessor<AppDatabase>
   }
 
   Future<int> createAPInvoice(APInvoicesCompanion entry) {
-    return into(aPInvoices).insert(entry);
+    return into(db.aPInvoices).insert(entry);
   }
 
   Future<List<APInvoice>> getUnpaidAPInvoices(String supplierId) {
-    return (select(aPInvoices)
+    return (select(db.aPInvoices)
           ..where((t) =>
               t.supplierId.equals(supplierId) &
               t.status.isIn(['POSTED', 'PARTIAL'])))
@@ -74,7 +59,7 @@ class SuppliersDao extends DatabaseAccessor<AppDatabase>
   }
 
   Future<List<APInvoice>> getDueAPInvoices(DateTime endDate) {
-    return (select(aPInvoices)
+    return (select(db.aPInvoices)
           ..where((t) =>
               t.status.isIn(['POSTED', 'PARTIAL']) &
               t.dueDate.isSmallerOrEqual(Variable(endDate))))
@@ -85,16 +70,14 @@ class SuppliersDao extends DatabaseAccessor<AppDatabase>
   Future<String> insertSupplierWithAccount(SuppliersCompanion entry) async {
     return transaction(() async {
       // 1. البحث عن الحساب الرئيسي للموردين (مثلاً '2010')
-      final parentAccount = await (select(
-        gLAccounts,
-      )..where((t) => t.code.equals('2010')))
+      final parentAccount = await (select(db.gLAccounts)..where((t) => t.code.equals('2010')))
           .getSingleOrNull();
 
       final accountId = const Uuid().v4();
       final supplierId = const Uuid().v4();
 
       // 2. إنشاء حساب في دفتر الأستاذ العام
-      await into(gLAccounts).insert(
+      await into(db.gLAccounts).insert(
         GLAccountsCompanion.insert(
           id: Value(accountId),
           code: '2010-${supplierId.substring(0, 5)}',
@@ -111,26 +94,26 @@ class SuppliersDao extends DatabaseAccessor<AppDatabase>
         id: Value(supplierId),
         accountId: Value(accountId),
       );
-      await into(suppliers).insert(finalEntry);
+      await into(db.suppliers).insert(finalEntry);
 
       return supplierId;
     });
   }
 
   Future<bool> updateSupplier(Supplier entry) {
-    return update(suppliers).replace(entry);
+    return update(db.suppliers).replace(entry);
   }
 
   Future<int> deleteSupplier(Supplier entry) {
     // تعطيل المورد بدلاً من حذفه
-    return (update(suppliers)..where((t) => t.id.equals(entry.id))).write(
+    return (update(db.suppliers)..where((t) => t.id.equals(entry.id))).write(
       const SuppliersCompanion(isActive: Value(false)),
     );
   }
 
   /// بحث متقدم عن الموردين
   Future<List<Supplier>> searchSuppliers(String query) {
-    return (select(suppliers)
+    return (select(db.suppliers)
           ..where(
             (t) =>
                 t.name.contains(query) |
@@ -168,7 +151,7 @@ class SuppliersDao extends DatabaseAccessor<AppDatabase>
     }
 
     // 2. جلب فواتير الذمم الدائنة (AP Invoices)
-    final apInvoicesList = await (select(aPInvoices)
+    final apInvoicesList = await (select(db.aPInvoices)
           ..where((t) => t.supplierId.equals(supplierId)))
         .get();
     for (var inv in apInvoicesList) {

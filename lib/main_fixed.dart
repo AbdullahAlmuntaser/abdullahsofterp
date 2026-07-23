@@ -239,7 +239,7 @@ class MyApp extends StatelessWidget {
                 PayrollProvider(di.sl<HRService>(), di.sl<PayrollService>())),
         ChangeNotifierProvider(
           create: (_) =>
-              StockTransferProvider(StockTransferService(di.sl<AppDatabase>()))),
+              StockTransferProvider(di.sl<StockTransferService>())),
         ChangeNotifierProvider(
             create: (_) => AssetProvider(AssetService(di.sl<AppDatabase>()))),
         ChangeNotifierProvider(create: (_) => CustomerStatementProvider()),

@@ -1,7 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
-
-part 'products_dao.g.dart';
+import 'package:supermarket/core/exceptions/concurrency_exception.dart';
 
 class ProductWithCategory {
   final Product product;
@@ -22,42 +21,31 @@ class TransferItemData {
   });
 }
 
-@DriftAccessor(
-  tables: [
-    Products,
-    Categories,
-    Warehouses,
-    ProductBatches,
-    StockTransfers,
-    StockTransferItems,
-  ],
-)
-class ProductsDao extends DatabaseAccessor<AppDatabase>
-    with _$ProductsDaoMixin {
+class ProductsDao extends DatabaseAccessor<AppDatabase> {
   ProductsDao(super.db);
 
   Stream<List<Product>> watchAllProducts() {
-    return select(products).watch();
+    return select(db.products).watch();
   }
 
   Future<List<Product>> getAllProducts() {
-    return select(products).get();
+    return select(db.products).get();
   }
 
   // ========== Warehouse & Batch Management ==========
   Stream<List<Warehouse>> watchWarehouses() {
-    return select(warehouses).watch();
+    return select(db.warehouses).watch();
   }
 
   Future<int> addWarehouse(WarehousesCompanion entry) {
-    return into(warehouses).insert(entry);
+    return into(db.warehouses).insert(entry);
   }
 
   Future<List<ProductBatch>> getProductBatches(
     String productId,
     String warehouseId,
   ) {
-    return (select(productBatches)
+    return (select(db.productBatches)
           ..where(
             (b) =>
                 b.productId.equals(productId) &
@@ -71,7 +59,7 @@ class ProductsDao extends DatabaseAccessor<AppDatabase>
     String productId,
     String warehouseId,
   ) {
-    return (select(productBatches)
+    return (select(db.productBatches)
           ..where(
             (b) =>
                 b.productId.equals(productId) &
@@ -95,7 +83,7 @@ class ProductsDao extends DatabaseAccessor<AppDatabase>
     String? note,
   }) async {
     await transaction(() async {
-      final transfer = await into(stockTransfers).insertReturning(
+      final transfer = await into(db.stockTransfers).insertReturning(
         StockTransfersCompanion.insert(
           fromWarehouseId: fromWarehouseId,
           toWarehouseId: toWarehouseId,
@@ -107,9 +95,7 @@ class ProductsDao extends DatabaseAccessor<AppDatabase>
       final transferId = transfer.id;
 
       for (var item in items) {
-        final sourceBatch = await (select(
-          productBatches,
-        )..where((b) => b.id.equals(item.batchId)))
+        final sourceBatch = await (select(db.productBatches)..where((b) => b.id.equals(item.batchId)))
             .getSingle();
 
         final itemQuantityDecimal = Decimal.parse(item.quantity.toString());
@@ -117,16 +103,17 @@ class ProductsDao extends DatabaseAccessor<AppDatabase>
           throw Exception('الكمية المطلوبة غير متوفرة في الدفعة المحددة');
         }
 
-        await (update(
-          productBatches,
-        )..where((b) => b.id.equals(item.batchId)))
+        final changes = await (update(db.productBatches)..where((b) => b.id.equals(item.batchId) & b.version.equals(sourceBatch.version)))
             .write(
           ProductBatchesCompanion(
             quantity: Value(sourceBatch.quantity - itemQuantityDecimal),
-          ),
+          ).copyWith(version: Value(sourceBatch.version + 1)),
         );
+        if (changes == 0) {
+          throw ConcurrencyException('ProductBatch ${item.batchId} was modified by another transaction');
+        }
 
-        final targetBatch = await (select(productBatches)
+        final targetBatch = await (select(db.productBatches)
               ..where(
                 (b) =>
                     b.productId.equals(item.productId) &
@@ -136,16 +123,17 @@ class ProductsDao extends DatabaseAccessor<AppDatabase>
             .getSingleOrNull();
 
         if (targetBatch != null) {
-          await (update(
-            productBatches,
-          )..where((b) => b.id.equals(targetBatch.id)))
+          final changes = await (update(db.productBatches)..where((b) => b.id.equals(targetBatch.id) & b.version.equals(targetBatch.version)))
               .write(
             ProductBatchesCompanion(
               quantity: Value(targetBatch.quantity + itemQuantityDecimal),
-            ),
+            ).copyWith(version: Value(targetBatch.version + 1)),
           );
+          if (changes == 0) {
+            throw ConcurrencyException('ProductBatch ${targetBatch.id} was modified by another transaction');
+          }
         } else {
-          await into(productBatches).insert(
+          await into(db.productBatches).insert(
             ProductBatchesCompanion.insert(
               productId: item.productId,
               warehouseId: toWarehouseId,
@@ -158,7 +146,7 @@ class ProductsDao extends DatabaseAccessor<AppDatabase>
           );
         }
 
-        await into(stockTransferItems).insert(
+        await into(db.stockTransferItems).insert(
           StockTransferItemsCompanion.insert(
             transferId: transferId,
             productId: item.productId,
@@ -171,18 +159,18 @@ class ProductsDao extends DatabaseAccessor<AppDatabase>
   }
 
   Future<int> countProducts({String? searchQuery, String? categoryId}) async {
-    final query = selectOnly(products);
+    final query = selectOnly(db.products);
     if (searchQuery != null && searchQuery.isNotEmpty) {
       query.where(
-        products.name.like('%$searchQuery%') |
-            products.sku.like('%$searchQuery%') |
-            products.barcode.like('%$searchQuery%'),
+        db.products.name.like('%$searchQuery%') |
+            db.products.sku.like('%$searchQuery%') |
+            db.products.barcode.like('%$searchQuery%'),
       );
     }
     if (categoryId != null && categoryId.isNotEmpty) {
-      query.where(products.categoryId.equals(categoryId));
+      query.where(db.products.categoryId.equals(categoryId));
     }
-    final countExp = products.id.count();
+    final countExp = db.products.id.count();
     query.addColumns([countExp]);
     final row = await query.getSingle();
     return row.read(countExp) ?? 0;
@@ -195,23 +183,23 @@ class ProductsDao extends DatabaseAccessor<AppDatabase>
     int? limit,
     int? offset,
   }) {
-    final query = select(products).join([
-      leftOuterJoin(categories, categories.id.equalsExp(products.categoryId)),
+    final query = select(db.products).join([
+      leftOuterJoin(db.categories, db.categories.id.equalsExp(db.products.categoryId)),
     ]);
 
     if (searchQuery != null && searchQuery.isNotEmpty) {
       query.where(
-        products.name.like('%$searchQuery%') |
-            products.sku.like('%$searchQuery%') |
-            products.barcode.like('%$searchQuery%'),
+        db.products.name.like('%$searchQuery%') |
+            db.products.sku.like('%$searchQuery%') |
+            db.products.barcode.like('%$searchQuery%'),
       );
     }
 
     if (categoryId != null && categoryId.isNotEmpty) {
-      query.where(products.categoryId.equals(categoryId));
+      query.where(db.products.categoryId.equals(categoryId));
     }
 
-    query.orderBy([OrderingTerm.asc(products.name)]);
+    query.orderBy([OrderingTerm.asc(db.products.name)]);
 
     if (limit != null) {
       query.limit(limit, offset: offset);
@@ -220,71 +208,61 @@ class ProductsDao extends DatabaseAccessor<AppDatabase>
     return query.watch().map((rows) {
       return rows.map((row) {
         return ProductWithCategory(
-          product: row.readTable(products),
-          category: row.readTableOrNull(categories),
+          product: row.readTable(db.products),
+          category: row.readTableOrNull(db.categories),
         );
       }).toList();
     });
   }
 
   Stream<List<Product>> watchLowStockProducts() {
-    return (select(
-      products,
-    )..where((p) => p.stock.isSmallerOrEqual(p.alertLimit)))
+    return (select(db.products)..where((p) => p.stock.isSmallerOrEqual(p.alertLimit)))
         .watch();
   }
 
   Stream<int> watchLowStockCount() {
-    final query = select(products)
+    final query = select(db.products)
       ..where((p) => p.stock.isSmallerOrEqual(p.alertLimit));
     return query.watch().map((list) => list.length);
   }
 
   Future<Product?> getProductById(String id) {
-    return (select(products)..where((p) => p.id.equals(id))).getSingleOrNull();
+    return (select(db.products)..where((p) => p.id.equals(id))).getSingleOrNull();
   }
 
   Future<Product?> getProductBySku(String sku) {
-    return (select(
-      products,
-    )..where((p) => p.sku.equals(sku)))
+    return (select(db.products)..where((p) => p.sku.equals(sku)))
         .getSingleOrNull();
   }
 
   Future<Product?> getProductByBarcode(String barcode) {
-    return (select(
-      products,
-    )..where((p) => p.barcode.equals(barcode)))
+    return (select(db.products)..where((p) => p.barcode.equals(barcode)))
         .get()
         .then((rows) => rows.isEmpty ? null : rows.first);
   }
 
   Future<int> addProduct(ProductsCompanion entry) {
-    return into(products).insert(entry);
+    return into(db.products).insert(entry);
   }
 
   Future<bool> updateProduct(Product entry) {
-    return update(products).replace(entry);
+    return update(db.products).replace(entry);
   }
 
   Future<int> deleteProduct(Product entry) {
-    return delete(products).delete(entry);
+    return delete(db.products).delete(entry);
   }
 
   // ========== Variant Operations ==========
   /// Get all variants for a specific product (parent)
   Future<List<Product>> getVariantsForProduct(String productId) {
-    return (select(
-      products,
-    )..where((p) => p.parentProductId.equals(productId)))
+    return (select(db.products)..where((p) => p.parentProductId.equals(productId)))
         .get();
   }
 
   /// Stream variants for a product
   Stream<List<Product>> watchVariantsForProduct(String productId) {
-    return (select(
-      products,
-    )..where((p) => p.parentProductId.equals(productId)))
+    return (select(db.products)..where((p) => p.parentProductId.equals(productId)))
         .watch();
   }
 
@@ -298,25 +276,25 @@ class ProductsDao extends DatabaseAccessor<AppDatabase>
 
   // ========== Categories ==========
   Stream<List<Category>> watchCategories() {
-    return select(categories).watch();
+    return select(db.categories).watch();
   }
 
   Future<int> addCategory(CategoriesCompanion entry) {
-    return into(categories).insert(entry);
+    return into(db.categories).insert(entry);
   }
 
   Future<bool> updateCategory(Category entry) {
-    return update(categories).replace(entry);
+    return update(db.categories).replace(entry);
   }
 
   Future<int> deleteCategory(Category entry) {
-    return delete(categories).delete(entry);
+    return delete(db.categories).delete(entry);
   }
 
   // ========== Expiring Batches ==========
   Stream<List<ProductBatch>> watchExpiringBatches({int daysThreshold = 30}) {
     final thresholdDate = DateTime.now().add(Duration(days: daysThreshold));
-    return (select(productBatches)
+    return (select(db.productBatches)
           ..where(
             (b) =>
                 b.expiryDate.isSmallerOrEqual(Variable(thresholdDate)) &
@@ -333,7 +311,7 @@ class ProductsDao extends DatabaseAccessor<AppDatabase>
     int daysThreshold = 30,
   }) async {
     final thresholdDate = DateTime.now().add(Duration(days: daysThreshold));
-    return (select(productBatches)
+    return (select(db.productBatches)
           ..where(
             (b) =>
                 b.expiryDate.isSmallerOrEqual(Variable(thresholdDate)) &
@@ -350,7 +328,7 @@ class ProductsDao extends DatabaseAccessor<AppDatabase>
     required String warehouseId,
   }) async {
     final now = DateTime.now();
-    return (select(productBatches)
+    return (select(db.productBatches)
           ..where(
             (b) =>
                 b.warehouseId.equals(warehouseId) &
@@ -365,7 +343,7 @@ class ProductsDao extends DatabaseAccessor<AppDatabase>
   }
 
   Future<Decimal> getWarehouseStock(String productId, String warehouseId) async {
-    final batches = await (select(productBatches)
+    final batches = await (select(db.productBatches)
           ..where((b) =>
               b.productId.equals(productId) &
               b.warehouseId.equals(warehouseId) &

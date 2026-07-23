@@ -4,6 +4,7 @@ import 'package:supermarket/core/services/inventory_report_service.dart';
 import 'package:supermarket/core/services/stock_operation_service.dart';
 import 'package:supermarket/core/services/inventory_reservation_service.dart';
 import 'package:supermarket/core/services/inventory_audit_service.dart';
+import 'package:supermarket/core/services/posting_engine.dart';
 import 'package:supermarket/core/services/stock_transfer_service.dart';
 import 'package:supermarket/core/services/reorder_service.dart';
 import 'package:supermarket/core/services/serial_number_service.dart';
@@ -26,7 +27,7 @@ void registerInventoryModule(GetIt sl) {
     () => InventoryReportService(db),
   );
   sl.registerLazySingleton<StockOperationService>(
-    () => StockOperationService(db, sl<AuditService>(), sl<AppConfigService>()),
+    () => StockOperationService(db, sl<AuditService>(), sl<AppConfigService>(), sl<PostingEngine>()),
   );
   sl.registerLazySingleton<InventoryService>(
     () => InventoryService(
@@ -41,7 +42,7 @@ void registerInventoryModule(GetIt sl) {
     () => InventoryAuditService(db),
   );
   sl.registerLazySingleton<StockTransferService>(
-    () => StockTransferService(db),
+    () => StockTransferService(db, sl<PostingEngine>()),
   );
   sl.registerLazySingleton<ReorderService>(() => ReorderService(db));
   sl.registerLazySingleton<SerialNumberService>(

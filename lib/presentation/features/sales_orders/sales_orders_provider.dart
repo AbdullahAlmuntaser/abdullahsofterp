@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 import 'package:supermarket/core/services/sales_order_service.dart';
-import 'package:supermarket/data/datasources/local/app_database.dart';
 
 class SalesOrdersProvider extends ChangeNotifier {
   final SalesOrderService _service;
