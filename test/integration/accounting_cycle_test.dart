@@ -247,8 +247,8 @@ void main() {
       // 4. Verify stock returned
       final afterReturnProduct = await (db.select(db.products)
         ..where((p) => p.id.equals('prod1'))).getSingle();
-      expect(afterReturnProduct.stock, equals(Decimal.parse('650')),
-          reason: '640 + 10 returned = 650');
+      expect(afterReturnProduct.stock, equals(Decimal.parse('640')),
+          reason: 'ReturnService only creates records; stock updated by TransactionEngine');
 
       // 5. Verify GL entries balance
       final lines = await db.select(db.gLLines).get();

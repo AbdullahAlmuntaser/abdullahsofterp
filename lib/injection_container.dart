@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 import 'package:get_it/get_it.dart';
 import 'core/auth/auth_provider.dart';
+import 'core/services/audit_service.dart';
 import 'core/services/permission_service.dart';
 import 'core/services/app_config_service.dart';
 import 'core/services/approval_workflow_service.dart';
@@ -38,7 +39,6 @@ import 'core/services/system_auditor.dart';
 import 'core/services/report_engine_service.dart';
 import 'core/services/accounting_period_service.dart';
 import 'core/services/analytics_service.dart';
-import 'core/services/audit_log_service.dart';
 import 'core/services/erp_data_service.dart';
 import 'core/services/fixed_assets_service.dart';
 import 'core/services/inventory_audit_service.dart';
@@ -265,7 +265,7 @@ void _validateCriticalRegistrations() {
 
   check<AppDatabase>();
   check<EventBusService>();
-  check<AuditLogService>();
+  check<AuditService>();
   check<AppConfigService>();
   check<SecurityService>();
   check<PermissionService>();
@@ -354,7 +354,7 @@ List<SingleChildWidget> buildAppProviders() {
       value: sl<AccountingPeriodService>(),
     ),
     Provider<AnalyticsService>.value(value: sl<AnalyticsService>()),
-    Provider<AuditLogService>.value(value: sl<AuditLogService>()),
+    Provider<AuditService>.value(value: sl<AuditService>()),
     Provider<ErpDataService>.value(value: sl<ErpDataService>()),
     Provider<FixedAssetsService>.value(value: sl<FixedAssetsService>()),
     Provider<InventoryAuditService>.value(value: sl<InventoryAuditService>()),

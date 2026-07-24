@@ -1,6 +1,6 @@
 import 'dart:collection';
 import 'package:supermarket/data/datasources/local/app_database.dart';
-import 'package:supermarket/core/services/audit_log_service.dart';
+import 'package:supermarket/core/services/audit_service.dart';
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
@@ -53,7 +53,7 @@ class _CacheEntry {
 
 class AdvancedPermissionService {
   final AppDatabase db;
-  final AuditLogService? auditLogService;
+  final AuditService? auditLogService;
   final HashMap<String, _CacheEntry> _cache = HashMap();
   static const Duration _defaultTtl = Duration(minutes: 5);
 

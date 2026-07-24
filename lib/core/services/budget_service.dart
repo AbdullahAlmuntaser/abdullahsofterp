@@ -63,4 +63,33 @@ class BudgetService {
       ));
     }
   }
+
+  /// فحص جميع الميزانيات النشطة وإصدار تنبيهات للميزانيات التي تجاوزت الحد المحدد
+  Future<List<AccBudget>> checkAllBudgets({double threshold = 0.9}) async {
+    final budgets = await (db.select(db.accBudgets)
+          ..where((b) => b.status.equals('active')))
+        .get();
+
+    final exceeded = <AccBudget>[];
+
+    for (final budget in budgets) {
+      final budgeted = Decimal.parse(budget.budgetedAmount.toString());
+      if (budgeted == Decimal.zero) continue;
+
+      final actual = Decimal.parse(budget.actualAmount.toString());
+      final consumption = actual / budgeted;
+
+      final thresholdDecimal = Decimal.parse(threshold.toStringAsFixed(2));
+      if (consumption.toDouble() >= thresholdDecimal.toDouble()) {
+        exceeded.add(budget);
+        await notificationService.showNotification(
+          budget.id,
+          'تنبيه ميزانية: ${budget.name}',
+          'الميزانية "${budget.name}" استهلكت ${(consumption.toDouble() * 100).toStringAsFixed(1)}% من إجمالي الميزانية للفترة ${budget.period}.',
+        );
+      }
+    }
+
+    return exceeded;
+  }
 }

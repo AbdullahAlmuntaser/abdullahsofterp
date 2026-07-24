@@ -1,5 +1,6 @@
 import 'package:csv/csv.dart';
 import 'package:excel/excel.dart' as excel;
+import 'package:drift/drift.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
@@ -136,11 +137,11 @@ class ExportService {
     final query = db.select(db.sales);
     if (from != null) {
       final fromDate = from;
-      query.where((s) => s.createdAt >= fromDate);
+      query.where((s) => s.createdAt.isBiggerOrEqualValue(fromDate));
     }
     if (to != null) {
       final toDate = to;
-      query.where((s) => s.createdAt <= toDate);
+      query.where((s) => s.createdAt.isSmallerOrEqualValue(toDate));
     }
 
     final sales = await query.get();

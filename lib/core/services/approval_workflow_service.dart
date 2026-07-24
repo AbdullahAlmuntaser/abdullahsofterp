@@ -1,10 +1,10 @@
 import 'package:drift/drift.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
-import 'package:supermarket/core/services/audit_log_service.dart';
+import 'package:supermarket/core/services/audit_service.dart';
 
 class ApprovalWorkflowService {
   final AppDatabase db;
-  final AuditLogService? auditLogService;
+  final AuditService? auditLogService;
 
   ApprovalWorkflowService(this.db, {this.auditLogService});
 

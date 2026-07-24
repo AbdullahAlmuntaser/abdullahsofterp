@@ -132,6 +132,8 @@ class NotificationService extends ChangeNotifier {
       referenceDate,
       expiringWithinDays,
     );
+    await _refreshTrialBalanceAlerts(db);
+    await _refreshBudgetAlerts(db);
     _emit();
   }
 
@@ -176,6 +178,65 @@ class NotificationService extends ChangeNotifier {
         sourceKey: 'credit_limit:${customer.id}',
         severity: 'critical',
       );
+    }
+  }
+
+  Future<void> _refreshTrialBalanceAlerts(AppDatabase db) async {
+    _notifications.removeWhere((n) => n.category == 'accounting');
+
+    final glLines = await db.select(db.gLLines).get();
+    if (glLines.isEmpty) return;
+
+    var totalDebit = Decimal.zero;
+    var totalCredit = Decimal.zero;
+    for (final line in glLines) {
+      totalDebit += line.debit;
+      totalCredit += line.credit;
+    }
+
+    final difference = totalDebit - totalCredit;
+    if (difference.abs() > Decimal.parse('0.01')) {
+      notify(
+        title: 'تنبيه اختلال ميزانية العمليات',
+        message:
+            'الميزانية غير متوازنة! إجمالي المدين: ${totalDebit.toStringAsFixed(2)} | إجمالي الدائن: ${totalCredit.toStringAsFixed(2)} | الفرق: ${difference.toStringAsFixed(2)}',
+        category: 'accounting',
+        sourceKey: 'trial_balance_imbalance',
+        severity: 'critical',
+      );
+    }
+  }
+
+  Future<void> _refreshBudgetAlerts(AppDatabase db) async {
+    final budgets = await db.select(db.accBudgets).get();
+
+    for (final budget in budgets) {
+      if (budget.budgetedAmount <= Decimal.zero) continue;
+
+      final utilizationDouble = budget.actualAmount.toDouble() / budget.budgetedAmount.toDouble();
+      final percentage = (utilizationDouble * 100).toStringAsFixed(0);
+
+      if (budget.actualAmount > budget.budgetedAmount) {
+        final overrun = budget.actualAmount - budget.budgetedAmount;
+        notify(
+          title: 'تنبيه تجاوز الميزانية',
+          message:
+              'تم تجاوز الميزانية بنسبة $percentage%. التجاوز: ${overrun.toStringAsFixed(2)}',
+          category: 'accounting',
+          sourceKey: 'budget_overrun:${budget.id}',
+          severity: 'critical',
+        );
+      } else if (utilizationDouble >= 0.9) {
+        final remaining = budget.budgetedAmount - budget.actualAmount;
+        notify(
+          title: 'تنبيه اقتراب الميزانية من الحد',
+          message:
+              'الميزانية مستنفدة بنسبة $percentage%. المتبقي: ${remaining.toStringAsFixed(2)}',
+          category: 'accounting',
+          sourceKey: 'budget_warning:${budget.id}',
+          severity: 'warning',
+        );
+      }
     }
   }
 

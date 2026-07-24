@@ -5,9 +5,7 @@ import 'package:supermarket/core/services/budget_service.dart';
 import 'package:supermarket/core/services/inventory_costing_service.dart';
 import 'package:supermarket/core/services/notification_service.dart';
 import 'package:supermarket/core/services/currency_conversion_service.dart';
-import 'package:supermarket/core/services/app_settings_service.dart';
 import 'package:supermarket/core/services/chart_of_accounts_service.dart';
-import 'package:supermarket/core/services/currency_service.dart';
 import 'package:supermarket/core/services/depreciation_service.dart';
 import 'package:supermarket/core/services/financial_closing_service.dart';
 import 'package:supermarket/core/services/financial_control_service.dart';
@@ -25,7 +23,6 @@ void registerAccountingModule(GetIt sl) {
     () => AccountingPeriodService(db),
   );
   sl.registerLazySingleton<BudgetService>(() => BudgetService(db, sl<NotificationService>()));
-  sl.registerLazySingleton<CurrencyService>(() => CurrencyService(sl<AppSettingsService>()));
   sl.registerLazySingleton<CurrencyConversionService>(
     () => CurrencyConversionService(db),
   );
