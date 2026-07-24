@@ -236,8 +236,8 @@ void main() {
         items: [
           ReturnItemData(
             productId: 'prod1',
-            quantity: 10,
-            price: 10,
+            quantity: Decimal.fromInt(10),
+            price: Decimal.fromInt(10),
           ),
         ],
         reason: 'تلف',

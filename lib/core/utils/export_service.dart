@@ -136,11 +136,11 @@ class ExportService {
     final query = db.select(db.sales);
     if (from != null) {
       final fromDate = from;
-      query.where((s) => s.createdAt.isBiggerOrEqualValue(fromDate));
+      query.where((s) => s.createdAt >= fromDate);
     }
     if (to != null) {
       final toDate = to;
-      query.where((s) => s.createdAt.isSmallerOrEqualValue(toDate));
+      query.where((s) => s.createdAt <= toDate);
     }
 
     final sales = await query.get();

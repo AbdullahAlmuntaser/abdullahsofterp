@@ -592,9 +592,9 @@ class _AddPurchasePageState extends State<AddPurchasePage> {
                   unitPrice: Decimal.parse(item.unitPrice.toString()),
                   unitId: drift.Value(item.selectedUnit?.unitName),
                   unitFactor: drift.Value(Decimal.parse(
-                      (item.selectedUnit?.factor ?? 1.0).toString())),
+                      (item.selectedUnit?.unitFactor ?? Decimal.one).toString())),
                   quantityInBaseUnit: drift.Value(Decimal.parse((item.quantity *
-                          (item.selectedUnit?.factor.toDouble() ?? 1.0))
+                          (item.selectedUnit?.unitFactor.toDouble() ?? 1.0))
                       .toString())),
                   price: Decimal.parse(item.subtotal.toString()),
                   discount: drift.Value(
@@ -612,7 +612,7 @@ class _AddPurchasePageState extends State<AddPurchasePage> {
 
         // تحديث أسعار المنتج في المستودع/النظام
         for (var item in _items) {
-          final factor = item.selectedUnit?.factor.toDouble() ?? 1.0;
+          final factor = item.selectedUnit?.unitFactor.toDouble() ?? 1.0;
           final baseBuyPrice = item.unitPrice / factor;
 
           await (db.update(db.products)

@@ -867,7 +867,7 @@ class TransactionEngine {
 
         await db.into(db.gLEntries).insert(GLEntriesCompanion.insert(
           id: Value(reversalEntryId),
-          description: Value('إلغاء: ${entry.description}'),
+          description: 'إلغاء: ${entry.description}',
           date: Value(DateTime.now()),
           referenceType: const Value('SALE_CANCELLATION'),
           referenceId: Value(saleId),
@@ -1004,7 +1004,7 @@ class TransactionEngine {
 
         await db.into(db.gLEntries).insert(GLEntriesCompanion.insert(
           id: Value(reversalEntryId),
-          description: Value('إلغاء: ${entry.description}'),
+          description: 'إلغاء: ${entry.description}',
           date: Value(DateTime.now()),
           referenceType: const Value('PURCHASE_CANCELLATION'),
           referenceId: Value(purchaseId),

@@ -74,7 +74,7 @@ class BalanceSheet {
   });
 }
 
-class AccountingDao extends DatabaseAccessor<AppDatabase> {
+class AccountingDao extends DatabaseAccessor<AppDatabase> with SyncLogMixin {
   AccountingDao(super.db);
 
   Future<bool> isDateInClosedPeriod(DateTime date) async {

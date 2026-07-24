@@ -135,8 +135,8 @@ class _StaffManagementPageState extends State<StaffManagementPage> {
                           username: username,
                           role: selectedRole,
                           password: pwd,
-                          passwordHash: pwdHash,
-                          passwordSalt: pwdSalt,
+                          passwordHash: drift.Value(pwdHash),
+                          passwordSalt: drift.Value(pwdSalt),
                         ));
                         if (oldRole != selectedRole) {
                           await db.into(db.auditLogs).insert(

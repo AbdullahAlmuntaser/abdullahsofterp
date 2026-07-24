@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supermarket/core/services/proforma_service.dart';
 import 'package:supermarket/core/constants/app_enums.dart';
+import 'package:supermarket/data/datasources/local/app_database.dart';
 
 class ProformaProvider with ChangeNotifier {
   final ProformaService _service;

@@ -3,7 +3,7 @@ import '../app_database.dart';
 import 'package:supermarket/core/constants/app_enums.dart';
 import 'package:uuid/uuid.dart';
 
-class PurchasesDao extends DatabaseAccessor<AppDatabase> {
+class PurchasesDao extends DatabaseAccessor<AppDatabase> with SyncLogMixin {
   PurchasesDao(super.db);
 
   Stream<List<Purchase>> watchAllPurchases() => select(db.purchases).watch();
