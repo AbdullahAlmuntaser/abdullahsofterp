@@ -160,8 +160,10 @@ class AppConfigService {
         .get()
         .then((v) => v.isNotEmpty);
     if (!hasConfig) {
-      await setString(keyDefaultWarehouse, 'MAIN_WAREHOUSE');
-      await setString(keyDefaultBranch, 'BR001');
+      final defaultBranch = await _db.ensureDefaultBranch();
+      final defaultWarehouse = await _db.ensureDefaultWarehouse();
+      await setString(keyDefaultBranch, defaultBranch);
+      await setString(keyDefaultWarehouse, defaultWarehouse);
       await setDouble(keyTaxRate, 0.15);
       await setInt(keyLowStockThreshold, 10);
       await setString(

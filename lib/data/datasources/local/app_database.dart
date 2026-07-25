@@ -990,6 +990,8 @@ class AppDatabase extends _$AppDatabase {
   Future<void> ensureCoreReferenceData() async {
     await ensureDefaultBranch();
     await ensureDefaultCurrencies();
+    await ensureDefaultWarehouse();
+    await ensureDefaultAccountingPeriod();
   }
 
   static const Map<String, String> _missingTableSQL = {
@@ -1312,6 +1314,54 @@ class AppDatabase extends _$AppDatabase {
       }
     } catch (e) {
       debugPrint('Error seeding default currencies: $e');
+    }
+  }
+
+  Future<String> ensureDefaultWarehouse() async {
+    try {
+      final existing = await select(warehouses).get();
+      if (existing.isEmpty) {
+        final row = await into(warehouses).insertReturning(
+          WarehousesCompanion.insert(
+            name: 'المستودع الرئيسي',
+            isDefault: const Value(true),
+          ),
+        );
+        return row.id;
+      }
+      final defaultW = existing.where((w) => w.isDefault).firstOrNull;
+      return defaultW?.id ?? existing.first.id;
+    } catch (e) {
+      debugPrint('Error seeding default warehouse: $e');
+      return '';
+    }
+  }
+
+  Future<void> ensureDefaultAccountingPeriod() async {
+    try {
+      final now = DateTime.now();
+      final existingOpen = await (select(accountingPeriods)
+            ..where((p) =>
+                p.fiscalYear.equals(now.year) &
+                p.status.equals('OPEN')))
+          .getSingleOrNull();
+      if (existingOpen == null) {
+        await into(accountingPeriods).insert(
+          AccountingPeriodsCompanion.insert(
+            id: Value(const Uuid().v4()),
+            name: 'السنة ${now.year}',
+            fiscalYear: now.year,
+            startDate: DateTime(now.year, 1, 1),
+            endDate: DateTime(now.year, 12, 31),
+            status: const Value('OPEN'),
+          ),
+          onConflict: DoNothing(
+            target: [accountingPeriods.fiscalYear, accountingPeriods.status],
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('Error seeding default accounting period: $e');
     }
   }
 

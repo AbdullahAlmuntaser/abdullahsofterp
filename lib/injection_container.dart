@@ -95,13 +95,11 @@ import 'presentation/features/hr/leave_provider.dart';
 import 'presentation/features/inventory/serial_number_provider.dart';
 
 final sl = GetIt.instance;
-AppDatabase? _database;
 
 Future<void> initDatabase() async {
   debugPrint("DI: ==== Opening Database ====");
   try {
     if (sl.isRegistered<AppDatabase>()) {
-      _database = sl<AppDatabase>();
       debugPrint("DI: Database already registered");
       return;
     }
@@ -110,8 +108,8 @@ Future<void> initDatabase() async {
     AppDatabase.encryptionKey = key;
     debugPrint("DI: Encryption key is set (${key.length} chars)");
 
-    _database = AppDatabase();
-    sl.registerLazySingleton<AppDatabase>(() => _database!);
+    final database = AppDatabase();
+    sl.registerLazySingleton<AppDatabase>(() => database);
     debugPrint("DI: Database opened successfully");
   } catch (e, stack) {
     debugPrint("DI: Database opening error: $e");
