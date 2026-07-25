@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:get_it/get_it.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:supermarket/data/datasources/local/daos/products_dao.dart';
@@ -103,15 +104,28 @@ void registerCoreModule(GetIt sl) {
     () => PostingEngine(db, costingService: sl<InventoryCostingService>()),
   );
   sl.registerLazySingleton<TransactionEngine>(() {
+    debugPrint("DI/CORE: Creating TransactionEngine...");
+    debugPrint("DI/CORE:   Getting EventBusService...");
+    final eventBus = sl<EventBusService>();
+    debugPrint("DI/CORE:   Getting PostingEngine...");
+    final postingEngine = sl<PostingEngine>();
+    debugPrint("DI/CORE:   Getting PackagingEngine...");
+    final packagingEngine = sl<PackagingEngine>();
+    debugPrint("DI/CORE:   Getting InventoryCostingService...");
+    final costingService = sl<InventoryCostingService>();
+    debugPrint("DI/CORE:   Constructing TransactionEngine...");
     final engine = TransactionEngine(
       db,
-      sl<EventBusService>(),
-      sl<PostingEngine>(),
-      sl<PackagingEngine>(),
-      sl<InventoryCostingService>(),
+      eventBus,
+      postingEngine,
+      packagingEngine,
+      costingService,
     );
+    debugPrint("DI/CORE:   Setting BudgetService...");
     engine.setBudgetService(sl<BudgetService>());
+    debugPrint("DI/CORE:   Setting ApprovalService...");
     engine.setApprovalService(sl<ApprovalWorkflowService>());
+    debugPrint("DI/CORE: TransactionEngine created successfully.");
     return engine;
   });
 

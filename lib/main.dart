@@ -129,15 +129,19 @@ class _AppRootState extends State<AppRoot> {
       debugPrint("INIT: Starting Dependency Injection...");
       // Perform DI initialization with a safer timeout
       await di.init().timeout(const Duration(seconds: 30));
+      debugPrint("INIT: Dependency Injection completed successfully.");
 
       debugPrint("INIT: Verifying Database Connection...");
       final db = di.sl<AppDatabase>();
+      debugPrint("INIT: Got AppDatabase from GetIt.");
 
+      debugPrint("INIT: Running first query on users table...");
       await db.select(db.users).get().timeout(const Duration(seconds: 15));
       debugPrint("INIT: Database connection verified.");
 
       debugPrint("INIT: Loading Locale...");
       await di.sl<LocaleProvider>().loadLocale();
+      debugPrint("INIT: Locale loaded successfully.");
 
       if (mounted) {
         setState(() {

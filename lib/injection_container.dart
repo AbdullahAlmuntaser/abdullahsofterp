@@ -104,11 +104,16 @@ Future<void> initDatabase() async {
       return;
     }
 
+    debugPrint("DI: Getting database encryption key...");
     final key = await SecurityService.getDatabaseKey();
     AppDatabase.encryptionKey = key;
     debugPrint("DI: Encryption key is set (${key.length} chars)");
 
+    debugPrint("DI: Creating AppDatabase instance...");
     final database = AppDatabase();
+    debugPrint("DI: AppDatabase instance created.");
+
+    debugPrint("DI: Registering AppDatabase in GetIt...");
     sl.registerLazySingleton<AppDatabase>(() => database);
     debugPrint("DI: Database opened successfully");
   } catch (e, stack) {
@@ -147,13 +152,33 @@ Future<void> initServices() async {
       return;
     }
 
+    debugPrint("DI: Registering Core Module...");
     registerCoreModule(sl);
+    debugPrint("DI: Core Module registered.");
+
+    debugPrint("DI: Registering Accounting Module...");
     registerAccountingModule(sl);
+    debugPrint("DI: Accounting Module registered.");
+
+    debugPrint("DI: Registering Inventory Module...");
     registerInventoryModule(sl);
+    debugPrint("DI: Inventory Module registered.");
+
+    debugPrint("DI: Initializing TransactionEngine...");
     sl<TransactionEngine>().setSerialNumberService(sl<SerialNumberService>());
+    debugPrint("DI: TransactionEngine initialized.");
+
+    debugPrint("DI: Registering Purchase Module...");
     registerPurchaseModule(sl);
+    debugPrint("DI: Purchase Module registered.");
+
+    debugPrint("DI: Registering Sales Module...");
     registerSalesModule(sl);
+    debugPrint("DI: Sales Module registered.");
+
+    debugPrint("DI: Registering HR Module...");
     registerHRModule(sl);
+    debugPrint("DI: HR Module registered.");
 
     final db = sl<AppDatabase>();
 
