@@ -1,5 +1,5 @@
 import 'package:supermarket/data/datasources/local/app_database.dart';
-import 'package:supermarket/core/services/inventory_costing_service.dart';
+import 'package:supermarket/core/services/inventory/inventory_costing_service.dart';
 import 'package:drift/drift.dart';
 
 class ProductSmartData {

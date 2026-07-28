@@ -1983,7 +1983,31 @@
   "mnjz": "مُنجَز",
   "nsbhAlinjaz": "نسبة الإنجاز",
   "nsbhAlsywlh": "نسبة السيولة",
-  "nsbhAldrybh": "نسبة الضريبة (%)",
+  "nsbhAldrybh": "نسبة الضريبة",
+  "errorSavingSettings": "خطأ في حفظ الإعدادات: {error}",
+  "@errorSavingSettings": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "lowStockAlertThreshold": "سيتم التنبيه عندما يقل الرصيد عن {threshold} وحدات",
+  "@lowStockAlertThreshold": {
+    "placeholders": {
+      "threshold": {}
+    }
+  },
+  "errorLoadingPromotions": "خطأ في تحميل العروض: {error}",
+  "@errorLoadingPromotions": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "promotionValue": "القيمة {value}",
+  "@promotionValue": {
+    "placeholders": {
+      "value": {}
+    }
+  },
   "nsbhAlamwlh": "نسبة العمولة (%)",
   "nsbhAlhamsh": "نسبة الهامش %",
   "nshrAlmbyaat": "نشر المبيعات",
@@ -2099,5 +2123,11 @@
   },
   "posMustOpenShift": "يجب فتح وردية أولاً",
   "posCreditLimitExceeded": "تم تجاوز الحد الائتماني للعميل",
-  "posLoyaltyReason": "برنامج الولاء"
+  "posLoyaltyReason": "برنامج الولاء",
+  "productIdLabel": "منتج: {id}",
+  "@productIdLabel": {
+    "placeholders": {
+      "id": {}
+    }
+  }
 }

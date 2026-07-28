@@ -2,7 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
-import 'package:supermarket/core/services/budget_service.dart';
+import 'package:supermarket/core/services/accounting/budget_service.dart';
 import 'package:supermarket/core/services/notification_service.dart';
 
 AppDatabase _createDb() => AppDatabase(NativeDatabase.memory());

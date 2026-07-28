@@ -1,7 +1,9 @@
+// ignore_for_file: annotate_overrides
 import 'package:drift/drift.dart';
 import 'package:supermarket/core/constants/app_enums.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:uuid/uuid.dart';
+import 'package:supermarket/data/repositories/i_suppliers_repository.dart';
 
 class SupplierTransaction {
   final DateTime date;
@@ -21,7 +23,7 @@ class SupplierTransaction {
   });
 }
 
-class SuppliersDao extends DatabaseAccessor<AppDatabase> {
+class SuppliersDao extends DatabaseAccessor<AppDatabase> implements ISuppliersRepository {
   SuppliersDao(super.db);
 
   Stream<List<Supplier>> watchAllSuppliers() =>
@@ -104,6 +106,7 @@ class SuppliersDao extends DatabaseAccessor<AppDatabase> {
     return update(db.suppliers).replace(entry);
   }
 
+  @override
   Future<int> deleteSupplier(Supplier entry) {
     // تعطيل المورد بدلاً من حذفه
     return (update(db.suppliers)..where((t) => t.id.equals(entry.id))).write(
@@ -112,6 +115,7 @@ class SuppliersDao extends DatabaseAccessor<AppDatabase> {
   }
 
   /// بحث متقدم عن الموردين
+  @override
   Future<List<Supplier>> searchSuppliers(String query) {
     return (select(db.suppliers)
           ..where(
@@ -124,6 +128,7 @@ class SuppliersDao extends DatabaseAccessor<AppDatabase> {
         .get();
   }
 
+  @override
   Future<List<SupplierTransaction>> getSupplierStatement(
     String supplierId,
   ) async {

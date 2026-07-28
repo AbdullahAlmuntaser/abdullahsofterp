@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:supermarket/core/services/loyalty_service.dart';
+import 'package:supermarket/core/services/sales/loyalty_service.dart';
 
 class LoyaltyPage extends StatefulWidget {
   const LoyaltyPage({super.key});

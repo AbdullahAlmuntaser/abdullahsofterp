@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:supermarket/core/services/stock_transfer_service.dart';
+import 'package:supermarket/core/services/inventory/stock_transfer_service.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
+import 'package:supermarket/core/exceptions/app_exception.dart';
 
 class StockTransferProvider with ChangeNotifier {
   final StockTransferService _service;
@@ -76,7 +77,7 @@ class StockTransferProvider with ChangeNotifier {
     if (_selectedFromWarehouseId == null ||
         _selectedToWarehouseId == null ||
         _transferItems.isEmpty) {
-      throw Exception('Please fill all required fields and add items.');
+      throw const BusinessException(message: 'Please fill all required fields and add items.');
     }
 
     _isLoading = true;

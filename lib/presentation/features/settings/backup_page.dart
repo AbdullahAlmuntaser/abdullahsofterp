@@ -4,6 +4,7 @@ import 'package:supermarket/core/services/backup/backup_service.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:supermarket/core/exceptions/app_exception.dart';
 
 class BackupPage extends StatefulWidget {
   const BackupPage({super.key});
@@ -46,7 +47,7 @@ class _BackupPageState extends State<BackupPage> {
     setState(() => _isLoading = true);
     try {
       final result = await _backupService().createBackup();
-      if (!result.success) throw Exception(result.message);
+      if (!result.success) throw BusinessException(message: result.message);
       await _loadBackups();
       if (mounted) {
         setState(() => _lastBackupPath = result.backupPath);
@@ -114,7 +115,7 @@ class _BackupPageState extends State<BackupPage> {
     setState(() => _isLoading = true);
     try {
       final ok = await _backupService().deleteBackup(backup.databasePath);
-      if (!ok) throw Exception('فشل حذف النسخة');
+      if (!ok) throw const BusinessException(message: 'فشل حذف النسخة');
       if (_lastBackupPath == backup.databasePath) {
         _lastBackupPath = null;
       }
@@ -174,7 +175,7 @@ class _BackupPageState extends State<BackupPage> {
       setState(() => _isLoading = true);
       if (!mounted) return;
       final res = await _backupService().restoreBackup(filePath);
-      if (!res.success) throw Exception(res.message);
+      if (!res.success) throw BusinessException(message: res.message);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

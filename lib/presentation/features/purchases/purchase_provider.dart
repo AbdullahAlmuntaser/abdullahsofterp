@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
-import 'package:supermarket/core/services/purchase_service.dart';
+import 'package:supermarket/core/services/purchases/purchase_service.dart';
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
+import 'package:supermarket/core/exceptions/app_exception.dart';
 
 /// Data class for supplier smart info
 class SupplierSmartInfo {
@@ -108,7 +109,7 @@ class PurchaseItemData {
   double get quantity => _quantity;
   set quantity(double value) {
     if (value <= 0) {
-      throw Exception('الكمية يجب أن تكون أكبر من الصفر.');
+      throw const BusinessException(message: 'الكمية يجب أن تكون أكبر من الصفر.');
     }
     _quantity = value;
   }
@@ -116,7 +117,7 @@ class PurchaseItemData {
   double get unitPrice => _unitPrice;
   set unitPrice(double value) {
     if (value < 0) {
-      throw Exception('السعر يجب أن يكون أكبر من أو يساوي الصفر.');
+      throw const BusinessException(message: 'السعر يجب أن يكون أكبر من أو يساوي الصفر.');
     }
     _unitPrice = value;
   }
@@ -182,10 +183,10 @@ class PurchaseProvider with ChangeNotifier {
   void addItem(Product product) {
     // Validate quantity > 0 and price >= 0
     if (product.stock < Decimal.zero) {
-      throw Exception('الكمية يجب أن تكون أكبر من الصفر.');
+      throw const BusinessException(message: 'الكمية يجب أن تكون أكبر من الصفر.');
     }
     if (product.buyPrice < Decimal.zero) {
-      throw Exception('السعر يجب أن يكون أكبر من أو يساوي الصفر.');
+      throw const BusinessException(message: 'السعر يجب أن يكون أكبر من أو يساوي الصفر.');
     }
     items.add(
       PurchaseItemData(
@@ -221,9 +222,9 @@ class PurchaseProvider with ChangeNotifier {
   }
 
   Future<void> savePurchase({bool post = false, String? userId}) async {
-    if (items.isEmpty) throw Exception('يجب إضافة أصناف أولاً');
+    if (items.isEmpty) throw const BusinessException(message: 'يجب إضافة أصناف أولاً');
     if (selectedSupplier == null && paymentType == 'credit') {
-      throw Exception('يجب اختيار مورد للبيع الآجل');
+      throw const BusinessException(message: 'يجب اختيار مورد للبيع الآجل');
     }
 
     final purchaseId = const Uuid().v4();

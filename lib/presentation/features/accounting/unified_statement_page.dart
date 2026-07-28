@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:supermarket/core/services/unified_statement_service.dart';
+import 'package:supermarket/core/services/sales/unified_statement_service.dart';
 import 'package:supermarket/l10n/app_localizations.dart';
 import 'package:supermarket/presentation/widgets/shared/account_selector_widget.dart';
 import 'package:supermarket/presentation/widgets/shared/period_filter_widget.dart';

@@ -64,7 +64,7 @@ class _IncomeStatementPageState extends State<IncomeStatementPage> {
           ),
         ],
       ),
-      body: FutureBuilder<IncomeStatementData>(
+          body: FutureBuilder<IncomeStatementData>(
         future: provider.getIncomeStatement(
           startDate: _startDate,
           endDate: _endDate,
@@ -95,6 +95,10 @@ class _IncomeStatementPageState extends State<IncomeStatementPage> {
                 ),
                 const Divider(thickness: 2),
                 _buildTotalRow(l10n.totalRevenue, data.totalRevenue),
+                const SizedBox(height: 8),
+                _buildTotalRow('تكلفة البضاعة المباعة', data.costOfGoodsSold),
+                const SizedBox(height: 8),
+                _buildTotalRow('إجمالي الربح', data.grossProfit),
                 const SizedBox(height: 24),
                 _buildSectionHeader(l10n.expenses),
                 ...data.expenses.map(
@@ -102,6 +106,8 @@ class _IncomeStatementPageState extends State<IncomeStatementPage> {
                       item.account.name, item.totalDebit.toDouble()),
                 ),
                 const Divider(thickness: 2),
+                _buildTotalRow('مصروفات تشغيلية', data.operatingExpenses),
+                const SizedBox(height: 8),
                 _buildTotalRow(l10n.totalExpense, data.totalExpense),
                 const SizedBox(height: 32),
                 _buildNetIncomeRow(l10n.netIncome, data.netIncome),

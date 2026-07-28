@@ -1,5 +1,9 @@
+import 'dart:collection';
+import 'package:supermarket/core/exceptions/app_exception.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
+import 'package:supermarket/core/services/audit_service.dart';
 import 'package:drift/drift.dart';
+import 'package:uuid/uuid.dart';
 
 class PermissionCode {
   static const String postSale = 'POST_SALE';
@@ -26,8 +30,6 @@ class PermissionCode {
   static const String viewCashboxReport = 'VIEW_CASHBOX_REPORT';
   static const String viewInventoryReport = 'VIEW_INVENTORY_REPORT';
   static const String viewProfitReport = 'VIEW_PROFIT_REPORT';
-
-  // Per-screen permissions
   static const String viewProducts = 'VIEW_PRODUCTS';
   static const String createProduct = 'CREATE_PRODUCT';
   static const String editProduct = 'EDIT_PRODUCT';
@@ -52,8 +54,6 @@ class PermissionCode {
   static const String manageHR = 'MANAGE_HR';
   static const String viewAccounting = 'VIEW_ACCOUNTING';
   static const String manageAccounting = 'MANAGE_ACCOUNTING';
-
-  // Per-report permissions
   static const String viewSalesReport = 'VIEW_SALES_REPORT';
   static const String viewAdvancedProfitReport = 'VIEW_ADVANCED_PROFIT_REPORT';
   static const String viewTopSellingReport = 'VIEW_TOP_SELLING_REPORT';
@@ -66,8 +66,6 @@ class PermissionCode {
   static const String viewAuditReport = 'VIEW_AUDIT_REPORT';
   static const String viewExpensesReport = 'VIEW_EXPENSES_REPORT';
   static const String viewIncomeExpenseReport = 'VIEW_INCOME_EXPENSE_REPORT';
-
-  // Financial operation permissions
   static const String createJournalEntry = 'CREATE_JOURNAL_ENTRY';
   static const String approveJournalEntry = 'APPROVE_JOURNAL_ENTRY';
   static const String manageCashbox = 'MANAGE_CASHBOX';
@@ -79,10 +77,49 @@ class PermissionCode {
   static const String manageReconciliation = 'MANAGE_RECONCILIATION';
 }
 
+class ExtendedPermissionCode {
+  static const String createSale = 'SALE_CREATE';
+  static const String editSale = 'SALE_EDIT';
+  static const String deleteSale = 'SALE_DELETE';
+  static const String approveSale = 'SALE_APPROVE';
+  static const String voidSale = 'SALE_VOID';
+  static const String discountUpTo5 = 'DISCOUNT_5';
+  static const String discountUpTo10 = 'DISCOUNT_10';
+  static const String discountUpTo25 = 'DISCOUNT_25';
+  static const String discountUnlimited = 'DISCOUNT_UNLIMITED';
+  static const String createPurchase = 'PURCHASE_CREATE';
+  static const String approvePurchase = 'PURCHASE_APPROVE';
+  static const String editPurchasePrice = 'PURCHASE_EDIT_PRICE';
+  static const String adjustInventory = 'INVENTORY_ADJUST';
+  static const String transferStock = 'STOCK_TRANSFER';
+  static const String viewCost = 'VIEW_COST';
+  static const String writeOff = 'WRITE_OFF';
+  static const String viewFinancialReports = 'FINANCIAL_VIEW';
+  static const String postJournalEntry = 'JOURNAL_POST';
+  static const String closePeriod = 'PERIOD_CLOSE';
+  static const String manageAccounts = 'ACCOUNTS_MANAGE';
+  static const String manageUsers = 'USERS_MANAGE';
+  static const String manageRoles = 'ROLES_MANAGE';
+  static const String systemConfig = 'SYSTEM_CONFIG';
+  static const String viewAuditLog = 'AUDIT_VIEW';
+}
+
+class _CacheEntry {
+  final bool value;
+  final DateTime expiresAt;
+  _CacheEntry(this.value, {Duration ttl = const Duration(minutes: 5)})
+      : expiresAt = DateTime.now().add(ttl);
+  bool get isExpired => DateTime.now().isAfter(expiresAt);
+}
+
 class PermissionService {
   final AppDatabase db;
+  final AuditService? auditLogService;
+  final HashMap<String, _CacheEntry> _cache = HashMap();
 
-  PermissionService(this.db);
+  static const Duration _defaultTtl = Duration(minutes: 5);
+
+  PermissionService(this.db, {this.auditLogService});
 
   static const Map<String, String> allPermissions = {
     PermissionCode.postSale: 'تسجيل المبيعات',
@@ -156,6 +193,14 @@ class PermissionService {
     PermissionCode.manageReconciliation: 'إدارة التسوية البنكية',
   };
 
+  void _invalidateCache({String? role}) {
+    if (role != null) {
+      _cache.remove(role);
+    } else {
+      _cache.clear();
+    }
+  }
+
   Future<void> seedPermissions() async {
     for (final entry in allPermissions.entries) {
       await db.into(db.permissions).insert(
@@ -173,8 +218,8 @@ class PermissionService {
     }
   }
 
-  /// التحقق من أن المستخدم لديه الصلاحية المطلوبة
-  Future<bool> hasPermission(String userId, String permissionCode) async {
+  Future<bool> hasPermission(String userId, String permissionCode,
+      {Duration? cacheTtl}) async {
     try {
       final user = db.select(db.users)..where((u) => u.id.equals(userId));
       final userData = await user.getSingleOrNull();
@@ -182,26 +227,110 @@ class PermissionService {
 
       if (userData.role.toLowerCase() == 'admin') return true;
 
+      final cacheKey = '${userData.role}:$permissionCode';
+      final cached = _cache[cacheKey];
+      if (cached != null && !cached.isExpired) {
+        return cached.value;
+      }
+
       final permission = await (db.select(db.rolePermissions)
             ..where((rp) => rp.role.equals(userData.role))
             ..where((rp) => rp.permissionCode.equals(permissionCode)))
           .getSingleOrNull();
-      return permission != null;
+      final result = permission != null;
+      _cache[cacheKey] = _CacheEntry(result, ttl: cacheTtl ?? _defaultTtl);
+      return result;
     } catch (e) {
       return false;
     }
   }
 
-  /// تنفيذ عملية فقط إذا كان المستخدم يملك الصلاحية
   Future<T?> executeIfAllowed<T>(
     String userId,
     String permissionCode,
-    Future<T> Function() action,
-  ) async {
-    if (await hasPermission(userId, permissionCode)) {
+    Future<T> Function() action, {
+    Duration? cacheTtl,
+  }) async {
+    if (await hasPermission(userId, permissionCode, cacheTtl: cacheTtl)) {
       return await action();
-    } else {
-      throw Exception('غير مصرح لك بتنفيذ هذه العملية ($permissionCode)');
     }
+    throw BusinessException(message: 'غير مصرح لك بتنفيذ هذه العملية ($permissionCode)');
+  }
+
+  Future<void> assignPermissionToRole({
+    required String role,
+    required String permissionCode,
+    String? description,
+    String? changedByUserId,
+  }) async {
+    final existing = await (db.select(db.rolePermissions)
+          ..where((rp) => rp.role.equals(role))
+          ..where((rp) => rp.permissionCode.equals(permissionCode)))
+        .getSingleOrNull();
+    if (existing == null) {
+      await db.into(db.rolePermissions).insert(
+            RolePermissionsCompanion.insert(
+              id: Value(const Uuid().v4()),
+              role: role,
+              permissionCode: permissionCode,
+            ),
+          );
+      if (changedByUserId != null && auditLogService != null) {
+        await auditLogService!.logAction(
+          userId: changedByUserId,
+          action: 'ASSIGN_PERMISSION',
+          logTableName: 'role_permissions',
+          recordId: permissionCode,
+          newValues: {'role': role, 'permissionCode': permissionCode},
+        );
+      }
+    }
+    _invalidateCache(role: role);
+  }
+
+  Future<void> removePermissionFromRole({
+    required String role,
+    required String permissionCode,
+    String? changedByUserId,
+  }) async {
+    await (db.delete(db.rolePermissions)
+          ..where((rp) => rp.role.equals(role))
+          ..where((rp) => rp.permissionCode.equals(permissionCode)))
+        .go();
+    if (changedByUserId != null && auditLogService != null) {
+      await auditLogService!.logAction(
+        userId: changedByUserId,
+        action: 'REMOVE_PERMISSION',
+        logTableName: 'role_permissions',
+        recordId: permissionCode,
+        oldValues: {'role': role, 'permissionCode': permissionCode},
+      );
+    }
+    _invalidateCache(role: role);
+  }
+
+  Future<List<RolePermission>> getPermissionsForRole(String role) async {
+    return (db.select(db.rolePermissions)..where((rp) => rp.role.equals(role)))
+        .get();
+  }
+
+  Future<bool> canApproveDiscount(
+      String userId, Decimal discountPercent) async {
+    if (await hasPermission(userId, ExtendedPermissionCode.discountUnlimited)) {
+      return true;
+    }
+    if (discountPercent <= Decimal.parse('5') &&
+        await hasPermission(userId, ExtendedPermissionCode.discountUpTo5)) {
+      return true;
+    }
+    if (discountPercent <= Decimal.parse('10') &&
+        await hasPermission(userId, ExtendedPermissionCode.discountUpTo10)) {
+      return true;
+    }
+    if (discountPercent <= Decimal.parse('25') &&
+        await hasPermission(userId, ExtendedPermissionCode.discountUpTo25)) {
+      return true;
+    }
+    return false;
   }
 }

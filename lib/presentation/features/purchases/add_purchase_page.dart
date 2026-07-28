@@ -6,10 +6,10 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:supermarket/core/constants/app_enums.dart';
-import 'package:supermarket/core/services/purchase_service.dart';
+import 'package:supermarket/core/services/purchases/purchase_service.dart';
 import 'package:supermarket/core/services/audit_service.dart';
 import 'package:supermarket/core/services/permission_service.dart';
-import 'package:supermarket/core/services/serial_number_service.dart';
+import 'package:supermarket/core/services/inventory/serial_number_service.dart';
 import 'package:supermarket/injection_container.dart';
 import 'package:uuid/uuid.dart';
 import 'purchase_provider.dart';
@@ -19,7 +19,8 @@ import '../../widgets/money_form_field.dart';
 import 'widgets/purchase_item_row.dart';
 import 'widgets/quick_product_add_dialog.dart';
 
-import 'package:supermarket/core/services/grn_service.dart';
+import 'package:supermarket/core/services/purchases/grn_service.dart';
+import 'package:supermarket/core/exceptions/app_exception.dart';
 
 class AddPurchasePage extends StatefulWidget {
   final String? purchaseId;
@@ -46,6 +47,7 @@ class _AddPurchasePageState extends State<AddPurchasePage> {
   final TextEditingController _otherExpensesController =
       TextEditingController();
   final TextEditingController _taxController = TextEditingController();
+  final TextEditingController _landedCostsController = TextEditingController();
 
   bool _isSaving = false;
   bool _isPeriodOpen = true;
@@ -64,9 +66,10 @@ class _AddPurchasePageState extends State<AddPurchasePage> {
   double get _discount => _moneyValue(_discountController);
   double get _shippingCost => _moneyValue(_shippingCostController);
   double get _otherExpenses => _moneyValue(_otherExpensesController);
+  double get _landedCosts => _moneyValue(_landedCostsController);
   double get _tax => _moneyValue(_taxController);
   double get _total =>
-      _subtotal - _discount + _shippingCost + _otherExpenses + _tax;
+      _subtotal - _discount + _shippingCost + _otherExpenses + _landedCosts + _tax;
 
   bool get isEditMode => widget.purchaseId != null;
 
@@ -168,6 +171,9 @@ class _AddPurchasePageState extends State<AddPurchasePage> {
       _otherExpensesController.text = purchase.otherExpenses == Decimal.zero
           ? ''
           : purchase.otherExpenses.toString();
+      _landedCostsController.text = purchase.landedCosts == Decimal.zero
+          ? ''
+          : purchase.landedCosts.toString();
       _originalTax = purchase.tax.toDouble();
       _taxController.text =
           purchase.tax == Decimal.zero ? '' : purchase.tax.toString();
@@ -179,6 +185,7 @@ class _AddPurchasePageState extends State<AddPurchasePage> {
     _discountController.dispose();
     _shippingCostController.dispose();
     _otherExpensesController.dispose();
+    _landedCostsController.dispose();
     _taxController.dispose();
     super.dispose();
   }
@@ -427,6 +434,7 @@ class _AddPurchasePageState extends State<AddPurchasePage> {
               _buildEditableRow('الخصم', _discountController),
               _buildEditableRow('الشحن', _shippingCostController),
               _buildEditableRow('مصاريف أخرى', _otherExpensesController),
+              _buildEditableRow('تكاليف واردة', _landedCostsController),
               const Divider(),
               _buildRow('الإجمالي النهائي', _total, isBold: true),
             ],
@@ -579,7 +587,7 @@ class _AddPurchasePageState extends State<AddPurchasePage> {
             .get()
             .then((rows) => rows.isEmpty ? null : rows.first);
         if (openPeriod == null) {
-          throw Exception('الفترة المحاسبية مغلقة. لا يمكن الترحيل.');
+          throw const BusinessException(message: 'الفترة المحاسبية مغلقة. لا يمكن الترحيل.');
         }
       }
 
@@ -641,8 +649,11 @@ class _AddPurchasePageState extends State<AddPurchasePage> {
                   drift.Value(Decimal.parse(_shippingCost.toString())),
               otherExpenses:
                   drift.Value(Decimal.parse(_otherExpenses.toString())),
+              landedCosts:
+                  drift.Value(Decimal.parse(_landedCosts.toString())),
               date: drift.Value(_selectedDate),
               status: const drift.Value(DocumentStatus.draft),
+              representativeId: drift.Value(_representativeId),
             ),
             itemsCompanions: itemsCompanions,
             userId: userId,
@@ -689,7 +700,10 @@ class _AddPurchasePageState extends State<AddPurchasePage> {
                   drift.Value(Decimal.parse(_shippingCost.toString())),
               otherExpenses:
                   drift.Value(Decimal.parse(_otherExpenses.toString())),
+              landedCosts:
+                  drift.Value(Decimal.parse(_landedCosts.toString())),
               date: drift.Value(_selectedDate),
+              representativeId: drift.Value(_representativeId),
             ),
             itemsCompanions: itemsCompanions,
             userId: userId,

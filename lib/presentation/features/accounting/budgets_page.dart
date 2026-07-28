@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:drift/drift.dart' as drift;
 import 'package:supermarket/data/datasources/local/app_database.dart';
-import 'package:supermarket/core/services/budget_service.dart';
+import 'package:supermarket/core/services/accounting/budget_service.dart';
 import 'package:supermarket/injection_container.dart';
 import 'package:intl/intl.dart';
 import 'package:supermarket/l10n/app_localizations.dart';
@@ -297,7 +297,7 @@ class _BudgetsPageState extends State<BudgetsPage>
                   items: [
                     DropdownMenuItem<int?>(
                         value: null, child: Text(l10n.general)),
-                    ...accounts.where((a) => a.type == 'EXPENSE').map(
+                    ...accounts.where((a) => a.accountType.name.toUpperCase() == 'EXPENSE').map(
                           (a) => DropdownMenuItem(
                               value: int.tryParse(a.id), child: Text(a.name)),
                         ),

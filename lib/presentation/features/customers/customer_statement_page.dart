@@ -4,7 +4,7 @@ import 'package:intl/intl.dart' as intl;
 import 'package:supermarket/l10n/app_localizations.dart';
 import 'package:supermarket/presentation/features/customers/customer_statement_provider.dart';
 import 'package:supermarket/injection_container.dart';
-import 'package:supermarket/core/services/statement_printing_service.dart';
+import 'package:supermarket/core/services/sales/statement_printing_service.dart';
 
 class CustomerStatementPage extends StatefulWidget {
   final String customerId;

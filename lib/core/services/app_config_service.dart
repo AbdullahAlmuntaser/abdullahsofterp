@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import '../../data/datasources/local/app_database.dart';
+import 'package:supermarket/core/exceptions/app_exception.dart';
 
 /// خدمة إدارة إعدادات التطبيق الديناميكية
 /// تستبدل القيم المزروعة (Hardcoded) بقيم قابلة للتغيير من واجهة المستخدم
@@ -19,6 +20,7 @@ class AppConfigService {
   static const String keyHideSalePrices = 'hide_sale_prices';
   static const String keyLocaleCode = 'locale_code';
   static const String keyMultiUnitV2 = 'multi_unit_v2';
+  static const String keyVatBasis = 'vat_basis';
 
   /// الحصول على قيمة إعداد معينة
   Future<String?> getString(String key) async {
@@ -84,7 +86,7 @@ class AppConfigService {
       return firstWarehouse.id;
     }
 
-    throw Exception('لا يوجد مستودع افتراضي. يرجى تهيئة بيانات النظام أولاً.');
+    throw const BusinessException(message: 'لا يوجد مستودع افتراضي. يرجى تهيئة بيانات النظام أولاً.');
   }
 
   /// الحصول على معرف الفرع الافتراضي
@@ -103,6 +105,16 @@ class AppConfigService {
   /// الحصول على نسبة الضريبة
   Future<double> getTaxRate() async {
     return await getDouble(keyTaxRate, defaultValue: 0.15); // 15% افتراضي
+  }
+
+  /// الحصول على أساس الضريبة (نقدي / استحقاق)
+  Future<String> getVatBasis() async {
+    return await getString(keyVatBasis) ?? 'accrual';
+  }
+
+  /// تعيين أساس الضريبة
+  Future<void> setVatBasis(String basis) async {
+    await setString(keyVatBasis, basis == 'cash' ? 'cash' : 'accrual');
   }
 
   /// الحصول على قيمة منطقية (Boolean)

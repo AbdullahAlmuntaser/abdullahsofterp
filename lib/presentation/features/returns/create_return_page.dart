@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:supermarket/l10n/app_localizations.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:supermarket/core/auth/auth_provider.dart';
-import 'package:supermarket/core/services/return_service.dart';
+import 'package:supermarket/core/services/sales/return_service.dart';
 import 'package:supermarket/core/services/transaction_engine.dart';
 import 'package:supermarket/injection_container.dart';
 import 'dart:math';

@@ -3,14 +3,14 @@ import 'dart:developer' as developer;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:drift/drift.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
-import 'package:supermarket/core/services/pricing_service.dart';
+import 'package:supermarket/core/services/sales/pricing_service.dart';
 import 'package:supermarket/core/services/packaging_engine.dart';
 import 'package:supermarket/core/services/app_config_service.dart';
 import 'package:supermarket/data/datasources/local/daos/products_dao.dart';
 import 'package:supermarket/presentation/features/pos/bloc/pos_event.dart';
 import 'package:supermarket/presentation/features/pos/bloc/pos_state.dart';
 import 'package:supermarket/core/services/transaction_engine.dart';
-import 'package:supermarket/core/services/loyalty_service.dart';
+import 'package:supermarket/core/services/sales/loyalty_service.dart';
 import 'package:uuid/uuid.dart';
 import 'package:supermarket/core/constants/app_enums.dart';
 

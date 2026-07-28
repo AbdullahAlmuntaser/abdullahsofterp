@@ -6,7 +6,7 @@ import 'package:supermarket/core/models/accounting/balance_sheet_data.dart';
 import 'package:supermarket/core/models/accounting/cash_flow_data.dart';
 import 'package:supermarket/core/models/accounting/income_statement_data.dart';
 import 'package:supermarket/core/models/accounting/vat_report_data.dart';
-import 'package:supermarket/core/services/accounting_service.dart';
+import 'package:supermarket/core/services/accounting/accounting_service.dart';
 import 'package:supermarket/core/services/audit_service.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:supermarket/data/datasources/local/daos/accounting_dao.dart';
@@ -14,6 +14,7 @@ import 'package:supermarket/data/models/gl_entry_detail.dart';
 import 'package:supermarket/injection_container.dart';
 import 'package:supermarket/l10n/app_localizations.dart';
 import 'package:uuid/uuid.dart';
+import 'package:supermarket/core/exceptions/app_exception.dart';
 
 class AccountingProvider with ChangeNotifier {
   final AppDatabase db;
@@ -114,8 +115,8 @@ class AccountingProvider with ChangeNotifier {
     }
 
     if ((totalDebit - totalCredit).abs() > Decimal.parse('0.001')) {
-      throw Exception(
-        l10n.unbalancedEntryError(totalDebit.toString(), totalCredit.toString()),
+      throw BusinessException(
+        message: l10n.unbalancedEntryError(totalDebit.toString(), totalCredit.toString()),
       );
     }
 

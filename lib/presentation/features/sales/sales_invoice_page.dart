@@ -2,7 +2,7 @@ import 'package:supermarket/core/auth/auth_provider.dart';
 import 'package:supermarket/presentation/widgets/permission_guard.dart';
 import 'package:supermarket/core/services/permission_service.dart';
 import 'package:supermarket/core/services/audit_service.dart';
-import 'package:supermarket/core/services/unit_conversion_service.dart';
+import 'package:supermarket/core/services/inventory/unit_conversion_service.dart';
 import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -1016,6 +1016,12 @@ class _SalesInvoicePageState extends State<SalesInvoicePage> {
             otherExpenses: drift.Value(_otherExpenses),
             warehouseId: drift.Value(_selectedWarehouse?.id),
             representativeId: drift.Value(_representativeId),
+            referenceNumber: drift.Value(_referenceController.text.isNotEmpty
+                ? _referenceController.text
+                : null),
+            paymentTerms: drift.Value(_termsController.text.isNotEmpty
+                ? _termsController.text
+                : null),
           );
 
           await db.salesDao.createSale(
@@ -1043,6 +1049,12 @@ class _SalesInvoicePageState extends State<SalesInvoicePage> {
             otherExpenses: drift.Value(_otherExpenses),
             warehouseId: drift.Value(_selectedWarehouse?.id),
             representativeId: drift.Value(_representativeId),
+            referenceNumber: drift.Value(_referenceController.text.isNotEmpty
+                ? _referenceController.text
+                : null),
+            paymentTerms: drift.Value(_termsController.text.isNotEmpty
+                ? _termsController.text
+                : null),
           );
 
           await db.salesDao.updateSale(

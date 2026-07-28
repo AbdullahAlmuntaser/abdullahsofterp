@@ -4,9 +4,9 @@ import 'package:drift/drift.dart' as drift;
 import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:uuid/uuid.dart';
 import 'package:intl/intl.dart';
-import 'package:supermarket/core/services/financial_closing_service.dart';
+import 'package:supermarket/core/services/accounting/financial_closing_service.dart';
 import 'package:supermarket/core/auth/auth_provider.dart';
-import 'package:supermarket/core/services/accounting_period_service.dart';
+import 'package:supermarket/core/services/accounting/accounting_period_service.dart';
 import 'package:supermarket/l10n/app_localizations.dart';
 
 class AccountingPeriodsPage extends StatefulWidget {

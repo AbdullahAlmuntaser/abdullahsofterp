@@ -11826,8 +11826,32 @@ abstract class AppLocalizations {
   /// No description provided for @nsbhAldrybh.
   ///
   /// In en, this message translates to:
-  /// **'نسبة الضريبة (%)'**
+  /// **'نسبة الضريبة'**
   String get nsbhAldrybh;
+
+  /// No description provided for @errorSavingSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Error saving settings: {error}'**
+  String errorSavingSettings(Object error);
+
+  /// No description provided for @lowStockAlertThreshold.
+  ///
+  /// In en, this message translates to:
+  /// **'Alert when stock falls below {threshold} units'**
+  String lowStockAlertThreshold(Object threshold);
+
+  /// No description provided for @errorLoadingPromotions.
+  ///
+  /// In en, this message translates to:
+  /// **'Error loading promotions: {error}'**
+  String errorLoadingPromotions(Object error);
+
+  /// No description provided for @promotionValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Value {value}'**
+  String promotionValue(Object value);
 
   /// No description provided for @nsbhAlamwlh.
   ///
@@ -12338,6 +12362,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Loyalty program'**
   String get posLoyaltyReason;
+
+  /// No description provided for @productIdLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Product: {id}'**
+  String productIdLabel(Object id);
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

@@ -3,15 +3,16 @@ import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:supermarket/core/events/app_events.dart';
 import 'package:supermarket/core/services/event_bus_service.dart';
 import 'package:supermarket/core/services/audit_service.dart';
-import 'package:supermarket/core/services/inventory_costing_service.dart';
+import 'package:supermarket/core/services/inventory/inventory_costing_service.dart';
 import 'package:supermarket/core/services/app_config_service.dart';
 import 'package:supermarket/core/services/cash_management_service.dart';
 import 'package:supermarket/core/services/packaging_engine.dart';
 import 'package:supermarket/core/constants/app_enums.dart';
+import 'package:supermarket/core/exceptions/app_exception.dart';
 import 'package:supermarket/core/services/posting_engine.dart';
-import 'package:supermarket/core/services/budget_service.dart';
+import 'package:supermarket/core/services/accounting/budget_service.dart';
 import 'package:supermarket/core/services/approval_workflow_service.dart';
-import 'package:supermarket/core/services/serial_number_service.dart';
+import 'package:supermarket/core/services/inventory/serial_number_service.dart';
 import 'package:supermarket/core/exceptions/concurrency_exception.dart';
 import 'package:uuid/uuid.dart';
 
@@ -61,8 +62,8 @@ class TransactionEngine {
         .get()
         .then((rows) => rows.isEmpty ? null : rows.first);
     if (openPeriod == null) {
-      throw Exception(
-          'لا توجد فترة محاسبية مفتوحة حالياً. يرجى فتح فترة محاسبية جديدة.');
+      throw const BusinessException(
+          message: 'لا توجد فترة محاسبية مفتوحة حالياً. يرجى فتح فترة محاسبية جديدة.');
     }
   }
 
@@ -70,7 +71,7 @@ class TransactionEngine {
   /// Creates: Purchase + Stock + Batches + GL Entry + Supplier Balance
   Future<void> postPurchase(String purchaseId, {String? userId}) async {
     if (purchaseId.isEmpty) {
-      throw Exception('معرف الفاتورة غير صالح.');
+      throw const BusinessException(message: 'معرف الفاتورة غير صالح.');
     }
 
     await _checkAccountingPeriodOpen();
@@ -82,10 +83,10 @@ class TransactionEngine {
           .getSingle();
 
       if (purchase.isCredit && purchase.supplierId == null) {
-        throw Exception('يجب اختيار مورد لفاتورة الشراء الآجل.');
+        throw const BusinessException(message: 'يجب اختيار مورد لفاتورة الشراء الآجل.');
       }
       if (purchase.status == DocumentStatus.posted) {
-        throw Exception('هذه الفاتورة تم ترحيلها بالفعل.');
+        throw const BusinessException(message: 'هذه الفاتورة تم ترحيلها بالفعل.');
       }
 
       // Verify GRN exists for this purchase
@@ -94,7 +95,7 @@ class TransactionEngine {
             ..where((g) => g.status.equals('POSTED')))
           .getSingleOrNull();
       if (grn == null) {
-        throw Exception('لا يمكن ترحيل الفاتورة قبل استلام البضاعة (GRN غير موجود أو غير مرحل).');
+        throw const BusinessException(message: 'لا يمكن ترحيل الفاتورة قبل استلام البضاعة (GRN غير موجود أو غير مرحل).');
       }
 
       // Check if purchase requires approval (amount > 10,000)
@@ -114,7 +115,7 @@ class TransactionEngine {
               .write(const PurchasesCompanion(status: Value(DocumentStatus.draft)));
           return; // Exit - don't post yet
         } else if (existingRequest['status'] != 'approved') {
-          throw Exception('هذه الفاتورة بانتظار الموافقة. لا يمكن الترحيل حتى تتم الموافقة عليها.');
+          throw const BusinessException(message: 'هذه الفاتورة بانتظار الموافقة. لا يمكن الترحيل حتى تتم الموافقة عليها.');
         }
       }
 
@@ -124,13 +125,13 @@ class TransactionEngine {
           .get();
 
       if (items.isEmpty) {
-        throw Exception('لا يمكن ترحيل فاتورة مشتريات بدون أصناف.');
+        throw const BusinessException(message: 'لا يمكن ترحيل فاتورة مشتريات بدون أصناف.');
       }
 
       Decimal subtotal = Decimal.zero;
       for (var item in items) {
         if (item.quantity <= Decimal.zero) {
-          throw Exception('كمية الشراء يجب أن تكون أكبر من الصفر.');
+          throw const BusinessException(message: 'كمية الشراء يجب أن تكون أكبر من الصفر.');
         }
         subtotal += item.quantity * item.price;
       }
@@ -262,9 +263,9 @@ class TransactionEngine {
     final saleCheck = await (db.select(db.sales)
           ..where((s) => s.id.equals(saleId)))
         .getSingleOrNull();
-    if (saleCheck == null) throw Exception('الفاتورة غير موجودة.');
+    if (saleCheck == null) throw const BusinessException(message: 'الفاتورة غير موجودة.');
     if (saleCheck.status == DocumentStatus.posted) {
-      throw Exception('هذه الفاتورة تم ترحيلها بالفعل.');
+      throw const BusinessException(message: 'هذه الفاتورة تم ترحيلها بالفعل.');
     }
 
     if (saleCheck.paymentMethod == PaymentMethod.cash && userId != null) {
@@ -272,7 +273,7 @@ class TransactionEngine {
             ..where((s) => s.userId.equals(userId) & s.isOpen.equals(true)))
           .getSingleOrNull();
       if (activeShift == null) {
-        throw Exception('لا يمكن إجراء عملية بيع نقدي بدون فتح وردية عمل.');
+        throw const BusinessException(message: 'لا يمكن إجراء عملية بيع نقدي بدون فتح وردية عمل.');
       }
     }
 
@@ -282,7 +283,7 @@ class TransactionEngine {
             ..where((s) => s.status.equals(DocumentStatus.draft.index)))
           .getSingleOrNull();
       if (currentSale == null) {
-        throw Exception('حالة الفاتورة غير صالحة للترحيل.');
+        throw const BusinessException(message: 'حالة الفاتورة غير صالحة للترحيل.');
       }
 
       final sale = currentSale;
@@ -291,16 +292,16 @@ class TransactionEngine {
       )..where((si) => si.saleId.equals(saleId)))
           .get();
       if (items.isEmpty) {
-        throw Exception('لا يمكن ترحيل فاتورة مبيعات بدون أصناف.');
+        throw const BusinessException(message: 'لا يمكن ترحيل فاتورة مبيعات بدون أصناف.');
       }
 
       Decimal saleCogs = Decimal.zero;
       for (var item in items) {
         if (item.quantity <= Decimal.zero) {
-          throw Exception('الكمية يجب أن تكون أكبر من الصفر.');
+          throw const BusinessException(message: 'الكمية يجب أن تكون أكبر من الصفر.');
         }
         if (item.price < Decimal.zero) {
-          throw Exception('السعر يجب أن يكون أكبر من أو يساوي الصفر.');
+          throw const BusinessException(message: 'السعر يجب أن يكون أكبر من أو يساوي الصفر.');
         }
 
         // Validate against budget if item has a cost center
@@ -332,8 +333,8 @@ class TransactionEngine {
             final warehouseStockAfter = await db.productsDao
                 .getWarehouseStock(item.productId, sale.warehouseId!);
             if (warehouseStockAfter < remainingToDeduct) {
-              throw Exception(
-                'المخزون غير كافٍ للمنتج: ${product.name} في المستودع المحدد. '
+              throw BusinessException(
+                message: 'المخزون غير كافٍ للمنتج: ${product.name} في المستودع المحدد. '
                 'المتوفر: $warehouseStockAfter',
               );
             }
@@ -348,8 +349,8 @@ class TransactionEngine {
                 ..where((p) => p.id.equals(item.productId)))
               .getSingle();
           if (updatedProduct.stock < remainingToDeduct) {
-            throw Exception(
-              'المخزون غير كافٍ للمنتج: ${product.name}. المتوفر: ${updatedProduct.stock}',
+            throw BusinessException(
+              message: 'المخزون غير كافٍ للمنتج: ${product.name}. المتوفر: ${updatedProduct.stock}',
             );
           }
         }
@@ -508,7 +509,7 @@ class TransactionEngine {
           ..where((t) => t.type.equals('RETURN')))
         .get();
     if (existingTransactions.isNotEmpty) {
-      throw Exception('تم معالجة مردود المبيعات بالفعل');
+      throw const BusinessException(message: 'تم معالجة مردود المبيعات بالفعل');
     }
 
     await db.transaction(() async {
@@ -647,11 +648,15 @@ class TransactionEngine {
       }
 
       // Single accounting through PostingEngine
+      final returnTax = sale.total > Decimal.zero
+          ? (saleReturn.amountReturned / sale.total).toDecimal() * sale.tax
+          : Decimal.zero;
       await _postingEngine.post(
         type: TransactionType.saleReturn,
         referenceId: returnId,
         context: {
           'amount': saleReturn.amountReturned,
+          'tax': returnTax,
           'cogs': returnCogs,
           'originalSaleId': saleReturn.saleId,
           'paymentMethod': sale.isCredit ? 'credit' : 'cash',
@@ -674,7 +679,7 @@ class TransactionEngine {
           ..where((t) => t.type.equals('PURCHASE_RETURN')))
         .get();
     if (existingTransactions.isNotEmpty) {
-      throw Exception('تم معالجة مردود المشتريات بالفعل');
+      throw const BusinessException(message: 'تم معالجة مردود المشتريات بالفعل');
     }
 
     await db.transaction(() async {
@@ -751,11 +756,15 @@ class TransactionEngine {
       }
 
       // Single accounting through PostingEngine
+      final returnTax = purchase.total > Decimal.zero
+          ? (purchaseReturn.amountReturned / purchase.total).toDecimal() * purchase.tax
+          : Decimal.zero;
       await _postingEngine.post(
         type: TransactionType.purchaseReturn,
         referenceId: returnId,
         context: {
           'amount': purchaseReturn.amountReturned,
+          'tax': returnTax,
           'cogs': returnCogs,
           'originalPurchaseId': purchaseReturn.purchaseId,
           'paymentMethod': purchase.isCredit ? 'credit' : 'cash',
@@ -778,9 +787,9 @@ class TransactionEngine {
       final sale = await (db.select(db.sales)
             ..where((s) => s.id.equals(saleId)))
           .getSingleOrNull();
-      if (sale == null) throw Exception('الفاتورة غير موجودة');
+      if (sale == null) throw const BusinessException(message: 'الفاتورة غير موجودة');
       if (sale.status != DocumentStatus.posted) {
-        throw Exception('يمكن فقط إلغاء الفواتير المرحلة');
+        throw const BusinessException(message: 'يمكن فقط إلغاء الفواتير المرحلة');
       }
 
       final items = await (db.select(db.saleItems)
@@ -788,7 +797,7 @@ class TransactionEngine {
           .get();
 
       if (items.isEmpty) {
-        throw Exception('لا يمكن إلغاء فاتورة مبيعات بدون أصناف.');
+        throw const BusinessException(message: 'لا يمكن إلغاء فاتورة مبيعات بدون أصناف.');
       }
 
       // 1. Reverse stock movements for each item
@@ -910,9 +919,9 @@ class TransactionEngine {
       final purchase = await (db.select(db.purchases)
             ..where((p) => p.id.equals(purchaseId)))
           .getSingleOrNull();
-      if (purchase == null) throw Exception('فاتورة المشتريات غير موجودة');
+      if (purchase == null) throw const BusinessException(message: 'فاتورة المشتريات غير موجودة');
       if (purchase.status != DocumentStatus.posted) {
-        throw Exception('يمكن فقط إلغاء فواتير المشتريات المرحلة');
+        throw const BusinessException(message: 'يمكن فقط إلغاء فواتير المشتريات المرحلة');
       }
 
       final items = await (db.select(db.purchaseItems)
@@ -920,7 +929,7 @@ class TransactionEngine {
           .get();
 
       if (items.isEmpty) {
-        throw Exception('لا يمكن إلغاء فاتورة مشتريات بدون أصناف.');
+        throw const BusinessException(message: 'لا يمكن إلغاء فاتورة مشتريات بدون أصناف.');
       }
 
       // 1. Reverse stock movements for each item (deduct from batches)
@@ -942,8 +951,8 @@ class TransactionEngine {
                 .getSingleOrNull();
             if (batch != null) {
               if (batch.quantity < qtyToDeduct) {
-                throw Exception(
-                    'لا يمكن إلغاء فاتورة المشتريات: تم بيع جزء من الكمية للصنف ${item.productId}');
+                throw BusinessException(
+                    message: 'لا يمكن إلغاء فاتورة المشتريات: تم بيع جزء من الكمية للصنف ${item.productId}');
               }
               final changes = await (db.update(db.productBatches)
                     ..where((b) => b.id.equals(batch.id) & b.version.equals(batch.version)))

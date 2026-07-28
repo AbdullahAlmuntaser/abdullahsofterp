@@ -30,7 +30,9 @@ class AccessGuard {
         location == '/sync' ||
         location.startsWith('/settings') ||
         location.startsWith('/accounting') ||
-        location == '/admin-dashboard';
+        location == '/admin-dashboard' ||
+        location == '/user-roles' ||
+        location == '/workspace/admin';
   }
 
   static bool _isManagerArea(String location) {
@@ -44,8 +46,11 @@ class AccessGuard {
         location.startsWith('/hr') ||
         location.startsWith('/suppliers') ||
         location.startsWith('/products') ||
+        location.startsWith('/workspace') ||
+        location.startsWith('/transaction') ||
         location == '/categories' ||
-        location == '/low-stock';
+        location == '/low-stock' ||
+        location == '/barcode-printing';
   }
 
   static bool _isCashierArea(String location) {

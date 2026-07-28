@@ -1,19 +1,19 @@
 import 'package:get_it/get_it.dart';
-import 'package:supermarket/core/services/accounting_service.dart';
-import 'package:supermarket/core/services/accounting_period_service.dart';
-import 'package:supermarket/core/services/budget_service.dart';
-import 'package:supermarket/core/services/inventory_costing_service.dart';
+import 'package:supermarket/core/services/accounting/accounting_service.dart';
+import 'package:supermarket/core/services/accounting/accounting_period_service.dart';
+import 'package:supermarket/core/services/accounting/budget_service.dart';
+import 'package:supermarket/core/services/inventory/inventory_costing_service.dart';
 import 'package:supermarket/core/services/notification_service.dart';
-import 'package:supermarket/core/services/currency_conversion_service.dart';
-import 'package:supermarket/core/services/chart_of_accounts_service.dart';
-import 'package:supermarket/core/services/depreciation_service.dart';
-import 'package:supermarket/core/services/financial_closing_service.dart';
-import 'package:supermarket/core/services/financial_control_service.dart';
-import 'package:supermarket/core/services/financial_report_service.dart';
-import 'package:supermarket/core/services/journal_service.dart';
-import 'package:supermarket/core/services/vat_service.dart';
-import 'package:supermarket/core/services/fixed_assets_service.dart';
-import 'package:supermarket/core/services/zakat_service.dart';
+import 'package:supermarket/core/services/accounting/currency_conversion_service.dart';
+import 'package:supermarket/core/services/accounting/chart_of_accounts_service.dart';
+import 'package:supermarket/core/services/accounting/depreciation_service.dart';
+import 'package:supermarket/core/services/accounting/financial_closing_service.dart';
+import 'package:supermarket/core/services/accounting/financial_control_service.dart';
+import 'package:supermarket/core/services/accounting/financial_report_service.dart';
+import 'package:supermarket/core/services/accounting/journal_service.dart';
+import 'package:supermarket/core/services/accounting/vat_service.dart';
+import 'package:supermarket/core/services/accounting/fixed_assets_service.dart';
+import 'package:supermarket/core/services/accounting/zakat_service.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
 
 void registerAccountingModule(GetIt sl) {

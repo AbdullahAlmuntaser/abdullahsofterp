@@ -4,7 +4,7 @@ import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:drift/drift.dart' as drift;
 import 'package:uuid/uuid.dart';
 import 'package:intl/intl.dart';
-import 'package:supermarket/core/services/accounting_service.dart';
+import 'package:supermarket/core/services/accounting/accounting_service.dart';
 import 'package:supermarket/presentation/widgets/money_form_field.dart';
 import 'package:supermarket/presentation/widgets/app_snack_bar.dart';
 import 'package:supermarket/l10n/app_localizations.dart';

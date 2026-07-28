@@ -1,6 +1,9 @@
+// ignore_for_file: annotate_overrides
 import 'package:drift/drift.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:supermarket/core/exceptions/concurrency_exception.dart';
+import 'package:supermarket/core/exceptions/app_exception.dart';
+import 'package:supermarket/data/repositories/i_products_repository.dart';
 
 class ProductWithCategory {
   final Product product;
@@ -21,7 +24,7 @@ class TransferItemData {
   });
 }
 
-class ProductsDao extends DatabaseAccessor<AppDatabase> {
+class ProductsDao extends DatabaseAccessor<AppDatabase> implements IProductsRepository {
   ProductsDao(super.db);
 
   Stream<List<Product>> watchAllProducts() {
@@ -100,7 +103,7 @@ class ProductsDao extends DatabaseAccessor<AppDatabase> {
 
         final itemQuantityDecimal = Decimal.parse(item.quantity.toString());
         if (sourceBatch.quantity < itemQuantityDecimal) {
-          throw Exception('الكمية المطلوبة غير متوفرة في الدفعة المحددة');
+          throw const BusinessException(message: 'الكمية المطلوبة غير متوفرة في الدفعة المحددة');
         }
 
         final changes = await (update(db.productBatches)..where((b) => b.id.equals(item.batchId) & b.version.equals(sourceBatch.version)))

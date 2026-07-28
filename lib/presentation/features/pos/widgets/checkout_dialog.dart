@@ -21,12 +21,30 @@ class _CheckoutDialogState extends State<CheckoutDialog> {
   final TextEditingController _receivedController = TextEditingController();
   Decimal _receivedAmount = Decimal.zero;
   bool _isProcessing = false;
+  String? _currencyId;
+  Decimal _exchangeRate = Decimal.one;
 
   @override
   void initState() {
     super.initState();
     _receivedController.text = widget.state.total.toStringAsFixed(2);
     _receivedAmount = widget.state.total;
+    _loadBaseCurrency();
+  }
+
+  Future<void> _loadBaseCurrency() async {
+    final db = context.read<AppDatabase>();
+    final currencies = await (db.select(db.currencies)
+          ..where((c) => c.isBase.equals(true))
+          ..limit(1))
+        .get();
+    if (currencies.isNotEmpty) {
+      _currencyId = currencies.first.id;
+      _exchangeRate = currencies.first.exchangeRate;
+    } else {
+      _currencyId = 'SAR';
+      _exchangeRate = Decimal.one;
+    }
   }
 
   @override
@@ -220,6 +238,8 @@ class _CheckoutDialogState extends State<CheckoutDialog> {
     context.read<PosBloc>().add(CheckoutEvent(
           _paymentMethod,
           customerId: _selectedCustomer?.id,
+          currencyId: _currencyId,
+          exchangeRate: _exchangeRate,
         ));
     Navigator.pop(context);
   }

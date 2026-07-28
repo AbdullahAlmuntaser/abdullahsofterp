@@ -6104,7 +6104,27 @@ class AppLocalizationsAr extends AppLocalizations {
   String get nsbhAlsywlh => 'نسبة السيولة';
 
   @override
-  String get nsbhAldrybh => 'نسبة الضريبة (%)';
+  String get nsbhAldrybh => 'نسبة الضريبة';
+
+  @override
+  String errorSavingSettings(Object error) {
+    return 'خطأ في حفظ الإعدادات: $error';
+  }
+
+  @override
+  String lowStockAlertThreshold(Object threshold) {
+    return 'سيتم التنبيه عندما يقل الرصيد عن $threshold وحدات';
+  }
+
+  @override
+  String errorLoadingPromotions(Object error) {
+    return 'خطأ في تحميل العروض: $error';
+  }
+
+  @override
+  String promotionValue(Object value) {
+    return 'القيمة $value';
+  }
 
   @override
   String get nsbhAlamwlh => 'نسبة العمولة (%)';
@@ -6372,4 +6392,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get posLoyaltyReason => 'برنامج الولاء';
+
+  @override
+  String productIdLabel(Object id) {
+    return 'منتج: $id';
+  }
 }

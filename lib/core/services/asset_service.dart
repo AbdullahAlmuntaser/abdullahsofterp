@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:supermarket/core/constants/account_codes.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:uuid/uuid.dart';
+import 'package:supermarket/core/exceptions/app_exception.dart';
 
 class AssetService {
   final AppDatabase db;
@@ -97,8 +98,9 @@ class AssetService {
           await dao.createEntry(entry, lines);
         } else {
           // This is a critical setup issue. We should throw an exception to rollback the transaction.
-          throw Exception(
-            'حسابات الإهلاك غير معرفة. الرجاء إعداد حساب المصروف (6001) وحساب الإهلاك المتراكم (1201) في شجرة الحسابات.',
+          throw const NotFoundException(
+            message: 'حسابات الإهلاك غير معرفة.',
+            details: 'الرجاء إعداد حساب المصروف (6001) وحساب الإهلاك المتراكم (1201) في شجرة الحسابات.',
           );
         }
       }

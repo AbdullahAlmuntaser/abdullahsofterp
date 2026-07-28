@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:supermarket/core/exceptions/concurrency_exception.dart';
 import 'package:uuid/uuid.dart';
+import 'package:supermarket/core/exceptions/app_exception.dart';
 
 class ProductionService {
   final AppDatabase db;
@@ -22,7 +23,7 @@ class ProductionService {
             ..where((t) => t.finishedProductId.equals(finishedProductId)))
           .get();
 
-      if (bom.isEmpty) throw Exception('No BOM found for this product');
+      if (bom.isEmpty) throw const BusinessException(message: 'No BOM found for this product');
 
       // 2. Create Order
       await db.into(db.productionOrders).insert(
@@ -110,7 +111,7 @@ class ProductionService {
 
       final whId = order.warehouseId;
       if (whId == null || whId.isEmpty) {
-        throw Exception('المستودع مطلوب لإتمام أمر الإنتاج.');
+        throw const BusinessException(message: 'المستودع مطلوب لإتمام أمر الإنتاج.');
       }
       await db.into(db.productBatches).insert(
             ProductBatchesCompanion.insert(

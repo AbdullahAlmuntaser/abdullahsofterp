@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:esc_pos_utils_plus/esc_pos_utils_plus.dart';
 import 'package:intl/intl.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
+import 'package:supermarket/core/exceptions/app_exception.dart';
 
 enum PrinterConnectionType { bluetooth, usb, network }
 
@@ -261,7 +262,7 @@ class ThermalPrinterService {
             _socket!.add(bytes);
             await _socket!.flush();
           } else {
-            throw Exception('Socket not connected');
+            throw const BusinessException(message: 'Socket not connected');
           }
           break;
         case PrinterConnectionType.bluetooth:
@@ -271,7 +272,7 @@ class ThermalPrinterService {
       }
     } catch (e) {
       if (e is UnimplementedError) rethrow;
-      throw Exception('فشل في إرسال البيانات للطابعة: $e');
+      throw BusinessException(message: 'فشل في إرسال البيانات للطابعة: $e');
     }
   }
 

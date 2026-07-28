@@ -3,6 +3,7 @@ import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:supermarket/data/datasources/local/daos/recurring_entry_dao.dart';
 import 'package:supermarket/core/constants/app_enums.dart';
 import 'posting_engine.dart';
+import 'package:supermarket/core/exceptions/app_exception.dart';
 
 class RecurringEntryService {
   final AppDatabase db;
@@ -168,8 +169,8 @@ class RecurringEntryService {
   // Manual execution
   Future<void> executeEntryNow(int entryId) async {
     final entry = await _dao.getRecurringEntryById(entryId);
-    if (entry == null) throw Exception('القيد الدوري غير موجود.');
-    if (entry.status != 'active') throw Exception('القيد الدوري غير نشط.');
+    if (entry == null) throw const BusinessException(message: 'القيد الدوري غير موجود.');
+    if (entry.status != 'active') throw const BusinessException(message: 'القيد الدوري غير نشط.');
     await _executeEntry(entry);
   }
 

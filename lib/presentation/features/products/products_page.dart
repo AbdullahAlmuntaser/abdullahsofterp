@@ -305,6 +305,18 @@ class _ProductsPageState extends State<ProductsPage> {
         );
       }
     }
+    if (product.remoteUrl != null && product.remoteUrl!.isNotEmpty) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Image.network(
+          product.remoteUrl!,
+          width: 48,
+          height: 48,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => _defaultImageIcon(),
+        ),
+      );
+    }
     return _defaultImageIcon();
   }
 

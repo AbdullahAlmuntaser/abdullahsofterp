@@ -36,9 +36,10 @@ class LowStockAlertPage extends StatelessWidget {
                     'الرصيد الحالي: ${p.stock.toStringAsFixed(0)} | حد التنبيه: ${p.alertLimit}',
                   ),
                   trailing: const Icon(Icons.inventory),
-                  onTap: () {
-                    // Logic to open stock replenishment dialog
-                  },
+                  onTap: () => Navigator.of(context).pushNamed(
+                        '/products',
+                        arguments: {'productId': p.id, 'highlight': p.id},
+                      ),
                 ),
               );
             },

@@ -1,9 +1,10 @@
 import 'package:drift/drift.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
-import 'package:supermarket/core/services/inventory_costing_service.dart';
+import 'package:supermarket/core/services/inventory/inventory_costing_service.dart';
 import 'package:supermarket/core/constants/app_enums.dart';
 import 'package:supermarket/core/constants/account_codes.dart';
 import 'package:uuid/uuid.dart';
+import 'package:supermarket/core/exceptions/app_exception.dart';
 import 'app_config_service.dart';
 
 class PostingLine {
@@ -100,8 +101,15 @@ class PostingEngine {
     }
     final revenueAccount =
         await _getAccountByProfileOrCode(profiles, 'REVENUE', '4010');
-    final taxAccount =
-        await _getAccountByProfileOrCode(profiles, 'OUTPUT_VAT', '2020');
+
+    // Cash basis VAT: defer output VAT until cash is received
+    final vatBasis = await _configService.getVatBasis();
+    final isCashBasisDeferred = vatBasis == 'cash' && paymentMethod == 'credit';
+    final taxAccount = await _getAccountByProfileOrCode(
+      profiles,
+      'OUTPUT_VAT',
+      isCashBasisDeferred ? AccountCodes.deferredOutputVAT : AccountCodes.outputVAT,
+    );
 
     final entry = GLEntriesCompanion.insert(
       id: Value(entryId),
@@ -196,8 +204,15 @@ class PostingEngine {
 
     final inventoryAccount =
         await _getAccountByProfileOrCode(profiles, 'INVENTORY', '1040');
-    final taxAccount =
-        await _getAccountByProfileOrCode(profiles, 'INPUT_VAT', '1050');
+
+    // Cash basis VAT: defer input VAT until cash is paid
+    final vatBasis = await _configService.getVatBasis();
+    final isCashBasisDeferred = vatBasis == 'cash' && paymentMethod == 'credit';
+    final taxAccount = await _getAccountByProfileOrCode(
+      profiles,
+      'INPUT_VAT',
+      isCashBasisDeferred ? AccountCodes.deferredInputVAT : AccountCodes.inputVAT,
+    );
 
     String creditAccountId;
     if (paymentMethod == 'credit') {
@@ -253,6 +268,7 @@ class PostingEngine {
       String referenceId, Map<String, dynamic> context) async {
     final dao = db.accountingDao;
     final amount = _readAmount(context['amount']);
+    final tax = _readAmount(context['tax']);
     final cogs = _readAmount(context['cogs']);
     final paymentMethod = context['paymentMethod'] as String? ?? 'cash';
     final branchId = context['branchId'] as String? ??
@@ -300,6 +316,19 @@ class PostingEngine {
         credit: Value(amount),
         branchId: Value(branchId),
       ),
+      // Reverse output VAT
+      if (tax > Decimal.zero)
+        GLLinesCompanion.insert(
+          entryId: entryId,
+          accountId: await _getAccountByProfileOrCode(
+            profiles,
+            'OUTPUT_VAT',
+            AccountCodes.outputVAT,
+          ),
+          debit: Value(tax),
+          credit: Value(Decimal.zero),
+          branchId: Value(branchId),
+        ),
     ];
     validatePostingLinesRaw(lines);
     await dao.createEntry(entry, lines);
@@ -348,6 +377,7 @@ class PostingEngine {
       String referenceId, Map<String, dynamic> context) async {
     final dao = db.accountingDao;
     final amount = _readAmount(context['amount']);
+    final tax = _readAmount(context['tax']);
     final cogs = _readAmount(context['cogs']) != Decimal.zero
         ? _readAmount(context['cogs'])
         : amount;
@@ -397,6 +427,19 @@ class PostingEngine {
         credit: Value(amount),
         branchId: Value(branchId),
       ),
+      // Reverse input VAT
+      if (tax > Decimal.zero)
+        GLLinesCompanion.insert(
+          entryId: entryId,
+          accountId: await _getAccountByProfileOrCode(
+            profiles,
+            'INPUT_VAT',
+            AccountCodes.inputVAT,
+          ),
+          debit: Value(Decimal.zero),
+          credit: Value(tax),
+          branchId: Value(branchId),
+        ),
     ];
     validatePostingLinesRaw(lines);
     await dao.createEntry(entry, lines);
@@ -449,13 +492,28 @@ class PostingEngine {
     final date = context['date'] as DateTime? ?? DateTime.now();
     final entryId = const Uuid().v4();
 
+    if (amount <= Decimal.zero) {
+      throw const BusinessException(message: 'رصيد الافتتاح يجب أن يكون أكبر من صفر.');
+    }
+
+    // Check if opening balance already exists for this branch
+    final existing = await (db.select(db.gLEntries)
+          ..where((e) =>
+              e.referenceType.equals('BEGINNING_BALANCE') &
+              e.branchId.equals(branchId))
+          ..limit(1))
+        .get();
+    if (existing.isNotEmpty) {
+      throw const BusinessException(message: 'تم تسجيل رصيد افتتاحي لهذا الفرع مسبقاً.');
+    }
+
     final inventoryAccount =
         await dao.getAccountByCode(AccountCodes.inventory);
     final equityAccount =
         await dao.getAccountByCode(AccountCodes.retainedEarnings);
 
     if (inventoryAccount == null || equityAccount == null) {
-      throw Exception('Missing GL accounts for beginning balance entry.');
+      throw const BusinessException(message: 'Missing GL accounts for beginning balance entry.');
     }
 
     final entry = GLEntriesCompanion.insert(
@@ -525,10 +583,8 @@ class PostingEngine {
     }
 
     if (srcAccountId.isEmpty || dstAccountId.isEmpty) {
-      throw Exception('Missing GL accounts for stock transfer.');
+      throw const BusinessException(message: 'Missing GL accounts for stock transfer.');
     }
-
-    if (srcAccountId == dstAccountId) return;
 
     final entryId = const Uuid().v4();
     final entry = GLEntriesCompanion.insert(
@@ -833,11 +889,11 @@ class PostingEngine {
         await _getAccountByProfileOrCode(profiles, 'CASH', '1010');
 
     if (accountId == null || accountId.isEmpty) {
-      throw Exception('يجب تحديد الحساب المحاسبي المعاملة النقدية.');
+      throw const BusinessException(message: 'يجب تحديد الحساب المحاسبي المعاملة النقدية.');
     }
     if (accountId == cashAccount) {
-      throw Exception(
-          'لا يمكن أن يكون الحساب المقابل هو نفسه حساب الصندوق.');
+      throw const BusinessException(
+          message: 'لا يمكن أن يكون الحساب المقابل هو نفسه حساب الصندوق.');
     }
 
     final entry = GLEntriesCompanion.insert(
@@ -902,14 +958,14 @@ class PostingEngine {
     final creditAccountId = context['creditAccountId'] as String?;
 
     if (debitAccountId == null || debitAccountId.isEmpty) {
-      throw Exception('يجب تحديد حساب المدين للقيد العام.');
+      throw const BusinessException(message: 'يجب تحديد حساب المدين للقيد العام.');
     }
     if (creditAccountId == null || creditAccountId.isEmpty) {
-      throw Exception('يجب تحديد حساب الدائن للقيد العام.');
+      throw const BusinessException(message: 'يجب تحديد حساب الدائن للقيد العام.');
     }
     if (debitAccountId == creditAccountId) {
-      throw Exception(
-          'لا يمكن أن يكون حساب المدين وحساب الدائن هما نفسهما.');
+      throw const BusinessException(
+          message: 'لا يمكن أن يكون حساب المدين وحساب الدائن هما نفسهما.');
     }
 
     final entry = GLEntriesCompanion.insert(
@@ -946,14 +1002,20 @@ class PostingEngine {
 
   /// Resolves account ID from posting profiles or falls back to hardcoded code.
   /// Also checks the profile's accountCode field as a secondary fallback.
+  /// Uses the profile's `side` field to narrow matching when provided.
   Future<String> _getAccountByProfileOrCode(
     List<PostingProfile> profiles,
     String accountType,
-    String defaultCode,
-  ) async {
+    String defaultCode, {
+    String? side,
+  }) async {
     // First try to find a matching posting profile entry with accountId
     for (final profile in profiles) {
       if (profile.accountType.toUpperCase() == accountType.toUpperCase()) {
+        if (side != null &&
+            profile.side.toUpperCase() != side.toUpperCase()) {
+          continue;
+        }
         if (profile.accountId != null && profile.accountId!.isNotEmpty) {
           return profile.accountId!;
         }
@@ -962,6 +1024,10 @@ class PostingEngine {
     // Second: try profile's accountCode field
     for (final profile in profiles) {
       if (profile.accountType.toUpperCase() == accountType.toUpperCase()) {
+        if (side != null &&
+            profile.side.toUpperCase() != side.toUpperCase()) {
+          continue;
+        }
         if (profile.accountCode != null && profile.accountCode!.isNotEmpty) {
           final account =
               await db.accountingDao.getAccountByCode(profile.accountCode!);
@@ -972,10 +1038,9 @@ class PostingEngine {
     // Fall back to hardcoded account code lookup
     final account = await db.accountingDao.getAccountByCode(defaultCode);
     if (account != null) return account.id;
-    throw Exception(
-        'لم يتم العثور على حساب محاسبي للكود: $defaultCode '
-        '(accountType: $accountType). '
-        'تأكد من إنشاء دليل الحسابات من صفحة الإعدادات.');
+    throw NotFoundException(
+        message: 'لم يتم العثور على حساب محاسبي للكود: $defaultCode',
+        details: 'accountType: $accountType');
   }
 
   /// Gets posting profiles for a given operation type.
@@ -1020,7 +1085,7 @@ class PostingEngine {
 
   static void validatePostingLines(List<PostingLine> entries) {
     if (entries.isEmpty) {
-      throw Exception('لا يمكن الترحيل بدون قيود محاسبية.');
+      throw const BusinessException(message: 'لا يمكن الترحيل بدون قيود محاسبية.');
     }
 
     var totalDebit = Decimal.zero;
@@ -1028,56 +1093,56 @@ class PostingEngine {
 
     for (final entry in entries) {
       if (entry.account.trim().isEmpty) {
-        throw Exception('الحساب المحاسبي غير محدد.');
+        throw const BusinessException(message: 'الحساب المحاسبي غير محدد.');
       }
       if (entry.debit < Decimal.zero || entry.credit < Decimal.zero) {
-        throw Exception('المبلغ يجب أن يكون أكبر من أو يساوي الصفر.');
+        throw const BusinessException(message: 'المبلغ يجب أن يكون أكبر من أو يساوي الصفر.');
       }
       if (entry.debit > Decimal.zero && entry.credit > Decimal.zero) {
-        throw Exception('لا يمكن أن يكون السطر مديناً ودائناً في نفس الوقت.');
+        throw const BusinessException(message: 'لا يمكن أن يكون السطر مديناً ودائناً في نفس الوقت.');
       }
       if (entry.debit == Decimal.zero && entry.credit == Decimal.zero) {
-        throw Exception('لا يمكن ترحيل سطر محاسبي بقيمة صفرية.');
+        throw const BusinessException(message: 'لا يمكن ترحيل سطر محاسبي بقيمة صفرية.');
       }
       totalDebit += entry.debit;
       totalCredit += entry.credit;
     }
 
     if ((totalDebit - totalCredit).abs() > balanceTolerance) {
-      throw Exception(
-        'القيد المحاسبي غير متوازن! (المدين: $totalDebit، الدائن: $totalCredit)',
+      throw BusinessException(
+        message: 'القيد المحاسبي غير متوازن! (المدين: $totalDebit، الدائن: $totalCredit)',
       );
     }
   }
 
   static void validatePostingLinesRaw(List<GLLinesCompanion> lines) {
     if (lines.isEmpty) {
-      throw Exception('لا يمكن الترحيل بدون قيود محاسبية.');
+      throw const BusinessException(message: 'لا يمكن الترحيل بدون قيود محاسبية.');
     }
     var totalDebit = Decimal.zero;
     var totalCredit = Decimal.zero;
     for (final line in lines) {
       if (line.accountId.value.trim().isEmpty) {
-        throw Exception('الحساب المحاسبي غير محدد في أحد الأسطر.');
+        throw const BusinessException(message: 'الحساب المحاسبي غير محدد في أحد الأسطر.');
       }
       if (line.debit.value < Decimal.zero || line.credit.value < Decimal.zero) {
-        throw Exception('المبلغ يجب أن يكون أكبر من أو يساوي الصفر.');
+        throw const BusinessException(message: 'المبلغ يجب أن يكون أكبر من أو يساوي الصفر.');
       }
       if (line.debit.value > Decimal.zero &&
           line.credit.value > Decimal.zero) {
-        throw Exception(
-            'لا يمكن أن يكون السطر مديناً ودائناً في نفس الوقت.');
+        throw const BusinessException(
+            message: 'لا يمكن أن يكون السطر مديناً ودائناً في نفس الوقت.');
       }
       if (line.debit.value == Decimal.zero &&
           line.credit.value == Decimal.zero) {
-        throw Exception('لا يمكن ترحيل سطر محاسبي بقيمة صفرية.');
+        throw const BusinessException(message: 'لا يمكن ترحيل سطر محاسبي بقيمة صفرية.');
       }
       totalDebit += line.debit.value;
       totalCredit += line.credit.value;
     }
     if ((totalDebit - totalCredit).abs() > balanceTolerance) {
-      throw Exception(
-        'القيد المحاسبي غير متوازن! (المدين: $totalDebit، الدائن: $totalCredit)',
+      throw BusinessException(
+        message: 'القيد المحاسبي غير متوازن! (المدين: $totalDebit، الدائن: $totalCredit)',
       );
     }
   }
@@ -1118,27 +1183,27 @@ class PostingEngine {
   Decimal _readAmount(dynamic value) {
     if (value is Decimal) {
       if (value < Decimal.zero) {
-        throw Exception('المبلغ لا يمكن أن يكون سالباً: $value');
+        throw BusinessException(message: 'المبلغ لا يمكن أن يكون سالباً: $value');
       }
       return value;
     }
     if (value is num) {
       if (value < 0) {
-        throw Exception('المبلغ لا يمكن أن يكون سالباً: $value');
+        throw BusinessException(message: 'المبلغ لا يمكن أن يكون سالباً: $value');
       }
       return Decimal.parse(value.toString());
     }
     if (value is String) {
       final parsed = Decimal.tryParse(value);
       if (parsed == null) {
-        throw Exception('قيمة المبلغ غير صالحة: $value');
+        throw BusinessException(message: 'قيمة المبلغ غير صالحة: $value');
       }
       if (parsed < Decimal.zero) {
-        throw Exception('المبلغ لا يمكن أن يكون سالباً: $value');
+        throw BusinessException(message: 'المبلغ لا يمكن أن يكون سالباً: $value');
       }
       return parsed;
     }
-    throw Exception('قيمة المبلغ غير معروفة: $value');
+    throw BusinessException(message: 'قيمة المبلغ غير معروفة: $value');
   }
 
   String _truncateRef(String ref, [int maxLen = 8]) {
@@ -1152,22 +1217,23 @@ class PostingEngine {
           ..where((p) => p.startDate.isSmallerOrEqual(Variable(date)))
           ..where((p) => p.endDate.isBiggerOrEqual(Variable(date))))
         .getSingleOrNull();
-    if (period == null) throw Exception('Period is locked or closed.');
+    if (period == null) throw const BusinessException(message: 'الفترة المحاسبية مغلقة أو غير موجودة.');
   }
 
   Future<void> _updateAccountBalances() async {
-    final accounts = await (db.select(db.gLAccounts)).get();
-    for (final account in accounts) {
-      final lines = await (db.select(db.gLLines)
-            ..where((l) => l.accountId.equals(account.id)))
-          .get();
-      Decimal balance = Decimal.zero;
-      for (final line in lines) {
-        balance += line.debit - line.credit;
-      }
+    final allLines = await (db.select(db.gLLines)).get();
+    final Map<String, Decimal> balances = {};
+    for (final line in allLines) {
+      balances.update(
+        line.accountId,
+        (v) => v + line.debit - line.credit,
+        ifAbsent: () => line.debit - line.credit,
+      );
+    }
+    for (final entry in balances.entries) {
       await (db.update(db.gLAccounts)
-            ..where((a) => a.id.equals(account.id)))
-          .write(GLAccountsCompanion(balance: Value(balance)));
+            ..where((a) => a.id.equals(entry.key)))
+          .write(GLAccountsCompanion(balance: Value(entry.value)));
     }
   }
 

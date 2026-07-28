@@ -3,6 +3,7 @@ import 'package:drift/drift.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart' hide UserSession;
 import 'package:supermarket/core/services/security_service.dart' show SecurityService, UserSession;
 import 'package:supermarket/core/services/permission_service.dart';
+import 'package:supermarket/core/exceptions/app_exception.dart';
 
 class AuthProvider with ChangeNotifier {
   final AppDatabase db;
@@ -66,15 +67,15 @@ class AuthProvider with ChangeNotifier {
     required String fullName,
   }) async {
     if (await hasUsers()) {
-      throw Exception('Initial admin user already exists.');
+      throw const BusinessException(message: 'Initial admin user already exists.');
     }
 
     if (username.trim().isEmpty) {
-      throw Exception('Admin username is required.');
+      throw const BusinessException(message: 'Admin username is required.');
     }
 
     if (password.length < 8) {
-      throw Exception('Admin password must be at least 8 characters.');
+      throw const BusinessException(message: 'Admin password must be at least 8 characters.');
     }
 
     final salt = securityService.generateSalt();

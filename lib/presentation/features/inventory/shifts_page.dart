@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:supermarket/core/auth/auth_provider.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:provider/provider.dart';
 import 'package:drift/drift.dart' as drift;
@@ -40,8 +41,9 @@ class InventoryShiftsPage extends StatelessWidget {
   }
 
   Future<void> _openShift(BuildContext context, AppDatabase db) async {
+    final userId = context.read<AuthProvider>().currentUser?.id ?? 'unknown';
     await db.into(db.shifts).insert(ShiftsCompanion.insert(
-          userId: 'current_user_id',
+          userId: userId,
           startTime: drift.Value(DateTime.now()),
           isOpen: const drift.Value(true),
         ));

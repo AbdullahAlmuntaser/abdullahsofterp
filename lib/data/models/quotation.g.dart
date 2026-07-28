@@ -7,11 +7,10 @@ part of 'quotation.dart';
 // **************************************************************************
 
 Quotation _$QuotationFromJson(Map<String, dynamic> json) => Quotation(
-      id: (json['id'] as num?)?.toInt(),
+      id: json['id'] as String?,
       quotationNumber: json['quotationNumber'] as String,
-      customerId: (json['customerId'] as num).toInt(),
-      branchId: (json['branchId'] as num?)?.toInt(),
-      warehouseId: (json['warehouseId'] as num?)?.toInt(),
+      customerId: json['customerId'] as String,
+      warehouseId: json['warehouseId'] as String?,
       date: DateTime.parse(json['date'] as String),
       expiryDate: json['expiryDate'] == null
           ? null
@@ -22,7 +21,7 @@ Quotation _$QuotationFromJson(Map<String, dynamic> json) => Quotation(
       taxTotal: _decimalFromJson(json['taxTotal']),
       totalAmount: _decimalFromJson(json['totalAmount']),
       notes: json['notes'] as String?,
-      createdBy: (json['createdBy'] as num?)?.toInt(),
+      createdBy: json['createdBy'] as String?,
       createdAt: json['createdAt'] == null
           ? null
           : DateTime.parse(json['createdAt'] as String),
@@ -35,7 +34,6 @@ Map<String, dynamic> _$QuotationToJson(Quotation instance) => <String, dynamic>{
       'id': instance.id,
       'quotationNumber': instance.quotationNumber,
       'customerId': instance.customerId,
-      'branchId': instance.branchId,
       'warehouseId': instance.warehouseId,
       'date': instance.date.toIso8601String(),
       'expiryDate': instance.expiryDate?.toIso8601String(),
@@ -52,9 +50,9 @@ Map<String, dynamic> _$QuotationToJson(Quotation instance) => <String, dynamic>{
 
 QuotationItem _$QuotationItemFromJson(Map<String, dynamic> json) =>
     QuotationItem(
-      id: (json['id'] as num?)?.toInt(),
-      quotationId: (json['quotationId'] as num).toInt(),
-      productId: (json['productId'] as num).toInt(),
+      id: json['id'] as String?,
+      quotationId: json['quotationId'] as String,
+      productId: json['productId'] as String,
       quantity: _decimalFromJson(json['quantity']),
       unitPrice: _decimalFromJson(json['unitPrice']),
       discountPercent: _decimalFromJson(json['discountPercent']),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:supermarket/core/services/hr_service.dart';
-import 'package:supermarket/core/services/payroll_service.dart';
+import 'package:supermarket/core/services/hr/hr_service.dart';
+import 'package:supermarket/core/services/hr/payroll_service.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
 
 class PayrollProvider with ChangeNotifier {

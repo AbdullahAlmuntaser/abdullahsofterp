@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:supermarket/core/services/attendance_service.dart';
+import 'package:supermarket/core/services/hr/attendance_service.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
 
 class AttendanceProvider with ChangeNotifier {

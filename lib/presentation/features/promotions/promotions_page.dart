@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
+import 'package:supermarket/l10n/app_localizations.dart';
 
 class PromotionsPage extends StatefulWidget {
   const PromotionsPage({super.key});
@@ -24,6 +25,7 @@ class _PromotionsPageState extends State<PromotionsPage> {
   }
 
   Future<void> _loadPromotions() async {
+    final l10n = AppLocalizations.of(context)!;
     setState(() => _isLoading = true);
     try {
       final rows = await (_db.select(_db.promotions)
@@ -33,7 +35,7 @@ class _PromotionsPageState extends State<PromotionsPage> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('خطأ في تحميل العروض: $e')),
+          SnackBar(content: Text(l10n.errorLoadingPromotions(e.toString()))),
         );
       }
     } finally {
@@ -83,12 +85,14 @@ class _PromotionsPageState extends State<PromotionsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('العروض والبروموشنز'),
+        title: Text(l10n.alarwdWalbrwmwshnz),
         actions: [
           IconButton(
-            tooltip: 'تحديث',
+            tooltip: l10n.thdyth,
             onPressed: _isLoading ? null : _loadPromotions,
             icon: const Icon(Icons.refresh),
           ),
@@ -97,7 +101,7 @@ class _PromotionsPageState extends State<PromotionsPage> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _createDemoPromotion,
         icon: const Icon(Icons.local_offer),
-        label: const Text('عرض تجريبي'),
+        label: Text(l10n.ardTjryby),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -105,9 +109,9 @@ class _PromotionsPageState extends State<PromotionsPage> {
               onRefresh: _loadPromotions,
               child: _promotions.isEmpty
                   ? ListView(
-                      children: const [
-                        SizedBox(height: 160),
-                        Center(child: Text('لا توجد عروض حالياً')),
+                      children: [
+                        const SizedBox(height: 160),
+                        Center(child: Text(l10n.laTwjdArwdHalya)),
                       ],
                     )
                   : ListView.builder(
@@ -125,7 +129,7 @@ class _PromotionsPageState extends State<PromotionsPage> {
                             ),
                             title: Text(promotion.name),
                             subtitle: Text(
-                              '${_typeLabel(promotion.type)} • القيمة ${promotion.value}\n'
+                              '${_typeLabel(promotion.type)} • ${l10n.promotionValue(promotion.value.toString())}\n'
                               '${DateFormat('yyyy-MM-dd').format(promotion.startDate)} - ${DateFormat('yyyy-MM-dd').format(promotion.endDate)}',
                             ),
                             isThreeLine: true,
@@ -142,11 +146,11 @@ class _PromotionsPageState extends State<PromotionsPage> {
                                 PopupMenuItem(
                                   value: 'toggle',
                                   child: Text(
-                                      promotion.isActive ? 'تعطيل' : 'تفعيل'),
+                                      promotion.isActive ? l10n.tatyl : l10n.tfayl),
                                 ),
-                                const PopupMenuItem(
+                                PopupMenuItem(
                                   value: 'delete',
-                                  child: Text('حذف'),
+                                  child: Text(l10n.hdhf),
                                 ),
                               ],
                             ),

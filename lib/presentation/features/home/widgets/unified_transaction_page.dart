@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:supermarket/core/constants/app_colors.dart';
 import 'package:supermarket/core/constants/app_dimensions.dart';
 import 'package:supermarket/l10n/app_localizations.dart';
@@ -54,7 +55,7 @@ class _UnifiedTransactionPageState extends State<UnifiedTransactionPage> {
         actions: [
           IconButton(
             icon: const Icon(Icons.settings_outlined),
-            onPressed: () {},
+            onPressed: () => context.push('/settings/posting-profiles'),
             tooltip: l10n.transactionSettings,
           ),
         ],

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:drift/drift.dart' hide Column;
 import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:supermarket/injection_container.dart' as di;
-import 'package:supermarket/core/services/barcode_generation_service.dart';
+import 'package:supermarket/core/services/inventory/barcode_generation_service.dart';
 import 'package:printing/printing.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -322,7 +322,15 @@ class _BarcodePrintingPageState extends State<BarcodePrintingPage> {
                         errorBuilder: (_, __, ___) =>
                             const Icon(Icons.inventory_2)),
                   )
-                : const Icon(Icons.inventory_2),
+                : product.remoteUrl != null && product.remoteUrl!.isNotEmpty
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(4),
+                        child: Image.network(product.remoteUrl!,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) =>
+                                const Icon(Icons.inventory_2)),
+                      )
+                    : const Icon(Icons.inventory_2),
           ),
         );
       },

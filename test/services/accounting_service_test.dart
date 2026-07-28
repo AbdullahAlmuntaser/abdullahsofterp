@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:supermarket/core/services/accounting_service.dart';
+import 'package:supermarket/core/services/accounting/accounting_service.dart';
 import 'package:supermarket/core/services/event_bus_service.dart';
 
 class MockAppDatabase extends Mock implements AppDatabase {}

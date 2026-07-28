@@ -5,7 +5,7 @@ import 'package:printing/printing.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:supermarket/l10n/app_localizations.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
-import 'package:supermarket/core/services/invoice_service.dart';
+import 'package:supermarket/core/services/sales/invoice_service.dart';
 import 'package:supermarket/core/constants/app_enums.dart';
 import 'package:supermarket/injection_container.dart' as di;
 import 'package:supermarket/core/services/audit_service.dart';

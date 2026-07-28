@@ -5,8 +5,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:supermarket/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
-import 'package:supermarket/core/services/product_image_service.dart';
-import 'package:supermarket/core/services/barcode_generation_service.dart';
+import 'package:supermarket/core/services/inventory/product_image_service.dart';
+import 'package:supermarket/core/services/inventory/barcode_generation_service.dart';
 
 class AddEditProductDialog extends StatefulWidget {
   final Product? product;
@@ -26,6 +26,7 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
   late TextEditingController _sellPriceController;
   late TextEditingController _wholesalePriceController;
   late TextEditingController _barcodeController;
+  late TextEditingController _remoteUrlController;
   String? _imagePath;
   String? _selectedCategoryId;
   List<Category> _categories = [];
@@ -45,6 +46,8 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
         text: widget.product?.wholesalePrice.toString() ?? '0.0');
     _barcodeController =
         TextEditingController(text: widget.product?.barcode ?? '');
+    _remoteUrlController =
+        TextEditingController(text: widget.product?.remoteUrl ?? '');
     _imagePath = widget.product?.imagePath;
     _selectedCategoryId = widget.product?.categoryId;
     _loadCategories();
@@ -73,6 +76,7 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
     _sellPriceController.dispose();
     _wholesalePriceController.dispose();
     _barcodeController.dispose();
+    _remoteUrlController.dispose();
     super.dispose();
   }
 
@@ -146,6 +150,15 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
                     tooltip: 'توليد باركود تلقائي',
                   ),
                 ],
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _remoteUrlController,
+                decoration: const InputDecoration(
+                  labelText: 'رابط الصورة (URL)',
+                  hintText: 'https://example.com/image.jpg',
+                ),
+                keyboardType: TextInputType.url,
               ),
               const SizedBox(height: 12),
               TextFormField(
@@ -292,6 +305,9 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
                       ? _barcodeController.text
                       : null),
                   categoryId: Value(_selectedCategoryId),
+                  remoteUrl: Value(_remoteUrlController.text.isNotEmpty
+                      ? _remoteUrlController.text
+                      : null),
                 ))
                 .then((p) => p.id);
 
@@ -335,6 +351,9 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
                     ? _barcodeController.text
                     : null),
                 categoryId: Value(_selectedCategoryId),
+                remoteUrl: Value(_remoteUrlController.text.isNotEmpty
+                    ? _remoteUrlController.text
+                    : null),
               ),
             );
           }

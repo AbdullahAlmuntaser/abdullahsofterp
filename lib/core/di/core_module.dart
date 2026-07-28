@@ -1,10 +1,12 @@
-import 'package:flutter/foundation.dart';
 import 'package:get_it/get_it.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:supermarket/data/datasources/local/daos/products_dao.dart';
 import 'package:supermarket/data/datasources/local/daos/product_units_dao.dart';
 import 'package:supermarket/data/datasources/local/daos/stock_movement_dao.dart';
 import 'package:supermarket/data/datasources/local/daos/audit_dao.dart';
+import 'package:supermarket/data/datasources/local/daos/customers_dao.dart';
+import 'package:supermarket/data/datasources/local/daos/suppliers_dao.dart';
+import 'package:supermarket/data/datasources/local/daos/accounting_dao.dart';
 import 'package:supermarket/core/services/audit_service.dart';
 import 'package:supermarket/core/services/app_config_service.dart';
 import 'package:supermarket/core/services/app_settings_service.dart';
@@ -13,7 +15,6 @@ import 'package:supermarket/core/services/posting_engine.dart';
 import 'package:supermarket/core/services/transaction_engine.dart';
 import 'package:supermarket/core/services/security_service.dart';
 import 'package:supermarket/core/services/permission_service.dart';
-import 'package:supermarket/core/services/advanced_permission_service.dart';
 import 'package:supermarket/core/services/approval_workflow_service.dart';
 import 'package:supermarket/core/services/reconciliation_service.dart';
 import 'package:supermarket/core/services/report_engine_service.dart';
@@ -25,29 +26,16 @@ import 'package:supermarket/core/services/backup/backup_service.dart';
 import 'package:supermarket/core/services/cash_management_service.dart';
 import 'package:supermarket/core/services/transfer_service.dart';
 import 'package:supermarket/core/services/tax_service.dart';
-import 'package:supermarket/core/services/withholding_tax_service.dart';
+import 'package:supermarket/core/services/accounting/withholding_tax_service.dart';
 import 'package:supermarket/core/services/bom_service.dart';
 import 'package:supermarket/core/services/packaging_engine.dart';
 import 'package:supermarket/core/services/pdf_service.dart';
-import 'package:supermarket/data/repositories/inventory_repository_impl.dart';
-import 'package:supermarket/data/repositories/item_repository_impl.dart';
-import 'package:supermarket/domain/repositories/inventory_repository.dart';
-import 'package:supermarket/domain/repositories/item_repository.dart';
-import 'package:supermarket/domain/repositories/category_repository.dart';
-import 'package:supermarket/domain/repositories/quotation_repository.dart';
-import 'package:supermarket/data/repositories/category_repository_impl.dart';
-import 'package:supermarket/data/repositories/quotation_repository_impl.dart';
-import 'package:supermarket/domain/usecases/add_stock.dart';
-import 'package:supermarket/domain/usecases/create_item.dart';
-import 'package:supermarket/domain/services/approval_workflow_service.dart' as domain;
-import 'package:supermarket/domain/services/fefo_service.dart';
-import 'package:supermarket/core/services/inventory_costing_service.dart';
-import 'package:supermarket/core/services/budget_service.dart';
-import 'package:supermarket/domain/usecases/add_category.dart';
-import 'package:supermarket/domain/usecases/delete_category.dart';
-import 'package:supermarket/domain/usecases/get_categories.dart';
-import 'package:supermarket/domain/usecases/update_category.dart';
-import 'package:supermarket/domain/usecases/create_quotation.dart';
+import 'package:supermarket/core/services/inventory/inventory_costing_service.dart';
+import 'package:supermarket/core/services/accounting/budget_service.dart';
+import 'package:supermarket/data/repositories/i_products_repository.dart';
+import 'package:supermarket/data/repositories/i_accounting_repository.dart';
+import 'package:supermarket/data/repositories/i_customers_repository.dart';
+import 'package:supermarket/data/repositories/i_suppliers_repository.dart';
 
 void registerCoreModule(GetIt sl) {
   final db = sl<AppDatabase>();
@@ -58,15 +46,20 @@ void registerCoreModule(GetIt sl) {
   sl.registerLazySingleton<StockMovementDao>(() => StockMovementDao(db));
   sl.registerLazySingleton<AuditDao>(() => AuditDao(db));
 
+  // Repositories (interfaces → concrete DAOs)
+  sl.registerLazySingleton<IProductsRepository>(() => sl<ProductsDao>());
+  sl.registerLazySingleton<IAccountingRepository>(() => AccountingDao(db));
+  sl.registerLazySingleton<ICustomersRepository>(() => CustomersDao(db));
+  sl.registerLazySingleton<ISuppliersRepository>(() => SuppliersDao(db));
+
   // Core services
   sl.registerLazySingleton<EventBusService>(() => EventBusService());
   sl.registerLazySingleton<AuditService>(() => AuditService(db));
   sl.registerLazySingleton<AppConfigService>(() => AppConfigService(db));
   sl.registerLazySingleton<AppSettingsService>(() => AppSettingsService(db));
   sl.registerLazySingleton<SecurityService>(() => SecurityService(db));
-  sl.registerLazySingleton<PermissionService>(() => PermissionService(db));
-  sl.registerLazySingleton<AdvancedPermissionService>(
-    () => AdvancedPermissionService(db, auditLogService: sl<AuditService>()),
+  sl.registerLazySingleton<PermissionService>(
+    () => PermissionService(db, auditLogService: sl<AuditService>()),
   );
   sl.registerLazySingleton<ApprovalWorkflowService>(
     () => ApprovalWorkflowService(db, auditLogService: sl<AuditService>()),
@@ -104,16 +97,10 @@ void registerCoreModule(GetIt sl) {
     () => PostingEngine(db, costingService: sl<InventoryCostingService>()),
   );
   sl.registerLazySingleton<TransactionEngine>(() {
-    debugPrint("DI/CORE: Creating TransactionEngine...");
-    debugPrint("DI/CORE:   Getting EventBusService...");
     final eventBus = sl<EventBusService>();
-    debugPrint("DI/CORE:   Getting PostingEngine...");
     final postingEngine = sl<PostingEngine>();
-    debugPrint("DI/CORE:   Getting PackagingEngine...");
     final packagingEngine = sl<PackagingEngine>();
-    debugPrint("DI/CORE:   Getting InventoryCostingService...");
     final costingService = sl<InventoryCostingService>();
-    debugPrint("DI/CORE:   Constructing TransactionEngine...");
     final engine = TransactionEngine(
       db,
       eventBus,
@@ -121,52 +108,9 @@ void registerCoreModule(GetIt sl) {
       packagingEngine,
       costingService,
     );
-    debugPrint("DI/CORE:   Setting BudgetService...");
     engine.setBudgetService(sl<BudgetService>());
-    debugPrint("DI/CORE:   Setting ApprovalService...");
     engine.setApprovalService(sl<ApprovalWorkflowService>());
-    debugPrint("DI/CORE: TransactionEngine created successfully.");
     return engine;
   });
-
-  // Domain
-  sl.registerLazySingleton<ItemRepository>(
-    () => ItemRepositoryImpl(sl<ProductsDao>()),
-  );
-  sl.registerLazySingleton<InventoryRepository>(
-    () => InventoryRepositoryImpl(sl<StockMovementDao>(), sl<ProductsDao>()),
-  );
-  sl.registerLazySingleton<CreateItemUseCase>(
-    () => CreateItemUseCase(sl<ItemRepository>()),
-  );
-  sl.registerLazySingleton<AddStockUseCase>(
-    () => AddStockUseCase(sl<InventoryRepository>()),
-  );
-  sl.registerLazySingleton<AddCategory>(
-    () => AddCategory(sl<CategoryRepository>()),
-  );
-  sl.registerLazySingleton<DeleteCategory>(
-    () => DeleteCategory(sl<CategoryRepository>()),
-  );
-  sl.registerLazySingleton<GetCategories>(
-    () => GetCategories(sl<CategoryRepository>()),
-  );
-  sl.registerLazySingleton<UpdateCategory>(
-    () => UpdateCategory(sl<CategoryRepository>()),
-  );
-  sl.registerLazySingleton<CreateQuotation>(
-    () => CreateQuotation(sl<QuotationRepository>()),
-  );
-  sl.registerLazySingleton<CategoryRepository>(
-    () => CategoryRepositoryImpl(appDatabase: db),
-  );
-  sl.registerLazySingleton<QuotationRepository>(
-    () => QuotationRepositoryImpl(database: db),
-  );
-  sl.registerLazySingleton<domain.ApprovalWorkflowService>(
-    () => domain.ApprovalWorkflowService(database: db),
-  );
-  sl.registerLazySingleton<FefoService>(
-    () => FefoService(repository: sl<InventoryRepository>()),
-  );
 }
+

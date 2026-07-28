@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:supermarket/injection_container.dart' as di;
 import 'package:supermarket/core/utils/export_service.dart';
+import 'package:supermarket/l10n/app_localizations.dart';
 
 class SupplierReportPage extends StatefulWidget {
   const SupplierReportPage({super.key});
@@ -32,6 +33,7 @@ class _SupplierReportPageState extends State<SupplierReportPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final filtered = _suppliers
         .where((s) =>
             s.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
@@ -43,7 +45,7 @@ class _SupplierReportPageState extends State<SupplierReportPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('تقرير الموردين'),
+        title: Text(l10n.tqryrAlmwrdyn),
         actions: [
           IconButton(
               icon: const Icon(Icons.picture_as_pdf),
@@ -58,10 +60,10 @@ class _SupplierReportPageState extends State<SupplierReportPage> {
           Padding(
             padding: const EdgeInsets.all(8),
             child: TextField(
-              decoration: const InputDecoration(
-                hintText: 'بحث بالاسم أو الهاتف...',
-                prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                hintText: l10n.bhthBalasmAwAlhatf,
+                prefixIcon: const Icon(Icons.search),
+                border: const OutlineInputBorder(),
                 isDense: true,
               ),
               onChanged: (val) => setState(() => _searchQuery = val),
@@ -73,10 +75,10 @@ class _SupplierReportPageState extends State<SupplierReportPage> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _statItem('إجمالي الموردين', '${filtered.length}'),
-                _statItem('الرصيد الإجمالي',
-                    '${totalBalance.toStringAsFixed(2)} ر.س'),
-                _statItem('موردين بدين',
+                _statItem(l10n.ijmalyAlmwrdyn, '${filtered.length}'),
+                _statItem(l10n.alrsydAlijmaly,
+                    '${totalBalance.toStringAsFixed(2)} ${l10n.currencySar}'),
+                _statItem(l10n.mwrdynBdyn,
                     '${filtered.where((s) => s.balance > Decimal.zero).length}'),
               ],
             ),
@@ -92,7 +94,7 @@ class _SupplierReportPageState extends State<SupplierReportPage> {
                         title: Text(supplier.name),
                         subtitle: Text(supplier.phone ?? ''),
                         trailing: Text(
-                          '${supplier.balance} ر.س',
+                          '${supplier.balance} ${l10n.currencySar}',
                           style: TextStyle(
                             color: supplier.balance > Decimal.zero
                                 ? Colors.red

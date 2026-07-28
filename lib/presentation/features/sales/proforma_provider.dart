@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:supermarket/core/services/proforma_service.dart';
-import 'package:supermarket/core/constants/app_enums.dart';
+import 'package:supermarket/core/services/sales/proforma_service.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
+import 'package:supermarket/core/constants/app_enums.dart';
 
 class ProformaProvider with ChangeNotifier {
   final ProformaService _service;
@@ -78,5 +78,19 @@ class ProformaProvider with ChangeNotifier {
   Future<void> cancelProforma(String id) async {
     await _service.cancelProforma(id);
     await loadData();
+  }
+
+  Future<void> convertToInvoice(String id) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      await _service.convertToSale(id);
+      await loadData();
+    } catch (e) {
+      debugPrint('convertToInvoice error: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 }

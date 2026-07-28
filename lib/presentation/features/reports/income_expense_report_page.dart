@@ -44,7 +44,7 @@ class _IncomeExpenseReportPageState extends State<IncomeExpenseReportPage> {
     for (final row in glLines) {
       final account = row.readTable(db.gLAccounts);
       final line = row.readTable(db.gLLines);
-      if (account.type == 'EXPENSE') {
+      if (account.accountType.name.toUpperCase() == 'EXPENSE') {
         _totalExpenses += line.debit.toDouble();
         final name = account.name;
         expenseMap[name] = (expenseMap[name] ?? 0) + line.debit.toDouble();

@@ -4,6 +4,7 @@ import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:supermarket/injection_container.dart' as di;
 import 'package:supermarket/core/utils/export_service.dart';
 import 'package:intl/intl.dart';
+import 'package:supermarket/l10n/app_localizations.dart';
 
 class CashboxReportPage extends StatefulWidget {
   const CashboxReportPage({super.key});
@@ -38,6 +39,7 @@ class _CashboxReportPageState extends State<CashboxReportPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final totalIn = _transactions
         .where((t) => t.type == 'IN')
         .fold<double>(0, (sum, t) => sum + t.amount.toDouble());
@@ -47,7 +49,7 @@ class _CashboxReportPageState extends State<CashboxReportPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('تقرير الصناديق'),
+        title: Text(l10n.tqryrAlsnadyq),
         actions: [
           IconButton(
               icon: const Icon(Icons.picture_as_pdf), onPressed: _export),
@@ -56,7 +58,7 @@ class _CashboxReportPageState extends State<CashboxReportPage> {
       ),
       body: Column(
         children: [
-          _buildDateFilter(),
+          _buildDateFilter(l10n),
           Container(
             padding: const EdgeInsets.all(12),
             color: Theme.of(context).colorScheme.primaryContainer,
@@ -64,10 +66,10 @@ class _CashboxReportPageState extends State<CashboxReportPage> {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 _statItem(
-                    'إجمالي الوارد', totalIn.toStringAsFixed(2), Colors.green),
+                    l10n.ijmalyAlward, totalIn.toStringAsFixed(2), Colors.green),
                 _statItem(
-                    'إجمالي الصادر', totalOut.toStringAsFixed(2), Colors.red),
-                _statItem('الصافي', (totalIn - totalOut).toStringAsFixed(2),
+                    l10n.ijmalyAlsadr, totalOut.toStringAsFixed(2), Colors.red),
+                _statItem(l10n.alsafy, (totalIn - totalOut).toStringAsFixed(2),
                     Colors.blue),
               ],
             ),
@@ -90,7 +92,7 @@ class _CashboxReportPageState extends State<CashboxReportPage> {
                         subtitle: Text(
                             DateFormat('yyyy-MM-dd HH:mm').format(t.createdAt)),
                         trailing: Text(
-                          '${t.type == 'IN' ? '+' : '-'}${t.amount} ر.س',
+                          '${t.type == 'IN' ? '+' : '-'}${t.amount} ${l10n.currencySar}',
                           style: TextStyle(
                             color: t.type == 'IN' ? Colors.green : Colors.red,
                             fontWeight: FontWeight.bold,
@@ -105,7 +107,7 @@ class _CashboxReportPageState extends State<CashboxReportPage> {
     );
   }
 
-  Widget _buildDateFilter() {
+  Widget _buildDateFilter(AppLocalizations l10n) {
     return Padding(
       padding: const EdgeInsets.all(8),
       child: Row(
@@ -125,7 +127,7 @@ class _CashboxReportPageState extends State<CashboxReportPage> {
                   });
                 }
               },
-              child: Text('من: ${DateFormat('yyyy-MM-dd').format(_startDate)}'),
+              child: Text('${l10n.mn}: ${DateFormat('yyyy-MM-dd').format(_startDate)}'),
             ),
           ),
           const SizedBox(width: 8),
@@ -144,7 +146,7 @@ class _CashboxReportPageState extends State<CashboxReportPage> {
                   });
                 }
               },
-              child: Text('إلى: ${DateFormat('yyyy-MM-dd').format(_endDate)}'),
+              child: Text('${l10n.ila}: ${DateFormat('yyyy-MM-dd').format(_endDate)}'),
             ),
           ),
         ],

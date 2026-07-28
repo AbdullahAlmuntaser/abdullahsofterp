@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:drift/drift.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:supermarket/injection_container.dart';
-import 'package:supermarket/core/services/purchase_converter.dart';
-import 'package:supermarket/core/services/reorder_service.dart';
+import 'package:supermarket/core/services/purchases/purchase_converter.dart';
+import 'package:supermarket/core/services/inventory/reorder_service.dart';
 
 class PurchaseOrdersPage extends StatefulWidget {
   const PurchaseOrdersPage({super.key});

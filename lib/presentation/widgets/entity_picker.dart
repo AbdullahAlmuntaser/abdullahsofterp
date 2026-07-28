@@ -4,7 +4,7 @@ import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:supermarket/core/utils/debouncer.dart';
 import 'package:uuid/uuid.dart';
 import 'package:supermarket/injection_container.dart';
-import 'package:supermarket/core/services/quick_customer_service.dart';
+import 'package:supermarket/core/services/sales/quick_customer_service.dart';
 
 /// A generic dialog for picking an entity from a stream
 class EntityPicker<T> extends StatefulWidget {

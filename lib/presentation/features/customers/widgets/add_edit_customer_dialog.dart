@@ -5,6 +5,7 @@ import 'package:drift/drift.dart' as drift;
 import 'package:provider/provider.dart';
 import 'package:supermarket/l10n/app_localizations.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
+import 'package:supermarket/core/exceptions/app_exception.dart';
 
 class AddEditCustomerDialog extends StatefulWidget {
   final Customer? customer;
@@ -75,7 +76,7 @@ class _AddEditCustomerDialogState extends State<AddEditCustomerDialog> {
           .get();
 
       if (fetchedCurrencies.isEmpty) {
-        throw Exception('لم يتم العثور على أي عملات بعد التهيئة.');
+        throw const BusinessException(message: 'لم يتم العثور على أي عملات بعد التهيئة.');
       }
 
       final baseCurrency = fetchedCurrencies.firstWhere(

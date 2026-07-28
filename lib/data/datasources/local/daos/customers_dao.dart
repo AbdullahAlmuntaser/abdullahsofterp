@@ -1,8 +1,10 @@
+// ignore_for_file: annotate_overrides
 import 'package:drift/drift.dart';
 import 'package:supermarket/core/constants/app_enums.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:supermarket/core/utils/name_normalizer.dart';
 import 'package:uuid/uuid.dart';
+import 'package:supermarket/data/repositories/i_customers_repository.dart';
 
 class CustomerSearchResult {
   final Customer customer;
@@ -34,7 +36,7 @@ class CustomerTransaction {
   });
 }
 
-class CustomersDao extends DatabaseAccessor<AppDatabase> {
+class CustomersDao extends DatabaseAccessor<AppDatabase> implements ICustomersRepository {
   CustomersDao(super.db);
 
   Stream<List<Customer>> watchAllCustomers() {

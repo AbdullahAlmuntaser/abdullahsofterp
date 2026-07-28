@@ -13,12 +13,12 @@ import 'package:supermarket/presentation/features/pos/widgets/category_selector.
 import 'package:supermarket/presentation/features/pos/widgets/pos_return_widget.dart';
 import 'package:supermarket/injection_container.dart';
 import 'package:supermarket/core/services/communication_service.dart';
-import 'package:supermarket/core/services/quick_customer_service.dart';
+import 'package:supermarket/core/services/sales/quick_customer_service.dart';
 import 'package:supermarket/core/utils/printer_helper.dart';
-import 'package:supermarket/core/services/pricing_service.dart';
+import 'package:supermarket/core/services/sales/pricing_service.dart';
 import 'package:supermarket/core/services/packaging_engine.dart';
 import 'package:supermarket/core/services/transaction_engine.dart';
-import 'package:supermarket/core/services/loyalty_service.dart';
+import 'package:supermarket/core/services/sales/loyalty_service.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:share_plus/share_plus.dart';
 

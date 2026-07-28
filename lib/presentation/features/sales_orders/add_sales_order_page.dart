@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supermarket/core/auth/auth_provider.dart';
-import 'package:supermarket/core/services/sales_order_service.dart';
+import 'package:supermarket/core/services/sales/sales_order_service.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:supermarket/injection_container.dart' as di;
 import 'sales_orders_provider.dart';

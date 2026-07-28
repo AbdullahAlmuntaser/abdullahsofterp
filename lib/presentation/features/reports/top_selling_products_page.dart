@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:supermarket/l10n/app_localizations.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:supermarket/injection_container.dart' as di;
 import 'package:supermarket/core/utils/export_service.dart';
@@ -52,13 +53,14 @@ class _TopSellingProductsPageState extends State<TopSellingProductsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final maxRevenue = _topProducts.isNotEmpty
         ? (_topProducts.first['totalRevenue'] as double)
         : 1.0;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('المنتجات الأكثر مبيعاً'),
+        title: Text(l10n.almntjatAlakthrMbyaa),
         actions: [
           IconButton(
               icon: const Icon(Icons.picture_as_pdf), onPressed: _export),
@@ -86,8 +88,8 @@ class _TopSellingProductsPageState extends State<TopSellingProductsPage> {
                   title: Text(item['name'] ?? ''),
                   subtitle: Row(
                     children: [
-                      Text(
-                          'الكمية: ${(item['totalQty'] as double).toStringAsFixed(0)}'),
+                      Text(l10n.qtyLabel(
+                          (item['totalQty'] as double).toStringAsFixed(0))),
                       const SizedBox(width: 12),
                       Expanded(
                         child: LinearProgressIndicator(
@@ -97,7 +99,7 @@ class _TopSellingProductsPageState extends State<TopSellingProductsPage> {
                       ),
                     ],
                   ),
-                  trailing: Text('${(revenue).toStringAsFixed(2)} ر.س',
+                  trailing: Text('${(revenue).toStringAsFixed(2)} ${l10n.currencySar}',
                       style: const TextStyle(fontWeight: FontWeight.bold)),
                 );
               },

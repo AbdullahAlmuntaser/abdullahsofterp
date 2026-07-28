@@ -1,9 +1,12 @@
+// ignore_for_file: annotate_overrides
 import 'package:drift/drift.dart';
 import 'package:supermarket/core/constants/app_enums.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:uuid/uuid.dart';
+import 'package:supermarket/core/exceptions/app_exception.dart';
+import 'package:supermarket/data/repositories/i_sales_repository.dart';
 
-class SalesDao extends DatabaseAccessor<AppDatabase> with SyncLogMixin {
+class SalesDao extends DatabaseAccessor<AppDatabase> with SyncLogMixin implements ISalesRepository {
   SalesDao(super.db);
 
   Stream<List<Sale>> watchAllSales() => select(db.sales).watch();
@@ -85,7 +88,7 @@ class SalesDao extends DatabaseAccessor<AppDatabase> with SyncLogMixin {
     required String? userId,
   }) async {
     if (itemsCompanions.isEmpty) {
-      throw Exception('لا يمكن إنشاء فاتورة بدون أصناف.');
+      throw const BusinessException(message: 'لا يمكن إنشاء فاتورة بدون أصناف.');
     }
 
     return transaction(() async {
@@ -253,7 +256,7 @@ class SalesDao extends DatabaseAccessor<AppDatabase> with SyncLogMixin {
     required String? userId,
   }) async {
     if (itemsCompanions.isEmpty) {
-      throw Exception('لا يمكن إنشاء طلب بيع بدون أصناف.');
+      throw const BusinessException(message: 'لا يمكن إنشاء طلب بيع بدون أصناف.');
     }
 
     return transaction(() async {
@@ -315,14 +318,14 @@ class SalesDao extends DatabaseAccessor<AppDatabase> with SyncLogMixin {
       final existing = await (select(db.sales)..where((s) => s.id.equals(saleId)))
           .getSingleOrNull();
       if (existing == null) {
-        throw Exception('فاتورة المبيعات غير موجودة.');
+        throw const BusinessException(message: 'فاتورة المبيعات غير موجودة.');
       }
       if (existing.status != DocumentStatus.draft) {
-        throw Exception(
-          'لا يمكن حذف فاتورة مبيعات غير مسودة. استخدم مستند تصحيح أو مرتجع بدلاً من الحذف المباشر.',
+        throw const BusinessException(
+          message: 'لا يمكن حذف فاتورة مبيعات غير مسودة. استخدم مستند تصحيح أو مرتجع بدلاً من الحذف المباشر.',
         );
       }
-
+      
       await (delete(db.saleItems)..where((i) => i.saleId.equals(saleId))).go();
       await (delete(db.sales)..where((s) => s.id.equals(saleId))).go();
 
@@ -350,21 +353,21 @@ class SalesDao extends DatabaseAccessor<AppDatabase> with SyncLogMixin {
     required String? userId,
   }) async {
     if (itemsCompanions.isEmpty) {
-      throw Exception('لا يمكن تحديث فاتورة مبيعات بدون أصناف.');
+      throw const BusinessException(message: 'لا يمكن تحديث فاتورة مبيعات بدون أصناف.');
     }
 
     return transaction(() async {
       final existing = await (select(db.sales)..where((s) => s.id.equals(saleId)))
           .getSingleOrNull();
       if (existing == null) {
-        throw Exception('فاتورة المبيعات غير موجودة.');
+        throw const BusinessException(message: 'فاتورة المبيعات غير موجودة.');
       }
       if (existing.status != DocumentStatus.draft) {
-        throw Exception(
-          'لا يمكن تعديل فاتورة مبيعات غير مسودة. استخدم مستند تصحيح أو مرتجع بدلاً من التعديل المباشر.',
+        throw const BusinessException(
+          message: 'لا يمكن تعديل فاتورة مبيعات غير مسودة. استخدم مستند تصحيح أو مرتجع بدلاً من التعديل المباشر.',
         );
       }
-
+      
       await (update(db.sales)..where((s) => s.id.equals(saleId)))
           .write(saleCompanion);
 

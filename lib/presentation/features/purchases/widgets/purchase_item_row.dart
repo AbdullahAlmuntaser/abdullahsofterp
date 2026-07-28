@@ -198,9 +198,7 @@ class _PurchaseItemRowState extends State<PurchaseItemRow> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                Expanded(
-                  child: Container(),
-                ),
+                const Spacer(),
               ],
             ),
             if (widget.item.selectedUnit != null &&

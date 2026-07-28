@@ -1,9 +1,12 @@
+// ignore_for_file: annotate_overrides
 import 'package:drift/drift.dart';
 import '../app_database.dart';
 import 'package:supermarket/core/constants/app_enums.dart';
 import 'package:uuid/uuid.dart';
+import 'package:supermarket/core/exceptions/app_exception.dart';
+import 'package:supermarket/data/repositories/i_purchases_repository.dart';
 
-class PurchasesDao extends DatabaseAccessor<AppDatabase> with SyncLogMixin {
+class PurchasesDao extends DatabaseAccessor<AppDatabase> with SyncLogMixin implements IPurchasesRepository {
   PurchasesDao(super.db);
 
   Stream<List<Purchase>> watchAllPurchases() => select(db.purchases).watch();
@@ -37,7 +40,7 @@ class PurchasesDao extends DatabaseAccessor<AppDatabase> with SyncLogMixin {
     required String? userId,
   }) async {
     if (itemsCompanions.isEmpty) {
-      throw Exception('لا يمكن إنشاء فاتورة مشتريات بدون أصناف.');
+      throw const BusinessException(message: 'لا يمكن إنشاء فاتورة مشتريات بدون أصناف.');
     }
 
     return transaction(() async {
@@ -213,14 +216,14 @@ class PurchasesDao extends DatabaseAccessor<AppDatabase> with SyncLogMixin {
             ..where((p) => p.id.equals(purchaseId)))
           .getSingleOrNull();
       if (existing == null) {
-        throw Exception('فاتورة المشتريات غير موجودة.');
+        throw const BusinessException(message: 'فاتورة المشتريات غير موجودة.');
       }
       if (existing.status != DocumentStatus.draft) {
-        throw Exception(
-          'لا يمكن حذف فاتورة مشتريات غير مسودة. استخدم مستند تصحيح أو مرتجع بدلاً من الحذف المباشر.',
+        throw const BusinessException(
+          message: 'لا يمكن حذف فاتورة مشتريات غير مسودة. استخدم مستند تصحيح أو مرتجع بدلاً من الحذف المباشر.',
         );
       }
-
+      
       await (delete(db.purchaseItems)
             ..where((i) => i.purchaseId.equals(purchaseId)))
           .go();
@@ -250,7 +253,7 @@ class PurchasesDao extends DatabaseAccessor<AppDatabase> with SyncLogMixin {
     required String? userId,
   }) async {
     if (itemsCompanions.isEmpty) {
-      throw Exception('لا يمكن تحديث فاتورة مشتريات بدون أصناف.');
+      throw const BusinessException(message: 'لا يمكن تحديث فاتورة مشتريات بدون أصناف.');
     }
 
     return transaction(() async {
@@ -258,14 +261,14 @@ class PurchasesDao extends DatabaseAccessor<AppDatabase> with SyncLogMixin {
             ..where((p) => p.id.equals(purchaseId)))
           .getSingleOrNull();
       if (existing == null) {
-        throw Exception('فاتورة المشتريات غير موجودة.');
+        throw const BusinessException(message: 'فاتورة المشتريات غير موجودة.');
       }
       if (existing.status != DocumentStatus.draft) {
-        throw Exception(
-          'لا يمكن تعديل فاتورة مشتريات غير مسودة. استخدم مستند تصحيح أو مرتجع بدلاً من التعديل المباشر.',
+        throw const BusinessException(
+          message: 'لا يمكن تعديل فاتورة مشتريات غير مسودة. استخدم مستند تصحيح أو مرتجع بدلاً من التعديل المباشر.',
         );
       }
-
+      
       await (update(db.purchases)..where((p) => p.id.equals(purchaseId)))
           .write(purchaseCompanion);
 

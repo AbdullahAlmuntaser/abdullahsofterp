@@ -7,7 +7,7 @@ import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'widgets/add_edit_supplier_dialog.dart';
 import 'widgets/supplier_payment_dialog.dart';
 import 'package:supermarket/presentation/widgets/main_drawer.dart';
-import 'package:supermarket/core/services/accounting_service.dart';
+import 'package:supermarket/core/services/accounting/accounting_service.dart';
 import 'package:supermarket/core/services/audit_service.dart';
 import 'package:supermarket/core/services/transaction_engine.dart';
 import 'package:supermarket/injection_container.dart';

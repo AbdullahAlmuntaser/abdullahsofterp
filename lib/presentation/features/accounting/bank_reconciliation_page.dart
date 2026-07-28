@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:drift/drift.dart' as drift;
 import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:supermarket/core/services/bank_reconciliation_service.dart';
-import 'package:supermarket/core/services/accounting_service.dart';
+import 'package:supermarket/core/services/accounting/accounting_service.dart';
 import 'package:intl/intl.dart';
 import 'package:supermarket/l10n/app_localizations.dart';
 

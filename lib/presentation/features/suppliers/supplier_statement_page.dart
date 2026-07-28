@@ -4,7 +4,7 @@ import 'package:supermarket/l10n/app_localizations.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:intl/intl.dart';
 import 'package:supermarket/injection_container.dart';
-import 'package:supermarket/core/services/statement_printing_service.dart';
+import 'package:supermarket/core/services/sales/statement_printing_service.dart';
 
 class SupplierStatementPage extends StatefulWidget {
   final String supplierId;

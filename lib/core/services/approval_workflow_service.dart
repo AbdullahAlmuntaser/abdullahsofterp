@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:supermarket/core/services/audit_service.dart';
+import 'package:supermarket/core/exceptions/app_exception.dart';
 
 class ApprovalWorkflowService {
   final AppDatabase db;
@@ -10,13 +11,34 @@ class ApprovalWorkflowService {
 
   static const double defaultPurchaseApprovalThreshold = 10000;
 
-  /// Check if a transaction requires approval based on amount threshold
+  /// Check if a transaction requires approval based on amount threshold or workflow conditions
   Future<bool> requiresApproval({
     required String type,
     required double amount,
     double? threshold,
   }) async {
-    return amount >= (threshold ?? defaultPurchaseApprovalThreshold);
+    if (amount >= (threshold ?? defaultPurchaseApprovalThreshold)) return true;
+    final workflows = (await db.customSelect(
+      'SELECT * FROM approval_workflows WHERE document_type = ? AND is_active = 1',
+      variables: [Variable(type)],
+    ).get()).map((e) => e.data).toList();
+    for (var workflow in workflows) {
+      final conditionType = workflow['condition_type'] as String?;
+      final conditionValue = workflow['condition_value'] as num?;
+      final operator = workflow['operator'] as String?;
+      if (conditionType == 'amount' && conditionValue != null) {
+        bool conditionMet = switch (operator) {
+          '>' => amount > conditionValue,
+          '<' => amount < conditionValue,
+          '>=' => amount >= conditionValue,
+          '<=' => amount <= conditionValue,
+          '=' => amount == conditionValue,
+          _ => false,
+        };
+        if (conditionMet) return true;
+      }
+    }
+    return false;
   }
 
   /// Create a new approval request (persisted in DB)
@@ -29,18 +51,23 @@ class ApprovalWorkflowService {
     String? note,
   }) async {
     final now = DateTime.now().toIso8601String();
+    final workflows = (await db.customSelect(
+      'SELECT * FROM approval_workflows WHERE document_type = ? AND is_active = 1 ORDER BY level_order ASC',
+      variables: [Variable(type)],
+    ).get()).map((e) => e.data).toList();
+    final workflowId = workflows.isNotEmpty ? workflows.first['id'] as int : 0;
     final id = await db.customInsert(
-      'INSERT INTO approval_requests (document_type, document_id, requested_by, status, requested_at) '
-      'VALUES (?, ?, ?, ?, ?)',
+      'INSERT INTO approval_requests (document_type, document_id, workflow_id, current_level, status, requested_by, requested_at) '
+      'VALUES (?, ?, ?, 1, ?, ?, ?)',
       variables: [
         Variable(type),
         Variable(referenceId ?? ''),
-        Variable(int.tryParse(requestedBy) ?? 0),
+        Variable(workflowId),
         const Variable('pending'),
+        Variable(int.tryParse(requestedBy) ?? 0),
         Variable(now),
       ],
     );
-
     final idStr = id.toString();
     if (auditLogService != null) {
       await auditLogService!.logAction(
@@ -51,7 +78,6 @@ class ApprovalWorkflowService {
         newValues: {'type': type, 'amount': amount},
       );
     }
-
     return {
       'id': idStr,
       'type': type,
@@ -61,8 +87,54 @@ class ApprovalWorkflowService {
       'status': 'pending',
       'referenceId': referenceId,
       'note': note,
-      'requestedAt': DateTime.now().toIso8601String(),
+      'requestedAt': now,
     };
+  }
+
+  /// Get approval levels for a workflow
+  Future<List<Map<String, dynamic>>> getApprovalLevels(int workflowId) async {
+    return (await db.customSelect(
+      'SELECT * FROM approval_levels WHERE workflow_id = ? ORDER BY level_order ASC',
+      variables: [Variable(workflowId)],
+    ).get()).map((e) => e.data).toList();
+  }
+
+  /// Get pending approvals for a user based on their role
+  Future<List<Map<String, dynamic>>> getPendingApprovalsForUser({
+    required String userId,
+    String? documentType,
+  }) async {
+    final user = await (db.select(db.users)
+          ..where((u) => u.id.equals(userId)))
+        .getSingleOrNull();
+    if (user == null) return [];
+    String whereClause = "status = 'pending'";
+    final docVars = <Variable>[];
+    if (documentType != null) {
+      whereClause += ' AND document_type = ?';
+      docVars.add(Variable(documentType));
+    }
+    final pendingRequests = (await db.customSelect(
+      'SELECT * FROM approval_requests WHERE $whereClause',
+      variables: docVars,
+    ).get()).map((e) => e.data).toList();
+    final filtered = <Map<String, dynamic>>[];
+    for (var request in pendingRequests) {
+      final wfId = request['workflow_id'] as int;
+      final currentLevel = request['current_level'] as int;
+      final levels = (await db.customSelect(
+        'SELECT * FROM approval_levels WHERE workflow_id = ? AND level_order = ?',
+        variables: [Variable(wfId), Variable(currentLevel)],
+      ).get()).map((e) => e.data).toList();
+      for (var level in levels) {
+        final role = level['role'] as String?;
+        if (role != null && (user.role == role || user.role == 'admin')) {
+          filtered.add(request);
+          break;
+        }
+      }
+    }
+    return filtered;
   }
 
   /// Get pending approval request for a reference
@@ -138,12 +210,12 @@ class ApprovalWorkflowService {
     ).get();
 
     if (existing.isEmpty) {
-      throw Exception('Approval request not found');
+      throw const BusinessException(message: 'Approval request not found');
     }
 
     final request = existing.first.data;
     if (request['status'] != 'pending') {
-      throw Exception('Approval request already decided');
+      throw const BusinessException(message: 'Approval request already decided');
     }
 
     await db.customUpdate(

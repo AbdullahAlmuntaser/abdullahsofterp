@@ -6,10 +6,12 @@ class AccountCodes {
   static const String accountsReceivable = '1030';
   static const String inventory = '1040';
   static const String inputVAT = '1050';
+  static const String deferredInputVAT = '1055';
   static const String fixedAssets = '1200';
   static const String accumulatedDepreciation = '1201';
   static const String accountsPayable = '2010';
   static const String outputVAT = '2020';
+  static const String deferredOutputVAT = '2025';
   static const String loansPayable = '2500';
   static const String capital = '3000';
   static const String retainedEarnings = '3010';

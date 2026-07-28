@@ -1,7 +1,7 @@
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:supermarket/core/models/inventory/inventory_models.dart';
-import 'package:supermarket/core/services/inventory_service.dart';
+import 'package:supermarket/core/services/inventory/inventory_service.dart';
 import 'package:supermarket/injection_container.dart';
 import 'package:intl/intl.dart';
 

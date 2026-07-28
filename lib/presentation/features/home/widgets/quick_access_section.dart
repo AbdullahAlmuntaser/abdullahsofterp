@@ -27,7 +27,7 @@ class QuickAccessSection extends StatelessWidget {
                 style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const Spacer(),
             TextButton(
-              onPressed: () {},
+              onPressed: () => context.read<CommandCenterProvider>().clearHistory(),
               child: Text(l10n.clearHistory, style: const TextStyle(fontSize: 12)),
             ),
           ],

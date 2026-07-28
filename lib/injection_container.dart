@@ -7,62 +7,61 @@ import 'core/services/audit_service.dart';
 import 'core/services/permission_service.dart';
 import 'core/services/app_config_service.dart';
 import 'core/services/approval_workflow_service.dart';
-import 'core/services/loyalty_service.dart';
-import 'core/services/accounting_service.dart';
+import 'core/services/sales/loyalty_service.dart';
+import 'core/services/accounting/accounting_service.dart';
 import 'core/services/event_bus_service.dart';
-import 'core/services/advanced_permission_service.dart';
 import 'core/services/posting_engine.dart';
-import 'core/services/financial_control_service.dart';
+import 'core/services/accounting/financial_control_service.dart';
 import 'core/services/security_service.dart';
 import 'core/utils/drive_backup_service.dart';
 import 'core/theme/theme_provider.dart';
 import 'core/theme/locale_provider.dart';
 import 'core/services/packaging_engine.dart';
 import 'data/datasources/local/app_database.dart';
-import 'core/services/inventory_costing_service.dart';
-import 'core/services/purchase_service.dart';
+import 'core/services/inventory/inventory_costing_service.dart';
+import 'core/services/purchases/purchase_service.dart';
 
-import 'core/services/pricing_service.dart';
+import 'core/services/sales/pricing_service.dart';
 import 'core/services/transaction_engine.dart';
 import 'core/services/communication_service.dart';
 import 'core/services/production_service.dart';
-import 'core/services/hr_service.dart';
+import 'core/services/hr/hr_service.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/dashboard_service.dart';
-import 'core/services/shift_service.dart';
-import 'core/services/stock_transfer_service.dart';
+import 'core/services/hr/shift_service.dart';
+import 'core/services/inventory/stock_transfer_service.dart';
 import 'core/services/asset_service.dart';
-import 'core/services/return_service.dart';
-import 'core/services/quick_customer_service.dart';
-import 'core/services/financial_closing_service.dart';
+import 'core/services/sales/return_service.dart';
+import 'core/services/sales/quick_customer_service.dart';
+import 'core/services/accounting/financial_closing_service.dart';
 import 'core/services/system_auditor.dart';
 import 'core/services/report_engine_service.dart';
-import 'core/services/accounting_period_service.dart';
+import 'core/services/accounting/accounting_period_service.dart';
 import 'core/services/analytics_service.dart';
 import 'core/services/erp_data_service.dart';
-import 'core/services/fixed_assets_service.dart';
-import 'core/services/inventory_audit_service.dart';
-import 'core/services/invoice_service.dart';
+import 'core/services/accounting/fixed_assets_service.dart';
+import 'core/services/inventory/inventory_audit_service.dart';
+import 'core/services/sales/invoice_service.dart';
 import 'core/services/profitability_service.dart';
 
 import 'core/services/pdf_service.dart';
-import 'core/services/budget_service.dart';
+import 'core/services/accounting/budget_service.dart';
 import 'core/services/cash_management_service.dart';
 import 'core/services/transfer_service.dart';
-import 'core/services/unified_statement_service.dart';
-import 'core/services/payroll_service.dart';
-import 'core/services/currency_conversion_service.dart';
-import 'core/services/zakat_service.dart';
-import 'core/services/eosb_service.dart';
-import 'core/services/inventory_reservation_service.dart';
+import 'core/services/sales/unified_statement_service.dart';
+import 'core/services/hr/payroll_service.dart';
+import 'core/services/accounting/currency_conversion_service.dart';
+import 'core/services/accounting/zakat_service.dart';
+import 'core/services/hr/eosb_service.dart';
+import 'core/services/inventory/inventory_reservation_service.dart';
 import 'core/services/multi_level_approval_service.dart';
-import 'core/services/leave_management_service.dart';
-import 'core/services/attendance_service.dart';
-import 'core/services/withholding_tax_service.dart';
-import 'core/services/serial_number_service.dart';
-import 'core/services/credit_note_service.dart';
-import 'core/services/sales_commission_service.dart';
-import 'core/services/proforma_service.dart';
+import 'core/services/hr/leave_management_service.dart';
+import 'core/services/hr/attendance_service.dart';
+import 'core/services/accounting/withholding_tax_service.dart';
+import 'core/services/inventory/serial_number_service.dart';
+import 'core/services/sales/credit_note_service.dart';
+import 'core/services/sales/sales_commission_service.dart';
+import 'core/services/sales/proforma_service.dart';
 import 'core/di/core_module.dart';
 import 'core/di/accounting_module.dart';
 import 'core/di/inventory_module.dart';
@@ -93,6 +92,7 @@ import 'presentation/features/accounting/wht_provider.dart';
 import 'presentation/features/hr/attendance_provider.dart';
 import 'presentation/features/hr/leave_provider.dart';
 import 'presentation/features/inventory/serial_number_provider.dart';
+import 'package:supermarket/core/exceptions/app_exception.dart';
 
 final sl = GetIt.instance;
 
@@ -266,6 +266,14 @@ Future<void> initServices() async {
       () => PosBloc(db, sl<PricingService>(), sl<TransactionEngine>(),
           sl<PackagingEngine>(), loyaltyService: sl<LoyaltyService>()),
     );
+    debugPrint("DI: Seeding default accounts...");
+    try {
+      await sl<AccountingService>().seedDefaultAccounts();
+      debugPrint("DI: Default accounts seeded.");
+    } catch (e) {
+      debugPrint("DI: Error seeding accounts (non-fatal): $e");
+    }
+
     debugPrint("DI: Providers registered");
 
     debugPrint("DI: ==== Services Initialization Complete ====");
@@ -292,7 +300,6 @@ void _validateCriticalRegistrations() {
   check<AppConfigService>();
   check<SecurityService>();
   check<PermissionService>();
-  check<AdvancedPermissionService>();
   check<ApprovalWorkflowService>();
   check<TransactionEngine>();
   check<PostingEngine>();
@@ -305,8 +312,8 @@ void _validateCriticalRegistrations() {
   if (missing.isNotEmpty) {
     final names = missing.join(', ');
     debugPrint('CRITICAL: Missing registered services: $names');
-    throw Exception(
-      'GetIt validation failed — the following services are not registered: $names. '
+    throw BusinessException(
+      message: 'GetIt validation failed — the following services are not registered: $names. '
       'Check the registration order in initServices() and module files.',
     );
   }

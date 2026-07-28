@@ -8,6 +8,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:uuid/uuid.dart';
 import 'package:crypto/crypto.dart';
+import 'package:supermarket/core/exceptions/app_exception.dart';
 
 class UserSession {
   final String userId;
@@ -130,7 +131,7 @@ class SecurityService {
     // Check for account lockout
     final isLocked = await _isAccountLocked(user.id);
     if (isLocked) {
-      throw Exception('الحساب مقفل مؤقتاً بسبب محاولات دخول كثيرة. يرجى المحاولة بعد ${lockoutDuration.inMinutes} دقيقة.');
+      throw BusinessException(message: 'الحساب مقفل مؤقتاً بسبب محاولات دخول كثيرة. يرجى المحاولة بعد ${lockoutDuration.inMinutes} دقيقة.');
     }
 
     final bool passwordValid;
@@ -307,7 +308,7 @@ class SecurityService {
 
   void requireRole(String userRole, String requiredRole) {
     if (!hasPermission(userRole, requiredRole)) {
-      throw Exception('ليس لديك صلاحية كافية للقيام بهذه العملية');
+      throw const UnauthorizedException(message: 'ليس لديك صلاحية كافية للقيام بهذه العملية');
     }
   }
 
@@ -315,7 +316,7 @@ class SecurityService {
     for (final role in allowedRoles) {
       if (hasPermission(userRole, role)) return;
     }
-    throw Exception('ليس لديك صلاحية كافية');
+    throw const UnauthorizedException(message: 'ليس لديك صلاحية كافية');
   }
 
   // ==================== DATA ENCRYPTION ====================
@@ -323,8 +324,8 @@ class SecurityService {
   static Future<String> getDatabaseKey() async {
     // NEVER allow fake key in release builds
     if (useFakeKeyForTesting && kReleaseMode) {
-      throw Exception(
-          'SECURITY VIOLATION: useFakeKeyForTesting is true in a release build. '
+      throw const UnauthorizedException(
+          message: 'SECURITY VIOLATION: useFakeKeyForTesting is true in a release build. '
           'This must never happen in production.');
     }
     if (useFakeKeyForTesting) {
@@ -338,8 +339,8 @@ class SecurityService {
         final verify = await _storage.read(key: _dbKeyName);
         if (verify == null || verify.isEmpty || verify != key) {
           debugPrint('SECURITY: FlutterSecureStorage write verification failed.');
-          throw Exception(
-              'CRITICAL: FlutterSecureStorage failed to persist the encryption key. '
+          throw const BusinessException(
+              message: 'CRITICAL: FlutterSecureStorage failed to persist the encryption key. '
               'The app cannot guarantee data encryption safety. '
               'Please reinstall the app or check device storage.');
         }
@@ -348,8 +349,8 @@ class SecurityService {
     } catch (e) {
       debugPrint('SECURITY: FlutterSecureStorage error: $e');
       if (e.toString().contains('CRITICAL')) rethrow;
-      throw Exception(
-          'CRITICAL: Cannot access encryption key from secure storage. '
+      throw BusinessException(
+          message: 'CRITICAL: Cannot access encryption key from secure storage. '
           'The app cannot safely open the encrypted database. '
           'Please reinstall the app. Original error: $e');
     }

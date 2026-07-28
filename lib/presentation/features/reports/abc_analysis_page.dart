@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:supermarket/l10n/app_localizations.dart';
 
 class AbcAnalysisPage extends StatefulWidget {
   const AbcAnalysisPage({super.key});
@@ -92,16 +93,17 @@ class _AbcAnalysisPageState extends State<AbcAnalysisPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('تحليل ABC للمنتجات'),
+        title: Text(l10n.thlylABCLlmntjat),
         actions: [
           SegmentedButton<String>(
-            segments: const [
-              ButtonSegment(value: 'ALL', label: Text('الكل')),
-              ButtonSegment(value: 'A', label: Text('A')),
-              ButtonSegment(value: 'B', label: Text('B')),
-              ButtonSegment(value: 'C', label: Text('C')),
+            segments: [
+              ButtonSegment(value: 'ALL', label: Text(l10n.all)),
+              const ButtonSegment(value: 'A', label: Text('A')),
+              const ButtonSegment(value: 'B', label: Text('B')),
+              const ButtonSegment(value: 'C', label: Text('C')),
             ],
             selected: {_filterClass},
             onSelectionChanged: (val) =>
@@ -112,18 +114,18 @@ class _AbcAnalysisPageState extends State<AbcAnalysisPage> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _abcData.isEmpty
-              ? const Center(child: Text('لا توجد بيانات مبيعات'))
+              ? Center(child: Text(l10n.laTwjdByanatMbyaat))
               : Column(
                   children: [
-                    _buildSummaryCards(),
-                    _buildPieChart(),
-                    Expanded(child: _buildDataTable()),
+                    _buildSummaryCards(l10n),
+                    _buildPieChart(l10n),
+                    Expanded(child: _buildDataTable(l10n)),
                   ],
                 ),
     );
   }
 
-  Widget _buildSummaryCards() {
+  Widget _buildSummaryCards(AppLocalizations l10n) {
     final countA = _abcData.where((d) => d['class'] == 'A').length;
     final countB = _abcData.where((d) => d['class'] == 'B').length;
     final countC = _abcData.where((d) => d['class'] == 'C').length;
@@ -133,22 +135,23 @@ class _AbcAnalysisPageState extends State<AbcAnalysisPage> {
       child: Row(
         children: [
           Expanded(
-              child:
-                  _buildClassCard('A', countA, Colors.green, 'الأكثر أهمية')),
+              child: _buildClassCard(
+                  'A', countA, Colors.green, l10n.alakthrAhmyh, l10n)),
           const SizedBox(width: 8),
           Expanded(
-              child:
-                  _buildClassCard('B', countB, Colors.orange, 'متوسط الأهمية')),
+              child: _buildClassCard(
+                  'B', countB, Colors.orange, l10n.mtwstAlahmyh, l10n)),
           const SizedBox(width: 8),
           Expanded(
-              child: _buildClassCard('C', countC, Colors.red, 'الأقل أهمية')),
+              child: _buildClassCard(
+                  'C', countC, Colors.red, l10n.alaqlAhmyh, l10n)),
         ],
       ),
     );
   }
 
   Widget _buildClassCard(
-      String label, int count, Color color, String description) {
+      String label, int count, Color color, String description, AppLocalizations l10n) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(12),
@@ -157,7 +160,7 @@ class _AbcAnalysisPageState extends State<AbcAnalysisPage> {
             Text(label,
                 style: TextStyle(
                     fontSize: 24, fontWeight: FontWeight.bold, color: color)),
-            Text('$count منتج', style: const TextStyle(fontSize: 12)),
+            Text('$count ${l10n.mntj}', style: const TextStyle(fontSize: 12)),
             Text(description,
                 style: TextStyle(fontSize: 10, color: Colors.grey[600])),
           ],
@@ -166,7 +169,7 @@ class _AbcAnalysisPageState extends State<AbcAnalysisPage> {
     );
   }
 
-  Widget _buildPieChart() {
+  Widget _buildPieChart(AppLocalizations l10n) {
     final countA = _abcData.where((d) => d['class'] == 'A').length;
     final countB = _abcData.where((d) => d['class'] == 'B').length;
     final countC = _abcData.where((d) => d['class'] == 'C').length;
@@ -177,8 +180,8 @@ class _AbcAnalysisPageState extends State<AbcAnalysisPage> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            const Text('توزيع المنتجات حسب الفئة',
-                style: TextStyle(fontWeight: FontWeight.bold)),
+            Text(l10n.twzyaAlmntjatHsbAlfeh,
+                style: const TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             SizedBox(
               height: 150,
@@ -215,16 +218,16 @@ class _AbcAnalysisPageState extends State<AbcAnalysisPage> {
     );
   }
 
-  Widget _buildDataTable() {
+  Widget _buildDataTable(AppLocalizations l10n) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: DataTable(
-        columns: const [
-          DataColumn(label: Text('الفئة')),
-          DataColumn(label: Text('المنتج')),
-          DataColumn(label: Text('الإيراد')),
-          DataColumn(label: Text('النسبة %')),
-          DataColumn(label: Text('التراكمي %')),
+        columns: [
+          DataColumn(label: Text(l10n.alfehAltsnyf)),
+          DataColumn(label: Text(l10n.productLabel)),
+          DataColumn(label: Text(l10n.aliyrad)),
+          DataColumn(label: Text('${l10n.alnsbh} %')),
+          DataColumn(label: Text(l10n.altrakmy)),
         ],
         rows: _filteredData.map((d) {
           final abcClass = d['class'] as String;
@@ -246,7 +249,7 @@ class _AbcAnalysisPageState extends State<AbcAnalysisPage> {
             )),
             DataCell(Text(d['name'])),
             DataCell(
-                Text('${(d['revenue'] as double).toStringAsFixed(2)} ر.س')),
+                Text('${(d['revenue'] as double).toStringAsFixed(2)} ${l10n.currencySar}')),
             DataCell(Text('${(d['percent'] as double).toStringAsFixed(1)}%')),
             DataCell(Text(
                 '${(d['cumulativePercent'] as double).toStringAsFixed(1)}%')),

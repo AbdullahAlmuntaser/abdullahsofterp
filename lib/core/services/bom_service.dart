@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:supermarket/core/exceptions/concurrency_exception.dart';
+import 'package:supermarket/core/exceptions/app_exception.dart';
 
 /// خدمة التصنيع (Bill of Materials)
 /// مسؤولة عن تجميع المنتجات من المواد الخام
@@ -72,7 +73,7 @@ class BomService {
     // الحصول على قائمة المكونات
     final components = await getBomForProduct(finishedProductId);
     if (components.isEmpty) {
-      throw Exception('لا توجد مكونات مُعرفة لهذا المنتج');
+      throw const BusinessException(message: 'لا توجد مكونات مُعرفة لهذا المنتج');
     }
 
     // التحقق من توفر المخزون
@@ -96,8 +97,8 @@ class BomService {
 
       if (totalAvailable < requiredQty) {
         final productName = await _getProductName(component.componentProductId);
-        throw Exception(
-          'المخزون غير كافٍ: $productName — المطلوب: ${requiredQty.toString()}، المتاح: ${totalAvailable.toString()}',
+        throw BusinessException(
+          message: 'المخزون غير كافٍ: $productName — المطلوب: ${requiredQty.toString()}، المتاح: ${totalAvailable.toString()}',
         );
       }
     }

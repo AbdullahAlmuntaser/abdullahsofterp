@@ -1,8 +1,11 @@
+// ignore_for_file: annotate_overrides
 import 'package:drift/drift.dart';
 import 'package:supermarket/core/constants/app_enums.dart' as enums;
 import 'package:supermarket/core/models/accounting/account_tree_node.dart';
 import 'package:supermarket/core/constants/account_types.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
+import 'package:supermarket/core/exceptions/app_exception.dart';
+import 'package:supermarket/data/repositories/i_accounting_repository.dart';
 
 class TrialBalanceItem {
   final GLAccount account;
@@ -10,12 +13,11 @@ class TrialBalanceItem {
   final Decimal totalCredit;
 
   Decimal get netBalance {
-    if (account.type == AccountType.asset ||
-        account.type == AccountType.expense) {
+    if (account.accountType == enums.AccountType.asset ||
+        account.accountType == enums.AccountType.expense) {
       return totalDebit - totalCredit;
-    } else {
-      return totalCredit - totalDebit;
     }
+    return totalCredit - totalDebit;
   }
 
   TrialBalanceItem(this.account, this.totalDebit, this.totalCredit);
@@ -63,6 +65,7 @@ class BalanceSheet {
   final Decimal totalAssets;
   final Decimal totalLiabilities;
   final Decimal totalEquity;
+  final Decimal netIncome;
 
   BalanceSheet({
     required this.assets,
@@ -71,10 +74,11 @@ class BalanceSheet {
     required this.totalAssets,
     required this.totalLiabilities,
     required this.totalEquity,
+    required this.netIncome,
   });
 }
 
-class AccountingDao extends DatabaseAccessor<AppDatabase> with SyncLogMixin {
+class AccountingDao extends DatabaseAccessor<AppDatabase> with SyncLogMixin implements IAccountingRepository {
   AccountingDao(super.db);
 
   Future<bool> isDateInClosedPeriod(DateTime date) async {
@@ -162,7 +166,9 @@ class AccountingDao extends DatabaseAccessor<AppDatabase> with SyncLogMixin {
               ..where((e) => e.referenceId.equals(entry.referenceId.value!)))
             .getSingleOrNull();
         if (duplicate != null) {
-          return;
+          throw DuplicateException(
+            message: 'قيد مكرر: المرجع ${entry.referenceType.value}/${entry.referenceId.value} موجود مسبقاً',
+          );
         }
       }
 
@@ -173,9 +179,10 @@ class AccountingDao extends DatabaseAccessor<AppDatabase> with SyncLogMixin {
         totalDebit += line.debit.value;
         totalCredit += line.credit.value;
       }
-      if (totalDebit != totalCredit) {
-        throw Exception(
-          'القيد المحاسبي غير متوازن! (المدين: $totalDebit، الدائن: $totalCredit)',
+      final difference = (totalDebit - totalCredit).abs();
+      if (difference > Decimal.parse('0.001')) {
+        throw BusinessException(
+          message: 'القيد المحاسبي غير متوازن! (المدين: $totalDebit، الدائن: $totalCredit)',
         );
       }
 
@@ -239,7 +246,7 @@ class AccountingDao extends DatabaseAccessor<AppDatabase> with SyncLogMixin {
       credit += row.readTable(db.accountTransactions).credit;
     }
 
-    if ([AccountType.asset, AccountType.expense].contains(account.type)) {
+    if ([enums.AccountType.asset, enums.AccountType.expense].contains(account.accountType)) {
       return debit - credit;
     } else {
       return credit - debit;
@@ -296,7 +303,10 @@ class AccountingDao extends DatabaseAccessor<AppDatabase> with SyncLogMixin {
       (delete(db.postingProfiles)..where((t) => t.id.equals(id))).go();
 
   // --- Reports (all Decimal-based) ---
-  Future<List<TrialBalanceItem>> getTrialBalance({String? branchId}) async {
+  Future<List<TrialBalanceItem>> getTrialBalance({
+    String? branchId,
+    DateTime? asOfDate,
+  }) async {
     final accounts = await getAllAccounts();
 
     var query = db.select(db.gLLines).join([
@@ -305,6 +315,9 @@ class AccountingDao extends DatabaseAccessor<AppDatabase> with SyncLogMixin {
 
     if (branchId != null) {
       query = query..where(db.gLLines.branchId.equals(branchId));
+    }
+    if (asOfDate != null) {
+      query = query..where(db.gLEntries.date.isSmallerOrEqual(Variable(asOfDate)));
     }
 
     final rows = await query.get();
@@ -361,8 +374,8 @@ class AccountingDao extends DatabaseAccessor<AppDatabase> with SyncLogMixin {
       credit += row.readTable(db.gLLines).credit;
     }
 
-    if (account.type == AccountType.asset ||
-        account.type == AccountType.expense) {
+    if (account.accountType == enums.AccountType.asset ||
+        account.accountType == enums.AccountType.expense) {
       return debit - credit;
     } else {
       return credit - debit;
@@ -553,9 +566,9 @@ class AccountingDao extends DatabaseAccessor<AppDatabase> with SyncLogMixin {
     Decimal totalRevenue = Decimal.zero;
     Decimal totalExpenses = Decimal.zero;
     for (final item in allBalances) {
-      if (item.account.type == AccountType.revenue) {
-        totalRevenue += item.netBalance;
-      } else if (item.account.type == AccountType.expense) {
+      if (item.account.accountType == enums.AccountType.revenue) {
+        totalRevenue += item.netBalance.abs();
+      } else if (item.account.accountType == enums.AccountType.expense) {
         totalExpenses += item.netBalance;
       }
     }
@@ -581,13 +594,13 @@ class AccountingDao extends DatabaseAccessor<AppDatabase> with SyncLogMixin {
         await getAllAccountBalancesAsOfDate(date, branchId: branchId);
 
     final assets = trialBalance
-        .where((item) => item.account.type == AccountType.asset)
+        .where((item) => item.account.accountType == enums.AccountType.asset)
         .toList();
     final liabilities = trialBalance
-        .where((item) => item.account.type == AccountType.liability)
+        .where((item) => item.account.accountType == enums.AccountType.liability)
         .toList();
     final equity = trialBalance
-        .where((item) => item.account.type == AccountType.equity)
+        .where((item) => item.account.accountType == enums.AccountType.equity)
         .toList();
 
     Decimal totalAssets =
@@ -597,6 +610,16 @@ class AccountingDao extends DatabaseAccessor<AppDatabase> with SyncLogMixin {
     Decimal totalEquity =
         equity.fold(Decimal.zero, (sum, item) => sum + item.netBalance);
 
+    // Calculate net income (revenue - expenses) for the period
+    final incomeStatement = await getIncomeStatement(
+      startDate: DateTime(2000),
+      endDate: date,
+    );
+    final netIncome = incomeStatement.netIncome;
+
+    // Add net income to equity for a balanced balance sheet
+    totalEquity += netIncome;
+
     return BalanceSheet(
       assets: assets,
       liabilities: liabilities,
@@ -604,6 +627,7 @@ class AccountingDao extends DatabaseAccessor<AppDatabase> with SyncLogMixin {
       totalAssets: totalAssets,
       totalLiabilities: totalLiabilities,
       totalEquity: totalEquity,
+      netIncome: netIncome,
     );
   }
 

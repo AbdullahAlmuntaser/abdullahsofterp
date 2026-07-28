@@ -3,8 +3,8 @@ import 'package:supermarket/core/constants/app_enums.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:uuid/uuid.dart';
 import 'package:drift/drift.dart';
-import 'package:supermarket/core/services/fixed_assets_service.dart';
-import 'package:supermarket/core/services/payroll_service.dart';
+import 'package:supermarket/core/services/accounting/fixed_assets_service.dart';
+import 'package:supermarket/core/services/hr/payroll_service.dart';
 import 'package:supermarket/core/services/security_service.dart';
 import 'package:drift/native.dart';
 

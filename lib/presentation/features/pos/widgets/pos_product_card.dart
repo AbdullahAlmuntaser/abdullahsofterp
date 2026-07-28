@@ -114,6 +114,17 @@ class PosProductCard extends StatelessWidget {
         );
       }
     }
+    if (product.remoteUrl != null && product.remoteUrl!.isNotEmpty) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Image.network(
+          product.remoteUrl!,
+          width: double.infinity,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => _defaultIcon(context),
+        ),
+      );
+    }
     return _defaultIcon(context);
   }
 

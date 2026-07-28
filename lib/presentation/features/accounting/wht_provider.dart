@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:supermarket/core/services/withholding_tax_service.dart';
+import 'package:supermarket/core/services/accounting/withholding_tax_service.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
 
 class WhtProvider with ChangeNotifier {

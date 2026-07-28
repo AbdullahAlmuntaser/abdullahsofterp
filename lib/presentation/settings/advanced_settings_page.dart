@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supermarket/core/services/app_config_service.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
+import 'package:supermarket/l10n/app_localizations.dart';
 
 class AdvancedSettingsPage extends StatefulWidget {
   const AdvancedSettingsPage({super.key});
@@ -40,6 +41,7 @@ class AdvancedSettingsPageState extends State<AdvancedSettingsPage> {
   }
 
   Future<void> _saveSettings() async {
+    final l10n = AppLocalizations.of(context)!;
     try {
       await _configService.setBool('allow_negative_stock', _allowNegativeStock);
       await _configService.setDouble('tax_rate', _taxRate);
@@ -47,8 +49,8 @@ class AdvancedSettingsPageState extends State<AdvancedSettingsPage> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('تم حفظ الإعدادات بنجاح'),
+          SnackBar(
+            content: Text(l10n.tmHfzAliadadatBnjah),
             backgroundColor: Colors.green,
           ),
         );
@@ -57,7 +59,7 @@ class AdvancedSettingsPageState extends State<AdvancedSettingsPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('خطأ في حفظ الإعدادات: $e'),
+            content: Text(l10n.errorSavingSettings(e.toString())),
             backgroundColor: Colors.red,
           ),
         );
@@ -67,13 +69,15 @@ class AdvancedSettingsPageState extends State<AdvancedSettingsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('الإعدادات المتقدمة'),
+        title: Text(l10n.aliadadatAlmtqdmh),
         actions: [
           IconButton(
             icon: const Icon(Icons.save),
@@ -86,8 +90,8 @@ class AdvancedSettingsPageState extends State<AdvancedSettingsPage> {
         children: [
           Card(
             child: SwitchListTile(
-              title: const Text('السماح بالمخزون السلبي'),
-              subtitle: const Text('السماح ببيع منتجات بدون رصيد كافٍ'),
+              title: Text(l10n.alsmahBalmkhzwnAlslby),
+              subtitle: Text(l10n.alsmahBbyaMntjatBdwnRsydKaf),
               value: _allowNegativeStock,
               onChanged: (value) {
                 setState(() => _allowNegativeStock = value);
@@ -101,7 +105,7 @@ class AdvancedSettingsPageState extends State<AdvancedSettingsPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('نسبة الضريبة (${(_taxRate * 100).toStringAsFixed(1)}%)',
+                  Text('${l10n.nsbhAldrybh} (${(_taxRate * 100).toStringAsFixed(1)}%)',
                       style: const TextStyle(
                           fontSize: 18, fontWeight: FontWeight.bold)),
                   Slider(
@@ -114,34 +118,7 @@ class AdvancedSettingsPageState extends State<AdvancedSettingsPage> {
                       setState(() => _taxRate = value);
                     },
                   ),
-                  const Text('تتراوح بين 0% و 25%',
-                      style: TextStyle(color: Colors.grey)),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('حد التنبيه للمخزون المنخفض',
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  Slider(
-                    value: _lowStockThreshold.toDouble(),
-                    min: 0,
-                    max: 100,
-                    divisions: 100,
-                    label: _lowStockThreshold.toString(),
-                    onChanged: (value) {
-                      setState(() => _lowStockThreshold = value.toInt());
-                    },
-                  ),
-                  Text(
-                      'سيتم التنبيه عندما يقل الرصيد عن $_lowStockThreshold وحدات',
+                  Text(l10n.ttrawhByn0W25,
                       style: const TextStyle(color: Colors.grey)),
                 ],
               ),
@@ -154,18 +131,44 @@ class AdvancedSettingsPageState extends State<AdvancedSettingsPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('المعرفات الافتراضية',
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  Text(l10n.hdAltnbyhLlmkhzwnAlmnkhfd,
+                      style: const TextStyle(
+                          fontSize: 18, fontWeight: FontWeight.bold)),
+                  Slider(
+                    value: _lowStockThreshold.toDouble(),
+                    min: 0,
+                    max: 100,
+                    divisions: 100,
+                    label: _lowStockThreshold.toString(),
+                    onChanged: (value) {
+                      setState(() => _lowStockThreshold = value.toInt());
+                    },
+                  ),
+                  Text(l10n.lowStockAlertThreshold(_lowStockThreshold.toString()),
+                      style: const TextStyle(color: Colors.grey)),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(l10n.almarfatAlaftradyh,
+                      style: const TextStyle(
+                          fontSize: 18, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
                   ListTile(
                     leading: const Icon(Icons.warehouse),
-                    title: const Text('المستودع الافتراضي'),
+                    title: Text(l10n.almstwdaAlaftrady),
                     subtitle: Text(_defaultWarehouse),
                   ),
                   ListTile(
                     leading: const Icon(Icons.business),
-                    title: const Text('الفرع الافتراضي'),
+                    title: Text(l10n.alfraAlaftrady),
                     subtitle: Text(_defaultBranch),
                   ),
                 ],
@@ -176,7 +179,7 @@ class AdvancedSettingsPageState extends State<AdvancedSettingsPage> {
           ElevatedButton.icon(
             onPressed: _saveSettings,
             icon: const Icon(Icons.save),
-            label: const Text('حفظ التغييرات'),
+            label: Text(l10n.hfzAltghyyrat),
             style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16),
             ),

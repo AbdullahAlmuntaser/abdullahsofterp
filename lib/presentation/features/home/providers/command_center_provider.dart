@@ -331,6 +331,13 @@ class CommandCenterProvider extends ChangeNotifier {
 
   // ─── Recent Operations ───
 
+  Future<void> clearHistory() async {
+    _recentOperations.clear();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList('cc_recent_ops', []);
+    notifyListeners();
+  }
+
   Future<void> addRecentOperation(RecentOperation op) async {
     _recentOperations.removeWhere((r) => r.route == op.route);
     _recentOperations.insert(0, op);

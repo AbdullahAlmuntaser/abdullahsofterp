@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:supermarket/core/services/supplier_analytics_service.dart';
+import 'package:supermarket/core/services/purchases/supplier_analytics_service.dart';
 import 'package:supermarket/injection_container.dart';
 
 class SupplierPerformancePage extends StatefulWidget {

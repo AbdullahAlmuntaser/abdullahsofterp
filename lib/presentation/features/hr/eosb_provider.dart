@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:supermarket/core/services/eosb_service.dart';
+import 'package:supermarket/core/services/hr/eosb_service.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
 
 class EOSBProvider with ChangeNotifier {

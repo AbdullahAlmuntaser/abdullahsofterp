@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
-import 'package:supermarket/core/services/hr_service.dart';
+import 'package:supermarket/core/services/hr/hr_service.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:supermarket/presentation/widgets/app_snack_bar.dart';
 import 'package:supermarket/presentation/widgets/money_form_field.dart';

@@ -1981,7 +1981,31 @@
   "mnjz": "مُنجَز",
   "nsbhAlinjaz": "نسبة الإنجاز",
   "nsbhAlsywlh": "نسبة السيولة",
-  "nsbhAldrybh": "نسبة الضريبة (%)",
+  "nsbhAldrybh": "نسبة الضريبة",
+  "errorSavingSettings": "Error saving settings: {error}",
+  "@errorSavingSettings": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "lowStockAlertThreshold": "Alert when stock falls below {threshold} units",
+  "@lowStockAlertThreshold": {
+    "placeholders": {
+      "threshold": {}
+    }
+  },
+  "errorLoadingPromotions": "Error loading promotions: {error}",
+  "@errorLoadingPromotions": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "promotionValue": "Value {value}",
+  "@promotionValue": {
+    "placeholders": {
+      "value": {}
+    }
+  },
   "nsbhAlamwlh": "نسبة العمولة (%)",
   "nsbhAlhamsh": "نسبة الهامش %",
   "nshrAlmbyaat": "نشر المبيعات",
@@ -2097,5 +2121,11 @@
   },
   "posMustOpenShift": "You must open a shift first",
   "posCreditLimitExceeded": "Customer credit limit exceeded",
-  "posLoyaltyReason": "Loyalty program"
+  "posLoyaltyReason": "Loyalty program",
+  "productIdLabel": "Product: {id}",
+  "@productIdLabel": {
+    "placeholders": {
+      "id": {}
+    }
+  }
 }

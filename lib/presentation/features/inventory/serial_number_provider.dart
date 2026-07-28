@@ -1,6 +1,6 @@
 import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
-import 'package:supermarket/core/services/serial_number_service.dart';
+import 'package:supermarket/core/services/inventory/serial_number_service.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
 
 class SerialNumberProvider with ChangeNotifier {

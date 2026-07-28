@@ -54,6 +54,8 @@ class NotificationService extends ChangeNotifier {
   final StreamController<List<AppNotification>> _controller =
       StreamController<List<AppNotification>>.broadcast();
 
+  static const int maxSize = 200;
+
   Stream<List<AppNotification>> get notificationsStream async* {
     yield List.unmodifiable(_notifications);
     yield* _controller.stream;
@@ -84,6 +86,11 @@ class NotificationService extends ChangeNotifier {
       severity: severity,
     );
     _notifications.insert(0, n);
+
+    if (_notifications.length > maxSize) {
+      _notifications.removeRange(maxSize, _notifications.length);
+    }
+
     _emit();
   }
 

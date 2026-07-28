@@ -181,15 +181,20 @@ class _ProformaInvoicesPageState extends State<ProformaInvoicesPage> {
     );
   }
 
-  void _handleAction(BuildContext context, String action, ProformaInvoice proforma) {
+  Future<void> _handleAction(BuildContext context, String action, ProformaInvoice proforma) async {
     final provider = context.read<ProformaProvider>();
     switch (action) {
       case 'cancel':
         provider.cancelProforma(proforma.id);
-        AppSnackBar.success(context, 'تم إلغاء العرض');
+        if (context.mounted) {
+          AppSnackBar.success(context, 'تم إلغاء العرض');
+        }
         break;
       case 'convert':
-        AppSnackBar.info(context, 'تحويل لفاتورة - قيد التطوير');
+        await provider.convertToInvoice(proforma.id);
+        if (context.mounted) {
+          AppSnackBar.success(context, 'تم تحويل عرض السعر إلى فاتورة');
+        }
         break;
     }
   }

@@ -10,6 +10,7 @@ import 'package:sqlite3/open.dart';
 
 // Import ffi only on platforms that support it
 import 'dart:ffi' if (dart.library.js) 'package:supermarket/dummy_ffi.dart';
+import 'package:supermarket/core/exceptions/app_exception.dart';
 
 /// Tracks which library was loaded: true = SQLCipher, false = standard SQLite
 bool _sqlCipherLoaded = false;
@@ -105,8 +106,8 @@ void applyNativeSqlOverride() {
     } catch (_) {}
 
     // If nothing works, throw a clear error
-    throw Exception(
-        'NATIVE_LIBRARY_LOAD_FAILED: Cannot load SQLCipher or SQLite library. '
+    throw BusinessException(
+        message: 'NATIVE_LIBRARY_LOAD_FAILED: Cannot load SQLCipher or SQLite library. '
         'Ensure sqlcipher_flutter_libs is properly included in your Android build. '
         'Tried candidates: ${sqlCipherCandidates.join(", ")}, ${sqliteCandidates.join(", ")}');
   });

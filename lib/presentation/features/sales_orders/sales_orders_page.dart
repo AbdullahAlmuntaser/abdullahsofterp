@@ -5,7 +5,7 @@ import 'package:drift/drift.dart' as drift;
 import 'package:provider/provider.dart';
 import 'package:supermarket/core/auth/auth_provider.dart';
 import 'package:supermarket/core/services/notification_service.dart';
-import 'package:supermarket/core/services/sales_order_service.dart';
+import 'package:supermarket/core/services/sales/sales_order_service.dart';
 import 'package:supermarket/core/services/permission_service.dart';
 import 'package:supermarket/injection_container.dart' as di;
 import 'package:supermarket/data/datasources/local/app_database.dart';

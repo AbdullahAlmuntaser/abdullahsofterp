@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:supermarket/l10n/app_localizations.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:supermarket/presentation/widgets/shared/period_filter_widget.dart';
 import 'package:supermarket/presentation/widgets/entity_picker.dart';
@@ -36,10 +37,11 @@ class _ItemMovementReportPageState extends State<ItemMovementReportPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final db = Provider.of<AppDatabase>(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('تقرير حركة الصنف')),
+      appBar: AppBar(title: Text(l10n.tqryrHrkhAlsnf)),
       body: Column(
         children: [
           Padding(
@@ -74,12 +76,12 @@ class _ItemMovementReportPageState extends State<ItemMovementReportPage> {
                 scrollDirection: Axis.horizontal,
                 child: SingleChildScrollView(
                   child: DataTable(
-                    columns: const [
-                      DataColumn(label: Text('التاريخ')),
-                      DataColumn(label: Text('النوع')),
-                      DataColumn(label: Text('الكمية')),
-                      DataColumn(label: Text('التكلفة')),
-                      DataColumn(label: Text('المرجع')),
+                    columns: [
+                      DataColumn(label: Text(l10n.date)),
+                      DataColumn(label: Text(l10n.alnwa)),
+                      DataColumn(label: Text(l10n.quantityLabel)),
+                      DataColumn(label: Text(l10n.cost)),
+                      DataColumn(label: Text(l10n.reference)),
                     ],
                     rows: _movements!.map((m) {
                       return DataRow(cells: [

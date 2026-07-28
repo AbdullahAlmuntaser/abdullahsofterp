@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:uuid/uuid.dart';
 import 'package:supermarket/core/services/app_config_service.dart';
+import 'package:supermarket/core/exceptions/app_exception.dart';
 
 /// Multi-level approval chain configuration and execution.
 /// Supports conditional routing based on amount thresholds.
@@ -58,7 +59,7 @@ class MultiLevelApprovalService {
     final chains = await listChains();
     final chain = chains.firstWhere(
       (c) => c.id == chainId,
-      orElse: () => throw Exception('سلسلة الموافقات غير موجودة'),
+      orElse: () => throw const BusinessException(message: 'سلسلة الموافقات غير موجودة'),
     );
 
     // Determine which level based on amount
@@ -99,10 +100,10 @@ class MultiLevelApprovalService {
     final instances = await _listInstances();
     final index = instances.indexWhere((i) => i.id == instanceId);
 
-    if (index == -1) throw Exception('سلسلة الموافقات غير موجودة');
+    if (index == -1) throw const BusinessException(message: 'سلسلة الموافقات غير موجودة');
 
     final instance = instances[index];
-    if (instance.status != 'PENDING') throw Exception('سلسلة الموافقات غير في حالة انتظار');
+    if (instance.status != 'PENDING') throw const BusinessException(message: 'سلسلة الموافقات غير في حالة انتظار');
 
     final chains = await listChains();
     final chain = chains.firstWhere((c) => c.id == instance.chainId);
@@ -148,10 +149,10 @@ class MultiLevelApprovalService {
     final instances = await _listInstances();
     final index = instances.indexWhere((i) => i.id == instanceId);
 
-    if (index == -1) throw Exception('سلسلة الموافقات غير موجودة');
+    if (index == -1) throw const BusinessException(message: 'سلسلة الموافقات غير موجودة');
 
     final instance = instances[index];
-    if (instance.status != 'PENDING') throw Exception('سلسلة الموافقات غير في حالة انتظار');
+    if (instance.status != 'PENDING') throw const BusinessException(message: 'سلسلة الموافقات غير في حالة انتظار');
 
     final chains = await listChains();
     final chain = chains.firstWhere((c) => c.id == instance.chainId);

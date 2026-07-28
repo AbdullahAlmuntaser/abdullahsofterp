@@ -4,10 +4,10 @@ import 'package:supermarket/core/services/transaction_engine.dart';
 import 'package:supermarket/core/services/event_bus_service.dart';
 import 'package:supermarket/core/services/posting_engine.dart';
 import 'package:supermarket/core/services/packaging_engine.dart';
-import 'package:supermarket/core/services/inventory_costing_service.dart';
-import 'package:supermarket/core/services/budget_service.dart';
+import 'package:supermarket/core/services/inventory/inventory_costing_service.dart';
+import 'package:supermarket/core/services/accounting/budget_service.dart';
 import 'package:supermarket/core/services/approval_workflow_service.dart';
-import 'package:supermarket/core/services/serial_number_service.dart';
+import 'package:supermarket/core/services/inventory/serial_number_service.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
 
 class MockAppDatabase extends Mock implements AppDatabase {}

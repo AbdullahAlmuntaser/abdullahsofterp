@@ -8,6 +8,7 @@ import 'package:sqlite3/sqlite3.dart' as sqlite;
 import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:supermarket/core/services/security_service.dart';
 import 'package:supermarket/core/utils/logger.dart';
+import 'package:supermarket/core/exceptions/app_exception.dart';
 
 class AuthenticatedClient extends http.BaseClient {
   final Map<String, String> _headers;
@@ -109,7 +110,7 @@ class DriveBackupService {
       final dbFile = File(p.join(dbFolder.path, 'app_db.sqlite'));
 
       if (!await dbFile.exists()) {
-        throw Exception('Database file not found');
+        throw const BusinessException(message: 'Database file not found');
       }
 
       final timestamp = DateTime.now().toIso8601String().replaceAll(':', '-');

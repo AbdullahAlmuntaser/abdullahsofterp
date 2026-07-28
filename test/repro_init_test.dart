@@ -12,9 +12,6 @@ import 'package:supermarket/presentation/features/customers/customer_statement_p
 import 'package:supermarket/presentation/features/dashboard/dashboard_provider.dart';
 import 'package:supermarket/presentation/features/home/providers/command_center_provider.dart';
 import 'package:supermarket/presentation/features/products/products_provider.dart';
-import 'package:supermarket/presentation/features/accounting/zakat_provider.dart';
-import 'package:supermarket/presentation/features/hr/eosb_provider.dart';
-import 'package:supermarket/presentation/features/sales/proforma_provider.dart';
 import 'package:supermarket/presentation/features/sales/credit_note_provider.dart';
 import 'package:supermarket/presentation/features/sales/commission_provider.dart';
 import 'package:supermarket/presentation/features/accounting/wht_provider.dart';

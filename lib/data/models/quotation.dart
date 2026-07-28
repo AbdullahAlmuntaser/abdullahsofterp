@@ -8,11 +8,10 @@ String _decimalToJson(Decimal d) => d.toString();
 
 @JsonSerializable()
 class Quotation {
-  final int? id;
+  final String? id;
   final String quotationNumber;
-  final int customerId;
-  final int? branchId;
-  final int? warehouseId;
+  final String customerId;
+  final String? warehouseId;
   final DateTime date;
   final DateTime? expiryDate;
   final String status;
@@ -25,7 +24,7 @@ class Quotation {
   @JsonKey(fromJson: _decimalFromJson, toJson: _decimalToJson)
   final Decimal totalAmount;
   final String? notes;
-  final int? createdBy;
+  final String? createdBy;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -33,7 +32,6 @@ class Quotation {
     this.id,
     required this.quotationNumber,
     required this.customerId,
-    this.branchId,
     this.warehouseId,
     required this.date,
     this.expiryDate,
@@ -54,9 +52,9 @@ class Quotation {
 
 @JsonSerializable()
 class QuotationItem {
-  final int? id;
-  final int quotationId;
-  final int productId;
+  final String? id;
+  final String quotationId;
+  final String productId;
   @JsonKey(fromJson: _decimalFromJson, toJson: _decimalToJson)
   final Decimal quantity;
   @JsonKey(fromJson: _decimalFromJson, toJson: _decimalToJson)

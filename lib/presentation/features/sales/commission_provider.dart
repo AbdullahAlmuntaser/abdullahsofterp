@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:drift/drift.dart' show Value;
-import 'package:supermarket/core/services/sales_commission_service.dart';
+import 'package:supermarket/core/services/sales/sales_commission_service.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
 
 class CommissionProvider with ChangeNotifier {

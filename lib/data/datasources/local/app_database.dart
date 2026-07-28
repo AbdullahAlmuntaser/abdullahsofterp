@@ -28,6 +28,13 @@ import 'daos/audit_dao.dart';
 import 'daos/stock_movement_dao.dart';
 import 'daos/cashbox_dao.dart';
 import 'daos/transfers_dao.dart';
+import 'package:supermarket/data/migrations/v1_to_v32.dart';
+import 'package:supermarket/data/migrations/v32_to_v40.dart';
+import 'package:supermarket/data/migrations/v40_to_v50.dart';
+import 'package:supermarket/data/migrations/v50_to_v55.dart';
+import 'package:supermarket/data/migrations/v55_to_v56.dart';
+import 'package:supermarket/data/migrations/v56_to_v57.dart';
+import 'package:supermarket/data/migrations/v57_to_v58.dart';
 import 'daos/recurring_entry_dao.dart';
 import 'converters/decimal_converter.dart';
 export 'package:decimal/decimal.dart';
@@ -244,7 +251,7 @@ class AppDatabase extends _$AppDatabase {
   static String? encryptionKey;
 
   @override
-  int get schemaVersion => 55;
+  int get schemaVersion => 58;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -267,449 +274,33 @@ class AppDatabase extends _$AppDatabase {
           await seedData();
         },
         onUpgrade: (Migrator m, int from, int to) async {
-          // Direct migration instead of metadata-heavy reflection
-          if (from < 32) {
-            await m.createIndex(Index('products_sku_idx',
-                'CREATE INDEX products_sku_idx ON products (sku)'));
-            await m.createIndex(Index('products_barcode_idx',
-                'CREATE INDEX products_barcode_idx ON products (barcode)'));
-            await m.createIndex(Index('sale_items_sale_id_idx',
-                'CREATE INDEX sale_items_sale_id_idx ON sale_items (sale_id)'));
-            await m.createIndex(Index('purchase_items_purchase_id_idx',
-                'CREATE INDEX purchase_items_purchase_id_idx ON purchase_items (purchase_id)'));
-            await m.createIndex(Index('gl_lines_entry_id_idx',
-                'CREATE INDEX gl_lines_entry_id_idx ON gl_lines (entry_id)'));
-            await m.createIndex(Index('gl_lines_account_id_idx',
-                'CREATE INDEX gl_lines_account_id_idx ON gl_lines (account_id)'));
-            await m.createIndex(Index('stock_movements_product_id_idx',
-                'CREATE INDEX stock_movements_product_id_idx ON stock_movements (product_id)'));
-          }
-          if (from < 33) {
-            try {
-              await m.addColumn(products, products.valuationMethod);
-            } catch (e) {
-              debugPrint('DB Migration v33: valuationMethod: $e');
-            }
-            try {
-              await m.addColumn(products, products.allowFreeQty);
-            } catch (e) {
-              debugPrint('DB Migration v33: allowFreeQty: $e');
-            }
-            try {
-              await m.addColumn(products, products.isService);
-            } catch (e) {
-              debugPrint('DB Migration v33: isService: $e');
-            }
-          }
-          if (from < 34) {
-            try {
-              await m.addColumn(
-                  goodReceivedNotes, goodReceivedNotes.purchaseId);
-            } catch (e) {
-              debugPrint('DB Migration v34: purchaseId: $e');
-            }
-            try {
-              await m.addColumn(
-                  goodReceivedNotes, goodReceivedNotes.supplierId);
-            } catch (e) {
-              debugPrint('DB Migration v34: supplierId: $e');
-            }
-          }
-          if (from < 35) {
-            try {
-              await m.createTable(appConfigTable);
-            } catch (e) {
-              debugPrint('DB Migration v35: appConfigTable: $e');
-            }
-          }
-          if (from < 36) {
-            try {
-              await m.addColumn(sales, sales.shippingCost);
-            } catch (e) {
-              debugPrint('DB Migration v36: shippingCost: $e');
-            }
-            try {
-              await m.addColumn(sales, sales.otherExpenses);
-            } catch (e) {
-              debugPrint('DB Migration v36: otherExpenses: $e');
-            }
-            try {
-              await m.addColumn(sales, sales.warehouseId);
-            } catch (e) {
-              debugPrint('DB Migration v36: warehouseId: $e');
-            }
-            try {
-              await m.addColumn(sales, sales.representativeId);
-            } catch (e) {
-              debugPrint('DB Migration v36: representativeId: $e');
-            }
-          }
-          if (from < 37) {
-            try {
-              await m.createTable(financialTransfers);
-            } catch (e) {
-              debugPrint('DB Migration v37: financialTransfers: $e');
-            }
-          }
-          if (from < 38) {
-            try {
-              await m.createTable(productionOrders);
-              await m.createTable(productionOrderItems);
-            } catch (e) {
-              debugPrint('DB Migration v38: production tables: $e');
-            }
-          }
-          // NOTE: Performance indexes are NOT created here because later
-          // migrations (e.g. from < 42) may recreate tables with new columns.
-          // They are created safely in `beforeOpen` after ALL migrations finish.
-          // Version 40: Currency unification + performance indexes + decimal precision fixes
-          if (from < 40) {
-            await _migrateToV40(m);
-          }
-          // Version 41: User sessions, password hashing, reconciliation details, decimal columns
-          if (from < 41) {
-            await _migrateToV41(m);
-          }
-          if (from < 42) {
-            await _migrateToV42(m);
-          }
-          if (from < 43) {
-            try {
-              await m.addColumn(products, products.imagePath);
-            } catch (e) {
-              debugPrint('DB Migration v43: imagePath: $e');
-            }
-          }
-          if (from < 44) {
-            try {
-              await m.createTable(recurringEntries);
-            } catch (e) {
-              debugPrint('DB Migration v44: recurringEntries: $e');
-            }
-            try {
-              await m.createTable(recurringEntryExecutions);
-            } catch (e) {
-              debugPrint('DB Migration v44: recurringEntryExecutions: $e');
-            }
-          }
-          if (from < 45) {
-            try { await m.createTable(leaveTypes); } catch (e) { debugPrint('DB Migration v45: leaveTypes: $e'); }
-            try { await m.createTable(leaveRequests); } catch (e) { debugPrint('DB Migration v45: leaveRequests: $e'); }
-            try { await m.createTable(leaveBalances); } catch (e) { debugPrint('DB Migration v45: leaveBalances: $e'); }
-            try { await m.createTable(attendanceRecords); } catch (e) { debugPrint('DB Migration v45: attendanceRecords: $e'); }
-            try { await m.createTable(withholdingTaxEntries); } catch (e) { debugPrint('DB Migration v45: withholdingTaxEntries: $e'); }
-            try { await m.createTable(serialNumbers); } catch (e) { debugPrint('DB Migration v45: serialNumbers: $e'); }
-            try { await m.createTable(creditNotes); } catch (e) { debugPrint('DB Migration v45: creditNotes: $e'); }
-            try { await m.createTable(creditNoteItems); } catch (e) { debugPrint('DB Migration v45: creditNoteItems: $e'); }
-            try { await m.createTable(salesTargets); } catch (e) { debugPrint('DB Migration v45: salesTargets: $e'); }
-            try { await m.createTable(salesCommissions); } catch (e) { debugPrint('DB Migration v45: salesCommissions: $e'); }
-            try { await m.createTable(zakatCalculations); } catch (e) { debugPrint('DB Migration v45: zakatCalculations: $e'); }
-            try { await m.createTable(endOfServiceBenefits); } catch (e) { debugPrint('DB Migration v45: endOfServiceBenefits: $e'); }
-            try { await m.createTable(inventoryReservations); } catch (e) { debugPrint('DB Migration v45: inventoryReservations: $e'); }
-          }
-          if (from < 46) {
-            try {
-              await m.createTable(proformaInvoices);
-            } catch (e) {
-              debugPrint('DB Migration v46: proformaInvoices: $e');
-            }
-            try {
-              await m.createTable(proformaInvoiceItems);
-            } catch (e) {
-              debugPrint('DB Migration v46: proformaInvoiceItems: $e');
-            }
-          }
-          if (from < 47) {
-            // Version 47: Critical Missing Tables Recovery (Self-healing)
-            await _recoverMissingTables(m);
-          }
-          if (from < 48) {
-            try {
-              await customStatement('ALTER TABLE posting_profiles ADD COLUMN branch_id TEXT REFERENCES branches(id)');
-            } catch (e) {
-              debugPrint('DB Migration v48: branch_id: $e');
-            }
-          }
-          if (from < 49) {
-            // Version 49: Convert REAL monetary columns to INTEGER cents
-            for (final stmt in _migrateToV49Statements) {
-              try {
-                await customStatement(stmt);
-              } catch (e) {
-                debugPrint('DB Migration v49: Failed executing statement: $e');
-              }
-            }
-          }
-          if (from < 50) {
-            // Version 50: Add security tables (user_sessions, login_attempts)
-            // and add ReconciliationDetails to schema
-            try {
-              await m.createTable(userSessions);
-            } catch (e) {
-              debugPrint('DB Migration v50: userSessions already exists or failed: $e');
-            }
-            try {
-              await m.createTable(loginAttempts);
-            } catch (e) {
-              debugPrint('DB Migration v50: loginAttempts already exists or failed: $e');
-            }
-          }
-          if (from < 51) {
-            // Version 51: Add missing composite indexes for performance
-            try {
-              await customStatement(
-                  'CREATE INDEX IF NOT EXISTS inventory_transactions_product_warehouse_idx '
-                  'ON inventory_transactions (product_id, warehouse_id)');
-            } catch (e) {
-              debugPrint('DB Migration v51: inventory_transactions_product_warehouse_idx: $e');
-            }
-            try {
-              await customStatement(
-                  'CREATE INDEX IF NOT EXISTS inventory_transactions_reference_id_idx '
-                  'ON inventory_transactions (reference_id)');
-            } catch (e) {
-              debugPrint('DB Migration v51: inventory_transactions_reference_id_idx: $e');
-            }
-            try {
-              await customStatement(
-                  'CREATE INDEX IF NOT EXISTS account_transactions_reference_id_idx '
-                  'ON account_transactions (reference_id)');
-            } catch (e) {
-              debugPrint('DB Migration v51: account_transactions_reference_id_idx: $e');
-            }
-            try {
-              await customStatement(
-                  'CREATE INDEX IF NOT EXISTS account_transactions_reconciled_idx '
-                  'ON account_transactions (reconciled)');
-            } catch (e) {
-              debugPrint('DB Migration v51: account_transactions_reconciled_idx: $e');
-            }
-          }
-          if (from < 52) {
-            // Version 52: Add missing columns to ItemVariants, CustomerPayments, SupplierPayments
-            // Use raw SQL because addColumn() requires regenerated .g.dart types
-            try {
-              await customStatement(
-                  'ALTER TABLE item_variants ADD COLUMN product_id TEXT REFERENCES products(id)');
-            } catch (e) {
-              debugPrint('DB Migration v52: item_variants.product_id: $e');
-            }
-            try {
-              await customStatement(
-                  'ALTER TABLE item_variants ADD COLUMN attribute_name TEXT NOT NULL DEFAULT \'\'');
-            } catch (e) {
-              debugPrint('DB Migration v52: item_variants.attribute_name: $e');
-            }
-            try {
-              await customStatement(
-                  'ALTER TABLE item_variants ADD COLUMN attribute_value TEXT NOT NULL DEFAULT \'\'');
-            } catch (e) {
-              debugPrint('DB Migration v52: item_variants.attribute_value: $e');
-            }
-            try {
-              await customStatement(
-                  'ALTER TABLE item_variants ADD COLUMN additional_price TEXT NOT NULL DEFAULT \'0\'');
-            } catch (e) {
-              debugPrint('DB Migration v52: item_variants.additional_price: $e');
-            }
-            try {
-              await customStatement(
-                  'ALTER TABLE item_variants ADD COLUMN sku TEXT');
-            } catch (e) {
-              debugPrint('DB Migration v52: item_variants.sku: $e');
-            }
-            try {
-              await customStatement(
-                  'ALTER TABLE customer_payments ADD COLUMN payment_method TEXT NOT NULL DEFAULT \'cash\'');
-            } catch (e) {
-              debugPrint('DB Migration v52: customer_payments.payment_method: $e');
-            }
-            try {
-              await customStatement(
-                  'ALTER TABLE customer_payments ADD COLUMN reference_number TEXT');
-            } catch (e) {
-              debugPrint('DB Migration v52: customer_payments.reference_number: $e');
-            }
-            try {
-              await customStatement(
-                  'ALTER TABLE customer_payments ADD COLUMN account_id TEXT REFERENCES gl_accounts(id)');
-            } catch (e) {
-              debugPrint('DB Migration v52: customer_payments.account_id: $e');
-            }
-            try {
-              await customStatement(
-                  'ALTER TABLE customer_payments ADD COLUMN status TEXT NOT NULL DEFAULT \'COMPLETED\'');
-            } catch (e) {
-              debugPrint('DB Migration v52: customer_payments.status: $e');
-            }
-            try {
-              await customStatement(
-                  'ALTER TABLE supplier_payments ADD COLUMN payment_method TEXT NOT NULL DEFAULT \'cash\'');
-            } catch (e) {
-              debugPrint('DB Migration v52: supplier_payments.payment_method: $e');
-            }
-            try {
-              await customStatement(
-                  'ALTER TABLE supplier_payments ADD COLUMN reference_number TEXT');
-            } catch (e) {
-              debugPrint('DB Migration v52: supplier_payments.reference_number: $e');
-            }
-            try {
-              await customStatement(
-                  'ALTER TABLE supplier_payments ADD COLUMN account_id TEXT REFERENCES gl_accounts(id)');
-            } catch (e) {
-              debugPrint('DB Migration v52: supplier_payments.account_id: $e');
-            }
-          }
-          if (from < 53) {
-            // Version 53: Create missing tables (approvals, quotations) for existing databases
-            // Use raw SQL because Drift generator hasn't created accessors for these new tables yet
-            const v53Tables = {
-              'approval_workflows': '''
-                CREATE TABLE IF NOT EXISTS approval_workflows (
-                  id INTEGER PRIMARY KEY AUTOINCREMENT,
-                  name TEXT NOT NULL,
-                  document_type TEXT NOT NULL,
-                  condition_type TEXT,
-                  condition_value REAL,
-                  operator TEXT,
-                  level_order INTEGER DEFAULT 1,
-                  is_active INTEGER DEFAULT 1,
-                  created_at TEXT DEFAULT CURRENT_TIMESTAMP
-                )''',
-              'approval_levels': '''
-                CREATE TABLE IF NOT EXISTS approval_levels (
-                  id INTEGER PRIMARY KEY AUTOINCREMENT,
-                  workflow_id INTEGER NOT NULL,
-                  level_order INTEGER NOT NULL,
-                  role TEXT,
-                  user_id INTEGER,
-                  min_amount REAL,
-                  max_amount REAL,
-                  requires_signature INTEGER DEFAULT 0
-                )''',
-              'approval_requests': '''
-                CREATE TABLE IF NOT EXISTS approval_requests (
-                  id INTEGER PRIMARY KEY AUTOINCREMENT,
-                  document_type TEXT NOT NULL,
-                  document_id INTEGER NOT NULL,
-                  workflow_id INTEGER NOT NULL,
-                  current_level INTEGER DEFAULT 1,
-                  status TEXT DEFAULT 'pending',
-                  requested_by INTEGER,
-                  requested_at TEXT DEFAULT CURRENT_TIMESTAMP,
-                  completed_at TEXT
-                )''',
-              'approval_history': '''
-                CREATE TABLE IF NOT EXISTS approval_history (
-                  id INTEGER PRIMARY KEY AUTOINCREMENT,
-                  request_id INTEGER NOT NULL,
-                  level_order INTEGER NOT NULL,
-                  approver_id INTEGER,
-                  approver_role TEXT,
-                  action TEXT NOT NULL,
-                  comments TEXT,
-                  action_date TEXT DEFAULT CURRENT_TIMESTAMP
-                )''',
-              'quotations': '''
-                CREATE TABLE IF NOT EXISTS quotations (
-                  id INTEGER PRIMARY KEY AUTOINCREMENT,
-                  quotation_number TEXT UNIQUE NOT NULL,
-                  customer_id INTEGER NOT NULL,
-                  branch_id INTEGER,
-                  warehouse_id INTEGER,
-                  date TEXT NOT NULL,
-                  expiry_date TEXT,
-                  status TEXT DEFAULT 'draft',
-                  subtotal TEXT DEFAULT '0',
-                  discount_total TEXT DEFAULT '0',
-                  tax_total TEXT DEFAULT '0',
-                  total_amount TEXT DEFAULT '0',
-                  notes TEXT,
-                  created_by INTEGER,
-                  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-                  updated_at TEXT DEFAULT CURRENT_TIMESTAMP
-                )''',
-              'quotation_items': '''
-                CREATE TABLE IF NOT EXISTS quotation_items (
-                  id INTEGER PRIMARY KEY AUTOINCREMENT,
-                  quotation_id INTEGER NOT NULL,
-                  product_id INTEGER NOT NULL,
-                  quantity TEXT NOT NULL DEFAULT '0',
-                  unit_price TEXT NOT NULL DEFAULT '0',
-                  discount_percent TEXT DEFAULT '0',
-                  discount_amount TEXT DEFAULT '0',
-                  tax_percent TEXT DEFAULT '0',
-                  tax_amount TEXT DEFAULT '0',
-                  total_amount TEXT NOT NULL DEFAULT '0',
-                  notes TEXT
-                )''',
-            };
-            for (final entry in v53Tables.entries) {
-              try {
-                await customStatement(entry.value);
-                debugPrint('DB Migration v53: Created table ${entry.key}');
-              } catch (e) {
-                debugPrint('DB Migration v53: Failed to create ${entry.key}: $e');
-              }
-            }
-            // Add indexes for the new tables
-            try {
-              await customStatement(
-                  'CREATE INDEX IF NOT EXISTS idx_approval_requests_status ON approval_requests(status)');
-            } catch (e) {
-              debugPrint('DB Migration v53: idx_approval_requests_status: $e');
-            }
-            try {
-              await customStatement(
-                  'CREATE INDEX IF NOT EXISTS idx_quotations_customer ON quotations(customer_id)');
-            } catch (e) {
-              debugPrint('DB Migration v53: idx_quotations_customer: $e');
-            }
-            try {
-              await customStatement(
-                  'CREATE INDEX IF NOT EXISTS idx_quotation_items_quotation ON quotation_items(quotation_id)');
-            } catch (e) {
-              debugPrint('DB Migration v53: idx_quotation_items_quotation: $e');
-            }
-          }
-          if (from < 54) {
-            // Version 54: Add reservedQuantity + storedUnitId columns to product_batches
-            try {
-              await customStatement(
-                  'ALTER TABLE product_batches ADD COLUMN reserved_quantity TEXT NOT NULL DEFAULT \'0\'');
-            } catch (e) {
-              debugPrint('DB Migration v54: reserved_quantity: $e');
-            }
-            try {
-              await customStatement(
-                  'ALTER TABLE product_batches ADD COLUMN stored_unit_id TEXT');
-            } catch (e) {
-              debugPrint('DB Migration v54: stored_unit_id: $e');
-            }
-            try {
-              await customStatement(
-                  'ALTER TABLE product_batches ADD COLUMN quantity_in_stored_unit TEXT');
-            } catch (e) {
-              debugPrint('DB Migration v54: quantity_in_stored_unit: $e');
-            }
-          }
-          if (from < 55) {
-            // Version 55: Add accounting_period_id to audit_logs
-            try {
-              await customStatement(
-                  'ALTER TABLE audit_logs ADD COLUMN accounting_period_id TEXT REFERENCES accounting_periods(id)');
-            } catch (e) {
-              debugPrint('DB Migration v55: accounting_period_id: $e');
-            }
-            // Add display_unit_id column to products if missing
-            try {
-              await customStatement(
-                  'ALTER TABLE products ADD COLUMN display_unit_id TEXT REFERENCES product_units(id)');
-            } catch (e) {
-              debugPrint('DB Migration v55: display_unit_id: $e');
-            }
-          }
+          if (from < 32) { await migrateV1ToV32(this, m); }
+          if (from < 33) { await migrateV32ToV33(this, m); }
+          if (from < 34) { await migrateV33ToV34(this, m); }
+          if (from < 35) { await migrateV34ToV35(this, m); }
+          if (from < 36) { await migrateV35ToV36(this, m); }
+          if (from < 37) { await migrateV36ToV37(this, m); }
+          if (from < 38) { await migrateV37ToV38(this, m); }
+          if (from < 39) { await migrateV38ToV39(this, m); }
+          if (from < 40) { await migrateV39ToV40(this, m); }
+          if (from < 41) { await migrateV40ToV41(this, m); }
+          if (from < 42) { await migrateV41ToV42(this, m); }
+          if (from < 43) { await migrateV42ToV43(this, m); }
+          if (from < 44) { await migrateV43ToV44(this, m); }
+          if (from < 45) { await migrateV44ToV45(this, m); }
+          if (from < 46) { await migrateV45ToV46(this, m); }
+          if (from < 47) { await migrateV46ToV47(this, m); }
+          if (from < 48) { await migrateV47ToV48(this, m); }
+          if (from < 49) { await migrateV48ToV49(this, m); }
+          if (from < 50) { await migrateV49ToV50(this, m); }
+          if (from < 51) { await migrateV50ToV51(this, m); }
+          if (from < 52) { await migrateV51ToV52(this, m); }
+          if (from < 53) { await migrateV52ToV53(this, m); }
+          if (from < 54) { await migrateV53ToV54(this, m); }
+          if (from < 55) { await migrateV54ToV55(this, m); }
+          if (from < 56) { await migrateV55ToV56(this, m); }
+          if (from < 57) { await migrateV56ToV57(this, m); }
+          if (from < 58) { await migrateV57ToV58(this, m); }
         },
         beforeOpen: (details) async {
           await customStatement('PRAGMA foreign_keys = ON;');
@@ -727,7 +318,7 @@ class AppDatabase extends _$AppDatabase {
             await _ensureMissingTables();
             // Skip recovery check if already verified (stored in app_config_table)
             if (!await _isRecoveryVerified()) {
-              await _recoverMissingTables(createMigrator());
+              await recoverMissingTables(createMigrator());
               await _markRecoveryVerified();
             }
             // Skip core data seeding if already verified
@@ -887,7 +478,7 @@ class AppDatabase extends _$AppDatabase {
     }
   }
 
-  Future<void> _recoverMissingTables(Migrator m) async {
+  Future<void> recoverMissingTables(Migrator m) async {
     // Single query to get all existing table names (instead of 105 individual queries)
     final existingRows = await customSelect(
       "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'",
@@ -1362,78 +953,6 @@ class AppDatabase extends _$AppDatabase {
       }
     } catch (e) {
       debugPrint('Error seeding default accounting period: $e');
-    }
-  }
-
-  Future<void> _migrateToV40(Migrator m) async {
-    try {
-      await m.createTable(currencies);
-      await m.createTable(exchangeRates);
-      await ensureDefaultCurrencies();
-    } catch (e) {
-      debugPrint('Migration to V40 failed: $e');
-    }
-  }
-
-  Future<void> _migrateToV41(Migrator m) async {
-    try {
-      await m.createTable(appConfigTable);
-    } catch (e) {
-      debugPrint('Migration to V41 failed: $e');
-    }
-  }
-
-  static final List<String> _migrateToV49Statements = [
-    'UPDATE ap_invoices SET total_amount = CAST(ROUND(total_amount * 100) AS INTEGER)',
-    'UPDATE ar_invoices SET total_amount = CAST(ROUND(total_amount * 100) AS INTEGER)',
-    'UPDATE hr_employees SET basic_salary = CAST(ROUND(basic_salary * 100) AS INTEGER), housing_allowance = CAST(ROUND(housing_allowance * 100) AS INTEGER), transport_allowance = CAST(ROUND(transport_allowance * 100) AS INTEGER), other_allowances = CAST(ROUND(other_allowances * 100) AS INTEGER), total_deductions = CAST(ROUND(total_deductions * 100) AS INTEGER)',
-    'UPDATE hr_payroll_runs SET total_salaries = CAST(ROUND(total_salaries * 100) AS INTEGER), total_allowances = CAST(ROUND(total_allowances * 100) AS INTEGER), total_deductions = CAST(ROUND(total_deductions * 100) AS INTEGER), net_payable = CAST(ROUND(net_payable * 100) AS INTEGER)',
-    'UPDATE hr_payroll_details SET basic_salary = CAST(ROUND(basic_salary * 100) AS INTEGER), housing_allowance = CAST(ROUND(housing_allowance * 100) AS INTEGER), transport_allowance = CAST(ROUND(transport_allowance * 100) AS INTEGER), other_allowances = CAST(ROUND(other_allowances * 100) AS INTEGER), gross_salary = CAST(ROUND(gross_salary * 100) AS INTEGER), deductions = CAST(ROUND(deductions * 100) AS INTEGER), net_salary = CAST(ROUND(net_salary * 100) AS INTEGER)',
-    'UPDATE hr_additional_deductions SET amount = CAST(ROUND(amount * 100) AS INTEGER)',
-  ];
-
-  Future<void> _migrateToV42(Migrator m) async {
-    final tablesToRecreate = [
-      (stockTakeItems, 'stock_take_items'),
-      (goodReceivedNoteItems, 'good_received_note_items'),
-      (deliveryNoteItems, 'delivery_note_items'),
-      (checks, 'checks'),
-      (purchaseOrders, 'purchase_orders'),
-      (purchaseOrderItems, 'purchase_order_items'),
-      (salesOrders, 'sales_orders'),
-      (salesOrderItems, 'sales_order_items'),
-      (customerPaymentLinks, 'customer_payment_links'),
-    ];
-
-    for (final entry in tablesToRecreate) {
-      final table = entry.$1 as TableInfo;
-      final name = entry.$2;
-      try {
-        await m.deleteTable(name);
-        await m.createTable(table);
-      } catch (e) {
-        debugPrint('Migration to V42: Failed to recreate $name (might not exist): $e');
-        try {
-          await m.createTable(table);
-        } catch (_) {}
-      }
-    }
-
-    try {
-      final accCurrenciesExists = await customSelect(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name='acc_currencies'",
-      ).getSingleOrNull();
-
-      if (accCurrenciesExists != null) {
-        await customStatement(
-            "INSERT OR IGNORE INTO currencies (id, code, name, exchange_rate, is_base) "
-            "SELECT CAST(id AS TEXT), code, name, exchange_rate, is_base FROM acc_currencies");
-
-        await m.deleteTable('acc_currencies');
-        await m.deleteTable('acc_exchange_rates');
-      }
-    } catch (e) {
-      debugPrint('Migration to V42 (Currency Copy) failed: $e');
     }
   }
 

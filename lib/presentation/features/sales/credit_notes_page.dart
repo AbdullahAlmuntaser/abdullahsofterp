@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:drift/drift.dart' show OrderingTerm;
 import 'package:supermarket/data/datasources/local/app_database.dart';
-import 'package:supermarket/core/services/credit_note_service.dart';
+import 'package:supermarket/core/services/sales/credit_note_service.dart';
 import 'package:supermarket/presentation/features/sales/credit_note_provider.dart';
 import 'package:supermarket/presentation/widgets/app_snack_bar.dart';
 import 'package:supermarket/core/auth/auth_provider.dart';

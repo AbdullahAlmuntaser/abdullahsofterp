@@ -4,6 +4,7 @@ import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:supermarket/injection_container.dart' as di;
 import 'package:supermarket/core/utils/export_service.dart';
 import 'package:intl/intl.dart';
+import 'package:supermarket/l10n/app_localizations.dart';
 
 class PurchaseReportPage extends StatefulWidget {
   const PurchaseReportPage({super.key});
@@ -38,6 +39,7 @@ class _PurchaseReportPageState extends State<PurchaseReportPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final totalAmount =
         _purchases.fold<double>(0, (sum, p) => sum + p.total.toDouble());
     final totalTax =
@@ -45,7 +47,7 @@ class _PurchaseReportPageState extends State<PurchaseReportPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('تقرير المشتريات'),
+        title: Text(l10n.tqryrAlmshtryat),
         actions: [
           IconButton(
               icon: const Icon(Icons.picture_as_pdf), onPressed: _exportToPdf),
@@ -55,16 +57,16 @@ class _PurchaseReportPageState extends State<PurchaseReportPage> {
       ),
       body: Column(
         children: [
-          _buildDateFilter(),
+          _buildDateFilter(l10n),
           Container(
             padding: const EdgeInsets.all(12),
             color: Theme.of(context).colorScheme.primaryContainer,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _statItem('عدد الفواتير', '${_purchases.length}'),
-                _statItem('الإجمالي', '${totalAmount.toStringAsFixed(2)} ر.س'),
-                _statItem('الضريبة', '${totalTax.toStringAsFixed(2)} ر.س'),
+                _statItem(l10n.addAlfwatyr, '${_purchases.length}'),
+                _statItem(l10n.total, '${totalAmount.toStringAsFixed(2)} ${l10n.currencySar}'),
+                _statItem(l10n.tax, '${totalTax.toStringAsFixed(2)} ${l10n.currencySar}'),
               ],
             ),
           ),
@@ -76,11 +78,10 @@ class _PurchaseReportPageState extends State<PurchaseReportPage> {
                     itemBuilder: (context, index) {
                       final purchase = _purchases[index];
                       return ListTile(
-                        title: Text(
-                            'فاتورة #${purchase.invoiceNumber ?? purchase.id.substring(0, 8)}'),
+                        title: Text(l10n.invoiceHash(purchase.invoiceNumber ?? purchase.id.substring(0, 8))),
                         subtitle: Text(
                             DateFormat('yyyy-MM-dd').format(purchase.date)),
-                        trailing: Text('${purchase.total} ر.س',
+                        trailing: Text('${purchase.total} ${l10n.currencySar}',
                             style:
                                 const TextStyle(fontWeight: FontWeight.bold)),
                       );
@@ -92,7 +93,7 @@ class _PurchaseReportPageState extends State<PurchaseReportPage> {
     );
   }
 
-  Widget _buildDateFilter() {
+  Widget _buildDateFilter(AppLocalizations l10n) {
     return Padding(
       padding: const EdgeInsets.all(8),
       child: Row(
@@ -112,7 +113,7 @@ class _PurchaseReportPageState extends State<PurchaseReportPage> {
                   });
                 }
               },
-              child: Text('من: ${DateFormat('yyyy-MM-dd').format(_startDate)}'),
+              child: Text('${l10n.mn}: ${DateFormat('yyyy-MM-dd').format(_startDate)}'),
             ),
           ),
           const SizedBox(width: 8),
@@ -131,7 +132,7 @@ class _PurchaseReportPageState extends State<PurchaseReportPage> {
                   });
                 }
               },
-              child: Text('إلى: ${DateFormat('yyyy-MM-dd').format(_endDate)}'),
+              child: Text('${l10n.ila}: ${DateFormat('yyyy-MM-dd').format(_endDate)}'),
             ),
           ),
         ],

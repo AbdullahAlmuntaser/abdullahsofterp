@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
+import 'package:supermarket/l10n/app_localizations.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:supermarket/injection_container.dart' as di;
 import 'package:supermarket/core/utils/export_service.dart';
@@ -41,9 +42,10 @@ class _StockMovementReportPageState extends State<StockMovementReportPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('تقرير حركة المخزون'),
+        title: Text(l10n.tqryrHrkhAlmkhzwn),
         actions: [
           IconButton(
               icon: const Icon(Icons.picture_as_pdf), onPressed: _export),
@@ -52,7 +54,7 @@ class _StockMovementReportPageState extends State<StockMovementReportPage> {
       ),
       body: Column(
         children: [
-          _buildFilters(),
+          _buildFilters(l10n),
           Expanded(
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
@@ -65,7 +67,7 @@ class _StockMovementReportPageState extends State<StockMovementReportPage> {
                           _getMovementIcon(m.type),
                           color: _getMovementColor(m.type),
                         ),
-                        title: Text('منتج: ${m.productId.substring(0, 8)}...'),
+                        title: Text(l10n.productIdLabel(m.productId.substring(0, 8))),
                         subtitle: Text('${m.type} - ${m.movementDate}'),
                         trailing: Text(
                           '${m.quantity > Decimal.zero ? '+' : ''}${m.quantity}',
@@ -86,7 +88,7 @@ class _StockMovementReportPageState extends State<StockMovementReportPage> {
     );
   }
 
-  Widget _buildFilters() {
+  Widget _buildFilters(AppLocalizations l10n) {
     return Padding(
       padding: const EdgeInsets.all(8),
       child: Row(
@@ -94,19 +96,19 @@ class _StockMovementReportPageState extends State<StockMovementReportPage> {
           Expanded(
             child: DropdownButtonFormField<String>(
               value: _selectedType,
-              decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                  border: const OutlineInputBorder(),
                   isDense: true,
-                  hintText: 'النوع'),
-              items: const [
-                DropdownMenuItem(value: null, child: Text('الكل')),
-                DropdownMenuItem(value: 'purchase', child: Text('شراء')),
-                DropdownMenuItem(value: 'sale', child: Text('بيع')),
-                DropdownMenuItem(value: 'adjustment', child: Text('تعديل')),
+                  hintText: l10n.alnwa),
+              items: [
+                DropdownMenuItem(value: null, child: Text(l10n.all)),
+                DropdownMenuItem(value: 'purchase', child: Text(l10n.buyAction)),
+                DropdownMenuItem(value: 'sale', child: Text(l10n.sell)),
+                DropdownMenuItem(value: 'adjustment', child: Text(l10n.edit)),
                 DropdownMenuItem(
-                    value: 'transferIn', child: Text('تحويل وارد')),
+                    value: 'transferIn', child: Text(l10n.thwylWard)),
                 DropdownMenuItem(
-                    value: 'transferOut', child: Text('تحويل صادر')),
+                    value: 'transferOut', child: Text(l10n.thwylSadr)),
               ],
               onChanged: (val) => setState(() {
                 _selectedType = val;

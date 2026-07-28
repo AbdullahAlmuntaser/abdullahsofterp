@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:supermarket/injection_container.dart' as di;
 import 'package:supermarket/core/utils/export_service.dart';
+import 'package:supermarket/l10n/app_localizations.dart';
 
 class CustomerReportPage extends StatefulWidget {
   const CustomerReportPage({super.key});
@@ -32,6 +33,7 @@ class _CustomerReportPageState extends State<CustomerReportPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final filtered = _customers
         .where((c) =>
             c.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
@@ -43,17 +45,17 @@ class _CustomerReportPageState extends State<CustomerReportPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('تقرير العملاء'),
+        title: Text(l10n.tqryrAlamlaa),
         actions: [
           IconButton(
             icon: const Icon(Icons.picture_as_pdf),
             onPressed: () => _exportToPdf(filtered),
-            tooltip: 'تصدير PDF',
+            tooltip: l10n.tsdyrPDF,
           ),
           IconButton(
             icon: const Icon(Icons.table_chart),
             onPressed: () => _exportToExcel(filtered),
-            tooltip: 'تصدير Excel',
+            tooltip: l10n.tsdyrExcel,
           ),
         ],
       ),
@@ -62,10 +64,10 @@ class _CustomerReportPageState extends State<CustomerReportPage> {
           Padding(
             padding: const EdgeInsets.all(8),
             child: TextField(
-              decoration: const InputDecoration(
-                hintText: 'بحث بالاسم أو الهاتف...',
-                prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                hintText: l10n.bhthBalasmAwAlhatf,
+                prefixIcon: const Icon(Icons.search),
+                border: const OutlineInputBorder(),
                 isDense: true,
               ),
               onChanged: (val) => setState(() => _searchQuery = val),
@@ -77,10 +79,10 @@ class _CustomerReportPageState extends State<CustomerReportPage> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _statItem('إجمالي العملاء', '${filtered.length}'),
-                _statItem('الرصيد الإجمالي',
-                    '${totalBalance.toStringAsFixed(2)} ر.س'),
-                _statItem('عملاء بدين',
+                _statItem(l10n.totalCustomers, '${filtered.length}'),
+                _statItem(l10n.alrsydAlijmaly,
+                    '${totalBalance.toStringAsFixed(2)} ${l10n.currencySar}'),
+                _statItem(l10n.dhmmMdynh,
                     '${filtered.where((c) => c.balance > Decimal.zero).length}'),
               ],
             ),
@@ -100,7 +102,7 @@ class _CustomerReportPageState extends State<CustomerReportPage> {
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
                             Text(
-                              '${customer.balance} ر.س',
+                              '${customer.balance} ${l10n.currencySar}',
                               style: TextStyle(
                                 color: customer.balance > Decimal.zero
                                     ? Colors.red
@@ -108,7 +110,7 @@ class _CustomerReportPageState extends State<CustomerReportPage> {
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            Text('حد الائتمان: ${customer.creditLimit}',
+                            Text('${l10n.creditLimitLabel}: ${customer.creditLimit}',
                                 style: const TextStyle(fontSize: 10)),
                           ],
                         ),
