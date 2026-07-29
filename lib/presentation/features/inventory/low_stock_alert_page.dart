@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:supermarket/injection_container.dart';
+import 'package:supermarket/core/utils/stock_display_adapter.dart';
 
 class LowStockAlertPage extends StatelessWidget {
   const LowStockAlertPage({super.key});
@@ -32,8 +33,15 @@ class LowStockAlertPage extends StatelessWidget {
                 child: ListTile(
                   leading: const Icon(Icons.warning, color: Colors.orange),
                   title: Text(p.name),
-                  subtitle: Text(
-                    'الرصيد الحالي: ${p.stock.toStringAsFixed(0)} | حد التنبيه: ${p.alertLimit}',
+                  subtitle: FutureBuilder<String>(
+                    future: StockDisplayAdapter(db).formatProductStock(
+                      p,
+                      preferredUnitId: p.defaultUnitId,
+                    ),
+                    builder: (context, snapshot) {
+                      final stockText = snapshot.data ?? '${p.stock.toStringAsFixed(0)} ${p.unit}';
+                      return Text('الرصيد الحالي: $stockText | حد التنبيه: ${p.alertLimit}');
+                    },
                   ),
                   trailing: const Icon(Icons.inventory),
                   onTap: () => Navigator.of(context).pushNamed(

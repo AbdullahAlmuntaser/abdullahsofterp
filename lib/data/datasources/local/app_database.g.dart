@@ -4252,6 +4252,12 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
   late final GeneratedColumn<String> displayUnitId = GeneratedColumn<String>(
       'display_unit_id', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _defaultUnitIdMeta =
+      const VerificationMeta('defaultUnitId');
+  @override
+  late final GeneratedColumn<String> defaultUnitId = GeneratedColumn<String>(
+      'default_unit_id', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -4287,7 +4293,8 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
         imagePath,
         remoteUrl,
         thumbnailPath,
-        displayUnitId
+        displayUnitId,
+        defaultUnitId
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -4434,6 +4441,12 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
           displayUnitId.isAcceptableOrUnknown(
               data['display_unit_id']!, _displayUnitIdMeta));
     }
+    if (data.containsKey('default_unit_id')) {
+      context.handle(
+          _defaultUnitIdMeta,
+          defaultUnitId.isAcceptableOrUnknown(
+              data['default_unit_id']!, _defaultUnitIdMeta));
+    }
     return context;
   }
 
@@ -4518,6 +4531,8 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
           .read(DriftSqlType.string, data['${effectivePrefix}thumbnail_path']),
       displayUnitId: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}display_unit_id']),
+      defaultUnitId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}default_unit_id']),
     );
   }
 
@@ -4581,6 +4596,7 @@ class Product extends DataClass implements Insertable<Product> {
   final String? remoteUrl;
   final String? thumbnailPath;
   final String? displayUnitId;
+  final String? defaultUnitId;
   const Product(
       {required this.id,
       required this.createdAt,
@@ -4615,7 +4631,8 @@ class Product extends DataClass implements Insertable<Product> {
       this.imagePath,
       this.remoteUrl,
       this.thumbnailPath,
-      this.displayUnitId});
+      this.displayUnitId,
+      this.defaultUnitId});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -4705,6 +4722,9 @@ class Product extends DataClass implements Insertable<Product> {
     if (!nullToAbsent || displayUnitId != null) {
       map['display_unit_id'] = Variable<String>(displayUnitId);
     }
+    if (!nullToAbsent || defaultUnitId != null) {
+      map['default_unit_id'] = Variable<String>(defaultUnitId);
+    }
     return map;
   }
 
@@ -4774,6 +4794,9 @@ class Product extends DataClass implements Insertable<Product> {
       displayUnitId: displayUnitId == null && nullToAbsent
           ? const Value.absent()
           : Value(displayUnitId),
+      defaultUnitId: defaultUnitId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(defaultUnitId),
     );
   }
 
@@ -4815,6 +4838,7 @@ class Product extends DataClass implements Insertable<Product> {
       remoteUrl: serializer.fromJson<String?>(json['remoteUrl']),
       thumbnailPath: serializer.fromJson<String?>(json['thumbnailPath']),
       displayUnitId: serializer.fromJson<String?>(json['displayUnitId']),
+      defaultUnitId: serializer.fromJson<String?>(json['defaultUnitId']),
     );
   }
   @override
@@ -4855,6 +4879,7 @@ class Product extends DataClass implements Insertable<Product> {
       'remoteUrl': serializer.toJson<String?>(remoteUrl),
       'thumbnailPath': serializer.toJson<String?>(thumbnailPath),
       'displayUnitId': serializer.toJson<String?>(displayUnitId),
+      'defaultUnitId': serializer.toJson<String?>(defaultUnitId),
     };
   }
 
@@ -4892,7 +4917,8 @@ class Product extends DataClass implements Insertable<Product> {
           Value<String?> imagePath = const Value.absent(),
           Value<String?> remoteUrl = const Value.absent(),
           Value<String?> thumbnailPath = const Value.absent(),
-          Value<String?> displayUnitId = const Value.absent()}) =>
+          Value<String?> displayUnitId = const Value.absent(),
+          Value<String?> defaultUnitId = const Value.absent()}) =>
       Product(
         id: id ?? this.id,
         createdAt: createdAt ?? this.createdAt,
@@ -4933,6 +4959,8 @@ class Product extends DataClass implements Insertable<Product> {
             thumbnailPath.present ? thumbnailPath.value : this.thumbnailPath,
         displayUnitId:
             displayUnitId.present ? displayUnitId.value : this.displayUnitId,
+        defaultUnitId:
+            defaultUnitId.present ? defaultUnitId.value : this.defaultUnitId,
       );
   Product copyWithCompanion(ProductsCompanion data) {
     return Product(
@@ -4990,6 +5018,9 @@ class Product extends DataClass implements Insertable<Product> {
       displayUnitId: data.displayUnitId.present
           ? data.displayUnitId.value
           : this.displayUnitId,
+      defaultUnitId: data.defaultUnitId.present
+          ? data.defaultUnitId.value
+          : this.defaultUnitId,
     );
   }
 
@@ -5029,7 +5060,8 @@ class Product extends DataClass implements Insertable<Product> {
           ..write('imagePath: $imagePath, ')
           ..write('remoteUrl: $remoteUrl, ')
           ..write('thumbnailPath: $thumbnailPath, ')
-          ..write('displayUnitId: $displayUnitId')
+          ..write('displayUnitId: $displayUnitId, ')
+          ..write('defaultUnitId: $defaultUnitId')
           ..write(')'))
         .toString();
   }
@@ -5069,7 +5101,8 @@ class Product extends DataClass implements Insertable<Product> {
         imagePath,
         remoteUrl,
         thumbnailPath,
-        displayUnitId
+        displayUnitId,
+        defaultUnitId
       ]);
   @override
   bool operator ==(Object other) =>
@@ -5108,7 +5141,8 @@ class Product extends DataClass implements Insertable<Product> {
           other.imagePath == this.imagePath &&
           other.remoteUrl == this.remoteUrl &&
           other.thumbnailPath == this.thumbnailPath &&
-          other.displayUnitId == this.displayUnitId);
+          other.displayUnitId == this.displayUnitId &&
+          other.defaultUnitId == this.defaultUnitId);
 }
 
 class ProductsCompanion extends UpdateCompanion<Product> {
@@ -5146,6 +5180,7 @@ class ProductsCompanion extends UpdateCompanion<Product> {
   final Value<String?> remoteUrl;
   final Value<String?> thumbnailPath;
   final Value<String?> displayUnitId;
+  final Value<String?> defaultUnitId;
   final Value<int> rowid;
   const ProductsCompanion({
     this.id = const Value.absent(),
@@ -5182,6 +5217,7 @@ class ProductsCompanion extends UpdateCompanion<Product> {
     this.remoteUrl = const Value.absent(),
     this.thumbnailPath = const Value.absent(),
     this.displayUnitId = const Value.absent(),
+    this.defaultUnitId = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ProductsCompanion.insert({
@@ -5219,6 +5255,7 @@ class ProductsCompanion extends UpdateCompanion<Product> {
     this.remoteUrl = const Value.absent(),
     this.thumbnailPath = const Value.absent(),
     this.displayUnitId = const Value.absent(),
+    this.defaultUnitId = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : name = Value(name),
         sku = Value(sku);
@@ -5257,6 +5294,7 @@ class ProductsCompanion extends UpdateCompanion<Product> {
     Expression<String>? remoteUrl,
     Expression<String>? thumbnailPath,
     Expression<String>? displayUnitId,
+    Expression<String>? defaultUnitId,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -5294,6 +5332,7 @@ class ProductsCompanion extends UpdateCompanion<Product> {
       if (remoteUrl != null) 'remote_url': remoteUrl,
       if (thumbnailPath != null) 'thumbnail_path': thumbnailPath,
       if (displayUnitId != null) 'display_unit_id': displayUnitId,
+      if (defaultUnitId != null) 'default_unit_id': defaultUnitId,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -5333,6 +5372,7 @@ class ProductsCompanion extends UpdateCompanion<Product> {
       Value<String?>? remoteUrl,
       Value<String?>? thumbnailPath,
       Value<String?>? displayUnitId,
+      Value<String?>? defaultUnitId,
       Value<int>? rowid}) {
     return ProductsCompanion(
       id: id ?? this.id,
@@ -5369,6 +5409,7 @@ class ProductsCompanion extends UpdateCompanion<Product> {
       remoteUrl: remoteUrl ?? this.remoteUrl,
       thumbnailPath: thumbnailPath ?? this.thumbnailPath,
       displayUnitId: displayUnitId ?? this.displayUnitId,
+      defaultUnitId: defaultUnitId ?? this.defaultUnitId,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -5486,6 +5527,9 @@ class ProductsCompanion extends UpdateCompanion<Product> {
     if (displayUnitId.present) {
       map['display_unit_id'] = Variable<String>(displayUnitId.value);
     }
+    if (defaultUnitId.present) {
+      map['default_unit_id'] = Variable<String>(defaultUnitId.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -5529,6 +5573,7 @@ class ProductsCompanion extends UpdateCompanion<Product> {
           ..write('remoteUrl: $remoteUrl, ')
           ..write('thumbnailPath: $thumbnailPath, ')
           ..write('displayUnitId: $displayUnitId, ')
+          ..write('defaultUnitId: $defaultUnitId, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -87252,6 +87297,7 @@ typedef $$ProductsTableCreateCompanionBuilder = ProductsCompanion Function({
   Value<String?> remoteUrl,
   Value<String?> thumbnailPath,
   Value<String?> displayUnitId,
+  Value<String?> defaultUnitId,
   Value<int> rowid,
 });
 typedef $$ProductsTableUpdateCompanionBuilder = ProductsCompanion Function({
@@ -87289,6 +87335,7 @@ typedef $$ProductsTableUpdateCompanionBuilder = ProductsCompanion Function({
   Value<String?> remoteUrl,
   Value<String?> thumbnailPath,
   Value<String?> displayUnitId,
+  Value<String?> defaultUnitId,
   Value<int> rowid,
 });
 
@@ -87954,6 +88001,9 @@ class $$ProductsTableFilterComposer
 
   ColumnFilters<String> get displayUnitId => $composableBuilder(
       column: $table.displayUnitId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get defaultUnitId => $composableBuilder(
+      column: $table.defaultUnitId, builder: (column) => ColumnFilters(column));
 
   $$BranchesTableFilterComposer get branchId {
     final $$BranchesTableFilterComposer composer = $composerBuilder(
@@ -88763,6 +88813,10 @@ class $$ProductsTableOrderingComposer
       column: $table.displayUnitId,
       builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get defaultUnitId => $composableBuilder(
+      column: $table.defaultUnitId,
+      builder: (column) => ColumnOrderings(column));
+
   $$BranchesTableOrderingComposer get branchId {
     final $$BranchesTableOrderingComposer composer = $composerBuilder(
         composer: this,
@@ -88928,6 +88982,9 @@ class $$ProductsTableAnnotationComposer
 
   GeneratedColumn<String> get displayUnitId => $composableBuilder(
       column: $table.displayUnitId, builder: (column) => column);
+
+  GeneratedColumn<String> get defaultUnitId => $composableBuilder(
+      column: $table.defaultUnitId, builder: (column) => column);
 
   $$BranchesTableAnnotationComposer get branchId {
     final $$BranchesTableAnnotationComposer composer = $composerBuilder(
@@ -89727,6 +89784,7 @@ class $$ProductsTableTableManager extends RootTableManager<
             Value<String?> remoteUrl = const Value.absent(),
             Value<String?> thumbnailPath = const Value.absent(),
             Value<String?> displayUnitId = const Value.absent(),
+            Value<String?> defaultUnitId = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               ProductsCompanion(
@@ -89764,6 +89822,7 @@ class $$ProductsTableTableManager extends RootTableManager<
             remoteUrl: remoteUrl,
             thumbnailPath: thumbnailPath,
             displayUnitId: displayUnitId,
+            defaultUnitId: defaultUnitId,
             rowid: rowid,
           ),
           createCompanionCallback: ({
@@ -89801,6 +89860,7 @@ class $$ProductsTableTableManager extends RootTableManager<
             Value<String?> remoteUrl = const Value.absent(),
             Value<String?> thumbnailPath = const Value.absent(),
             Value<String?> displayUnitId = const Value.absent(),
+            Value<String?> defaultUnitId = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               ProductsCompanion.insert(
@@ -89838,6 +89898,7 @@ class $$ProductsTableTableManager extends RootTableManager<
             remoteUrl: remoteUrl,
             thumbnailPath: thumbnailPath,
             displayUnitId: displayUnitId,
+            defaultUnitId: defaultUnitId,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0

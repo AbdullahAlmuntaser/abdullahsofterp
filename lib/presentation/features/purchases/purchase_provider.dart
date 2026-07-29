@@ -180,7 +180,7 @@ class PurchaseProvider with ChangeNotifier {
       otherExpenses +
       landedCosts;
 
-  void addItem(Product product) {
+  Future<void> addItem(Product product) async {
     // Validate quantity > 0 and price >= 0
     if (product.stock < Decimal.zero) {
       throw const BusinessException(message: 'الكمية يجب أن تكون أكبر من الصفر.');
@@ -188,11 +188,28 @@ class PurchaseProvider with ChangeNotifier {
     if (product.buyPrice < Decimal.zero) {
       throw const BusinessException(message: 'السعر يجب أن يكون أكبر من أو يساوي الصفر.');
     }
+
+    ProductUnit? defaultUnit;
+    if (product.defaultUnitId != null && product.defaultUnitId!.isNotEmpty) {
+      final units = await (db.select(db.productUnits)
+            ..where((t) => t.productId.equals(product.id)))
+          .get();
+      defaultUnit = units.cast<ProductUnit?>().firstWhere(
+            (u) => u?.unitName == product.defaultUnitId,
+            orElse: () => null,
+          );
+    }
+
+    final unitPrice = defaultUnit != null
+        ? product.buyPrice.toDouble() * defaultUnit.unitFactor.toDouble()
+        : product.buyPrice.toDouble();
+
     items.add(
       PurchaseItemData(
         product: product,
-        unitPrice: product.buyPrice.toDouble(),
+        unitPrice: unitPrice,
         taxPercent: product.taxRate.toDouble(),
+        selectedUnit: defaultUnit,
       ),
     );
     notifyListeners();
@@ -257,6 +274,19 @@ class PurchaseProvider with ChangeNotifier {
       total: grandTotal,
       warehouseId: selectedWarehouse?.id,
     );
+
+    // Set defaultUnitId for products that don't have one yet
+    for (final item in items) {
+      if (item.selectedUnit != null &&
+          item.selectedUnit!.unitName != item.product.unit &&
+          item.product.defaultUnitId == null) {
+        await (db.update(db.products)
+              ..where((p) => p.id.equals(item.product.id)))
+            .write(ProductsCompanion(
+              defaultUnitId: Value(item.selectedUnit!.unitName),
+            ));
+      }
+    }
 
     if (post) {
       await purchaseService.postPurchase(purchaseId);

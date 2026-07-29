@@ -481,9 +481,21 @@ class PosBloc extends Bloc<PosEvent, PosState> {
           db.products,
         )..where((t) => t.id.equals(productUnit.productId)))
             .getSingle();
-        unitName = productUnit.unitName;
-        factor = productUnit.unitFactor;
-        specificPrice = productUnit.sellPrice;
+        
+        // In retail mode, auto-break packaging units into base units
+        // Example: scan carton (24 pcs) → sell 24 pieces at piece price
+        if (!currentState.isWholesaleMode && productUnit.unitFactor > Decimal.one) {
+          unitName = product.unit;
+          factor = Decimal.one;
+          // Calculate piece price: carton price / number of pieces
+          final cartonPrice = productUnit.sellPrice ?? product.sellPrice;
+          specificPrice = Decimal.parse((cartonPrice / productUnit.unitFactor).toString());
+        } else {
+          // Wholesale mode or base unit: keep original behavior
+          unitName = productUnit.unitName;
+          factor = productUnit.unitFactor;
+          specificPrice = productUnit.sellPrice;
+        }
       } else {
         product = await (db.select(
           db.products,
@@ -523,9 +535,17 @@ class PosBloc extends Bloc<PosEvent, PosState> {
         (item) => item.product.id == product!.id && item.unitName == unitName,
       );
 
+      // When auto-breaking packaging units in retail mode, quantity = factor (pieces)
+      // Otherwise, quantity = 1 (one carton or one piece)
+      final quantityToAdd = (productUnit != null &&
+              !currentState.isWholesaleMode &&
+              productUnit.unitFactor > Decimal.one)
+          ? productUnit.unitFactor
+          : Decimal.one;
+
       List<CartItem> newCart = List.from(currentState.cart);
       if (existingIndex >= 0) {
-        final updatedQty = newCart[existingIndex].quantity + Decimal.one;
+        final updatedQty = newCart[existingIndex].quantity + quantityToAdd;
         newCart[existingIndex] = newCart[existingIndex].copyWith(
           quantity: updatedQty,
         );
@@ -545,7 +565,7 @@ class PosBloc extends Bloc<PosEvent, PosState> {
             unitPrice: finalPrice,
             isWholesale: currentState.isWholesaleMode,
             availableUnits: allUnits,
-            quantity: Decimal.one,
+            quantity: quantityToAdd,
           ),
         );
       }

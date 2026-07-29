@@ -35,6 +35,7 @@ import 'package:supermarket/data/migrations/v50_to_v55.dart';
 import 'package:supermarket/data/migrations/v55_to_v56.dart';
 import 'package:supermarket/data/migrations/v56_to_v57.dart';
 import 'package:supermarket/data/migrations/v57_to_v58.dart';
+import 'package:supermarket/data/migrations/v58_to_v59.dart';
 import 'daos/recurring_entry_dao.dart';
 import 'converters/decimal_converter.dart';
 export 'package:decimal/decimal.dart';
@@ -301,6 +302,7 @@ class AppDatabase extends _$AppDatabase {
           if (from < 56) { await migrateV55ToV56(this, m); }
           if (from < 57) { await migrateV56ToV57(this, m); }
           if (from < 58) { await migrateV57ToV58(this, m); }
+          if (from < 59) { await migrateV58ToV59(this, m); }
         },
         beforeOpen: (details) async {
           await customStatement('PRAGMA foreign_keys = ON;');

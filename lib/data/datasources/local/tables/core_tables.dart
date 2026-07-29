@@ -69,6 +69,7 @@ class Products extends Table with SyncableTable {
   TextColumn get remoteUrl => text().nullable()();
   TextColumn get thumbnailPath => text().nullable()();
   TextColumn get displayUnitId => text().nullable()();
+  TextColumn get defaultUnitId => text().nullable()();
 }
 
 class ProductUnits extends Table with SyncableTable {

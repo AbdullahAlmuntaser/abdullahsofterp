@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:supermarket/l10n/app_localizations.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
+import 'package:supermarket/core/utils/stock_display_adapter.dart';
 
 class LowStockProductsPage extends StatelessWidget {
   const LowStockProductsPage({super.key});
@@ -30,15 +31,24 @@ class LowStockProductsPage extends StatelessWidget {
               return ListTile(
                 title: Text(product.name),
                 subtitle: Text('SKU: ${product.sku}'),
-                trailing: Chip(
-                  backgroundColor: Colors.red[100],
-                  label: Text(
-                    '${l10n.stockLevel}: ${product.stock.toStringAsFixed(0)} / ${product.alertLimit.toStringAsFixed(0)}',
-                    style: TextStyle(
-                      color: Colors.red[800],
-                      fontWeight: FontWeight.bold,
-                    ),
+                trailing: FutureBuilder<String>(
+                  future: StockDisplayAdapter(db).formatProductStock(
+                    product,
+                    preferredUnitId: product.defaultUnitId,
                   ),
+                  builder: (context, snapshot) {
+                    final stockText = snapshot.data ?? product.stock.toStringAsFixed(0);
+                    return Chip(
+                      backgroundColor: Colors.red[100],
+                      label: Text(
+                        '${l10n.stockLevel}: $stockText / ${product.alertLimit.toStringAsFixed(0)}',
+                        style: TextStyle(
+                          color: Colors.red[800],
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    );
+                  },
                 ),
               );
             },
