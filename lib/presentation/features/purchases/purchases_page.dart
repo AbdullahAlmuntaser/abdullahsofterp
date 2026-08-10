@@ -8,6 +8,7 @@ import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:supermarket/core/constants/app_enums.dart';
 import 'package:supermarket/injection_container.dart' as di;
 import 'package:supermarket/core/services/audit_service.dart';
+import 'package:supermarket/core/services/purchases/purchase_printing_service.dart';
 import 'package:supermarket/presentation/widgets/main_drawer.dart';
 import 'package:supermarket/core/auth/auth_provider.dart';
 
@@ -272,9 +273,7 @@ class _PurchasesPageState extends State<PurchasesPage> {
               title: const Text('طباعة'),
               onTap: () {
                 Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('جاري تحضير الطباعة...')),
-                );
+                _printPurchase(context, purchase);
               },
             ),
             if (purchase.status == DocumentStatus.posted)
@@ -311,8 +310,26 @@ class _PurchasesPageState extends State<PurchasesPage> {
     );
   }
 
-  void _confirmDelete(BuildContext context, Purchase purchase) {
-    showDialog(
+  void _printPurchase(BuildContext context, Purchase purchase) async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('جاري تحضير الطباعة...')),
+      );
+      await di.sl<PurchasePrintingService>().printPurchase(purchase.id);
+      messenger.hideCurrentSnackBar();
+    } catch (e) {
+      messenger.hideCurrentSnackBar();
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text('خطأ في الطباعة: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  void _confirmDelete(BuildContext context, Purchase purchase) {    showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('تأكيد الحذف'),

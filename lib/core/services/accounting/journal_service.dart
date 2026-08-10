@@ -24,6 +24,7 @@ class JournalService {
     required String paymentAccountId,
     String? costCenterId,
   }) async {
+    await _checkAccountingPeriodOpen();
     final dao = db.accountingDao;
     final branchId = await _getDefaultBranchId();
 
@@ -65,6 +66,7 @@ class JournalService {
     String? creditAccountId,
     Decimal? amount,
   }) async {
+    await _checkAccountingPeriodOpen();
     final dao = db.accountingDao;
     final entryId = const Uuid().v4();
     final branchId = await _getDefaultBranchId();
@@ -141,5 +143,19 @@ class JournalService {
 
   Future<String> _getDefaultBranchId() async {
     return await _configService.getDefaultBranchId();
+  }
+
+  Future<void> _checkAccountingPeriodOpen() async {
+    final now = DateTime.now();
+    final openPeriod = await (db.select(db.accountingPeriods)
+          ..where((p) => p.isClosed.equals(false))
+          ..where((p) => p.startDate.isSmallerOrEqual(Variable(now)))
+          ..where((p) => p.endDate.isBiggerOrEqual(Variable(now))))
+        .get()
+        .then((rows) => rows.isEmpty ? null : rows.first);
+    if (openPeriod == null) {
+      throw const BusinessException(
+          message: 'لا توجد فترة محاسبية مفتوحة حالياً. يرجى فتح فترة محاسبية جديدة.');
+    }
   }
 }

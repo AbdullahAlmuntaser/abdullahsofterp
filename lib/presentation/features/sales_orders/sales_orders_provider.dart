@@ -10,6 +10,9 @@ class SalesOrdersProvider extends ChangeNotifier {
   List<SalesOrder> _orders = [];
   List<SalesOrder> get orders => _orders;
 
+  List<SalesOrderWithCustomer> _ordersWithCustomer = [];
+  List<SalesOrderWithCustomer> get ordersWithCustomer => _ordersWithCustomer;
+
   SalesOrder? _selectedOrder;
   SalesOrder? get selectedOrder => _selectedOrder;
 
@@ -41,10 +44,12 @@ class SalesOrdersProvider extends ChangeNotifier {
 
     try {
       if (_statusFilter == 'ALL') {
-        _orders = await _service.getAllOrders();
+        _ordersWithCustomer = await _service.getAllOrdersWithCustomer();
       } else {
-        _orders = await _service.getOrdersByStatus(_statusFilter);
+        _ordersWithCustomer =
+            await _service.getOrdersWithCustomerByStatus(_statusFilter);
       }
+      _orders = _ordersWithCustomer.map((e) => e.order).toList();
       await _loadStatusCounts();
     } catch (e) {
       _error = e.toString();
@@ -171,6 +176,28 @@ class SalesOrdersProvider extends ChangeNotifier {
       if (_selectedOrder?.id == orderId) {
         await loadOrderDetails(orderId);
       }
+      return true;
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> convertToPurchaseOrder(
+    String orderId, {
+    required String supplierId,
+    String? warehouseId,
+    String? userId,
+  }) async {
+    try {
+      await _service.convertToPurchaseOrder(
+        orderId,
+        supplierId: supplierId,
+        warehouseId: warehouseId,
+        userId: userId,
+      );
+      await loadOrders();
       return true;
     } catch (e) {
       _error = e.toString();

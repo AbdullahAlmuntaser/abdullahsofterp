@@ -21,12 +21,14 @@ enum DocumentStatus {
 enum PaymentMethod {
   cash,
   bank,
-  check;
+  check,
+  split;
 
   String get name => switch (this) {
         PaymentMethod.cash => 'Cash',
         PaymentMethod.bank => 'Card',
         PaymentMethod.check => 'Check',
+        PaymentMethod.split => 'Split',
       };
 }
 

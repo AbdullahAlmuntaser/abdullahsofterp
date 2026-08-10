@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:drift/drift.dart' as drift;
 import 'package:provider/provider.dart';
 import 'package:supermarket/core/auth/auth_provider.dart';
 import 'package:supermarket/core/services/notification_service.dart';
@@ -9,6 +8,7 @@ import 'package:supermarket/core/services/sales/sales_order_service.dart';
 import 'package:supermarket/core/services/permission_service.dart';
 import 'package:supermarket/injection_container.dart' as di;
 import 'package:supermarket/data/datasources/local/app_database.dart';
+import 'package:supermarket/presentation/widgets/entity_picker.dart';
 import 'sales_orders_provider.dart';
 
 class SalesOrdersPage extends StatefulWidget {
@@ -263,26 +263,29 @@ class _SalesOrdersPageState extends State<SalesOrdersPage> {
       );
     }
 
-    List<SalesOrder> filteredOrders = provider.orders;
+    List<SalesOrderWithCustomer> filteredOrders = provider.ordersWithCustomer;
 
     if (_searchQuery.isNotEmpty) {
       final query = _searchQuery.toLowerCase();
       filteredOrders = filteredOrders.where((o) {
-        return (o.orderNumber?.toLowerCase().contains(query) ?? false) ||
-            o.id.toLowerCase().contains(query);
+        final order = o.order;
+        return (order.orderNumber?.toLowerCase().contains(query) ?? false) ||
+            order.id.toLowerCase().contains(query) ||
+            o.displayName.toLowerCase().contains(query);
       }).toList();
     }
 
     if (_dateFrom != null) {
       filteredOrders = filteredOrders
-          .where((o) =>
-              o.createdAt.isAfter(_dateFrom!.subtract(const Duration(days: 1))))
+          .where((o) => o.order.createdAt
+              .isAfter(_dateFrom!.subtract(const Duration(days: 1))))
           .toList();
     }
     if (_dateTo != null) {
       final endOfDay = _dateTo!.add(const Duration(days: 1));
-      filteredOrders =
-          filteredOrders.where((o) => o.createdAt.isBefore(endOfDay)).toList();
+      filteredOrders = filteredOrders
+          .where((o) => o.order.createdAt.isBefore(endOfDay))
+          .toList();
     }
 
     return RefreshIndicator(
@@ -290,12 +293,13 @@ class _SalesOrdersPageState extends State<SalesOrdersPage> {
       child: ListView.builder(
         padding: const EdgeInsets.all(8),
         itemCount: filteredOrders.length,
-        itemBuilder: (context, index) => _buildOrderCard(filteredOrders[index]),
+        itemBuilder: (context, index) => _buildOrderCard(
+            filteredOrders[index].order, filteredOrders[index].displayName),
       ),
     );
   }
 
-  Widget _buildOrderCard(SalesOrder order) {
+  Widget _buildOrderCard(SalesOrder order, [String customerName = '']) {
     final statusColor = _getStatusColor(order.status);
     final statusText = _getStatusText(order.status);
     final dateFormat = DateFormat('yyyy-MM-dd HH:mm');
@@ -315,6 +319,11 @@ class _SalesOrdersPageState extends State<SalesOrdersPage> {
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (customerName.isNotEmpty) ...[
+              const SizedBox(height: 2),
+              Text(customerName,
+                  style: const TextStyle(fontSize: 12, color: Colors.blueGrey)),
+            ],
             const SizedBox(height: 4),
             Row(
               children: [
@@ -449,75 +458,76 @@ class _SalesOrdersPageState extends State<SalesOrdersPage> {
   }
 
   void _showConvertPurchaseDialog(SalesOrder order) {
+    final db = di.sl<AppDatabase>();
+    Supplier? selectedSupplier;
+
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('تحويل لأمر شراء'),
-        content: const Text('هل تريد تحويل هذه الطلبية لأمر شراء من المورد؟'),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(ctx), child: const Text('إلغاء')),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.pop(ctx);
-              final userId = di.sl<AuthProvider>().currentUser?.id;
-              try {
-                final db = di.sl<AppDatabase>();
-                final service = di.sl<SalesOrderService>();
-                final items = await service.getOrderItems(order.id);
-
-                final poId = await db.into(db.purchaseOrders).insert(
-                      PurchaseOrdersCompanion.insert(
-                        total: drift.Value(order.total),
-                        status: const drift.Value('PENDING'),
-                        notes: drift.Value(
-                            'محول من طلبية مبيعات: ${order.orderNumber ?? order.id.substring(0, 8)}'),
-                      ),
-                    );
-
-                for (final item in items) {
-                  await db.into(db.purchaseOrderItems).insert(
-                        PurchaseOrderItemsCompanion.insert(
-                          orderId: poId.toString(),
-                          productId: item.productId,
-                          quantity: drift.Value(item.quantity),
-                          price: drift.Value(item.price),
-                        ),
-                      );
-                }
-
-                await service.updateStatus(order.id, 'DELIVERED',
-                    userId: userId);
-
-                di.sl<NotificationService>().notify(
-                      title: 'تحويل الطلبية لأمر شراء',
-                      message:
-                          'تم تحويل الطلبية ${order.orderNumber ?? ''} لأمر شراء',
-                      category: 'orders',
-                      sourceKey: 'order:${order.id}',
-                      severity: 'info',
-                    );
-
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                        content: Text('تم التحويل لأمر شراء بنجاح'),
-                        backgroundColor: Colors.green),
-                  );
-                  _provider.loadOrders();
-                }
-              } catch (e) {
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                        content: Text('خطأ: $e'), backgroundColor: Colors.red),
-                  );
-                }
-              }
-            },
-            child: const Text('تحويل'),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: const Text('تحويل لأمر شراء'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('حدد المورد الذي سيُنفذ هذه الطلبية:'),
+              const SizedBox(height: 16),
+              SupplierPicker(
+                db: db,
+                value: selectedSupplier,
+                onChanged: (supplier) =>
+                    setDialogState(() => selectedSupplier = supplier),
+              ),
+            ],
           ),
-        ],
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(ctx), child: const Text('إلغاء')),
+            ElevatedButton(
+              onPressed: selectedSupplier == null
+                  ? null
+                  : () async {
+                      Navigator.pop(ctx);
+                      final userId = di.sl<AuthProvider>().currentUser?.id;
+                      final messenger = ScaffoldMessenger.of(context);
+                      try {
+                        final success = await _provider.convertToPurchaseOrder(
+                          order.id,
+                          supplierId: selectedSupplier!.id,
+                          userId: userId,
+                        );
+                        if (success) {
+                          di.sl<NotificationService>().notify(
+                                title: 'تحويل الطلبية لأمر شراء',
+                                message:
+                                    'تم تحويل الطلبية ${order.orderNumber ?? ''} لأمر شراء',
+                                category: 'orders',
+                                sourceKey: 'order:${order.id}',
+                                severity: 'info',
+                              );
+                          messenger.showSnackBar(
+                            const SnackBar(
+                                content: Text('تم التحويل لأمر شراء بنجاح'),
+                                backgroundColor: Colors.green),
+                          );
+                        } else {
+                          messenger.showSnackBar(
+                            SnackBar(
+                                content: Text('خطأ: ${_provider.error ?? 'فشل التحويل'}'),
+                                backgroundColor: Colors.red),
+                          );
+                        }
+                      } catch (e) {
+                        messenger.showSnackBar(
+                          SnackBar(
+                              content: Text('خطأ: $e'),
+                              backgroundColor: Colors.red),
+                        );
+                      }
+                    },
+              child: const Text('تحويل'),
+            ),
+          ],
+        ),
       ),
     );
   }

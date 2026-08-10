@@ -12,6 +12,7 @@ import 'package:supermarket/core/services/erp_data_service.dart';
 import 'package:supermarket/core/services/transaction_engine.dart';
 import 'package:supermarket/injection_container.dart';
 import 'package:supermarket/core/constants/app_enums.dart';
+import 'package:supermarket/core/utils/split_payment_validator.dart';
 import 'package:supermarket/presentation/features/sales/models/sales_line_item.dart';
 import 'package:supermarket/presentation/features/sales/widgets/sales_item_row.dart';
 import 'package:supermarket/presentation/widgets/entity_picker.dart';
@@ -62,6 +63,7 @@ class _SalesInvoicePageState extends State<SalesInvoicePage> {
   double _cashPayment = 0.0;
   double _creditPayment = 0.0;
   bool _isSplitPayment = false;
+  DateTime? _dueDate;
 
   Decimal get _subtotal => _items.fold<Decimal>(Decimal.zero,
       (sum, item) => sum + Decimal.parse(item.lineTotal.toString()));
@@ -148,9 +150,23 @@ class _SalesInvoicePageState extends State<SalesInvoicePage> {
             sale.tax == Decimal.zero ? '' : sale.tax.toString();
         _selectedCustomer = customer;
         _selectedWarehouse = warehouse;
-        _paymentType = sale.isCredit
-            ? 'credit'
-            : (sale.paymentMethod == PaymentMethod.bank ? 'bank' : 'cash');
+        _paymentType = sale.paymentMethod == PaymentMethod.split
+            ? 'split'
+            : sale.isCredit
+                ? 'credit'
+                : (sale.paymentMethod == PaymentMethod.bank
+                    ? 'bank'
+                    : 'cash');
+        _isSplitPayment =
+            _paymentType == 'split' || _paymentType == 'partial';
+        if (_isSplitPayment) {
+          _cashPayment = sale.paidAmount.toDouble();
+          _creditPayment = (sale.total - sale.paidAmount).toDouble();
+        }
+        _dueDate = sale.dueDate;
+        _notesController.text = sale.notes ?? '';
+        _referenceController.text = sale.referenceNumber ?? '';
+        _termsController.text = sale.paymentTerms ?? '';
 
         for (int i = 0; i < items.length && i < products.length; i++) {
           _items.add(SalesLineItem(
@@ -419,7 +435,8 @@ class _SalesInvoicePageState extends State<SalesInvoicePage> {
                         onChanged: (value) {
                           setState(() {
                             _paymentType = value!;
-                            _isSplitPayment = (value == 'split');
+                            _isSplitPayment = (value == 'split' ||
+                                value == 'partial');
                           });
                         },
                         value: _paymentType,
@@ -459,6 +476,8 @@ class _SalesInvoicePageState extends State<SalesInvoicePage> {
                   value: _representativeId,
                 ),
                 if (_isSplitPayment) _buildSplitPaymentFields(),
+                if (_paymentType == 'credit' || _isSplitPayment)
+                  _buildDueDateField(),
                 const SizedBox(height: 12),
                 Row(
                   children: [
@@ -779,6 +798,7 @@ class _SalesInvoicePageState extends State<SalesInvoicePage> {
               Expanded(
                 child: MoneyFormField(
                   label: 'كاش',
+                  initialValue: _cashPayment > 0 ? _cashPayment.toString() : null,
                   decoration: const InputDecoration(
                     labelText: 'كاش',
                     isDense: true,
@@ -794,6 +814,8 @@ class _SalesInvoicePageState extends State<SalesInvoicePage> {
               Expanded(
                 child: MoneyFormField(
                   label: 'آجل',
+                  initialValue:
+                      _creditPayment > 0 ? _creditPayment.toString() : null,
                   decoration: const InputDecoration(
                     labelText: 'آجل',
                     isDense: true,
@@ -818,6 +840,44 @@ class _SalesInvoicePageState extends State<SalesInvoicePage> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildDueDateField() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: InkWell(
+        onTap: () async {
+          final picked = await showDatePicker(
+            context: context,
+            initialDate: _dueDate ??
+                DateTime.now().add(const Duration(days: 30)),
+            firstDate: DateTime.now(),
+            lastDate: DateTime.now().add(const Duration(days: 3650)),
+          );
+          if (picked != null) {
+            setState(() => _dueDate = picked);
+          }
+        },
+        child: InputDecorator(
+          decoration: const InputDecoration(
+            labelText: 'تاريخ الاستحقاق',
+            border: OutlineInputBorder(),
+            isDense: true,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                _dueDate == null
+                    ? 'اختر تاريخ الاستحقاق (اختياري)'
+                    : DateFormat('yyyy-MM-dd').format(_dueDate!),
+              ),
+              const Icon(Icons.calendar_today, size: 16),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -940,12 +1000,32 @@ class _SalesInvoicePageState extends State<SalesInvoicePage> {
       return;
     }
 
+    // Split/partial payment: cash portion + credit portion must equal total
+    final isSplit = _isSplitPayment;
+    final Decimal cashPortion =
+        isSplit ? Decimal.parse(_cashPayment.toString()) : Decimal.zero;
+    final Decimal creditPortion =
+        isSplit ? Decimal.parse(_creditPayment.toString()) : Decimal.zero;
+    if (isSplit) {
+      final splitError = SplitPaymentValidator.validate(
+        cash: cashPortion,
+        credit: creditPortion,
+        total: _total,
+      );
+      if (splitError != null) {
+        if (!mounted) return;
+        AppSnackBar.error(context, splitError);
+        return;
+      }
+    }
+
     // التحقق من الحد الائتماني للعميل ومنع الحفظ عند التجاوز
-    if (_paymentType == 'credit' &&
+    if ((_paymentType == 'credit' || isSplit) &&
         _selectedCustomer != null &&
         _customerSmartData != null) {
-      final newBalance =
-          Decimal.parse(_customerSmartData!.currentBalance.toString()) + _total;
+      final addedBalance = isSplit ? creditPortion : _total;
+      final newBalance = Decimal.parse(_customerSmartData!.currentBalance.toString()) +
+          addedBalance;
       if (newBalance >
               Decimal.parse(_customerSmartData!.creditLimit.toString()) &&
           _customerSmartData!.creditLimit > 0) {
@@ -975,6 +1055,8 @@ class _SalesInvoicePageState extends State<SalesInvoicePage> {
           method = PaymentMethod.bank;
         } else if (_paymentType == 'check') {
           method = PaymentMethod.check;
+        } else if (isSplit) {
+          method = PaymentMethod.split;
         }
 
         final userId = currentUser?.id;
@@ -1010,7 +1092,8 @@ class _SalesInvoicePageState extends State<SalesInvoicePage> {
             discount: drift.Value(
                 _discount + Decimal.parse(totalItemDiscount.toString())),
             paymentMethod: method,
-            isCredit: drift.Value(_paymentType == 'credit'),
+            isCredit: drift.Value(_paymentType == 'credit' ||
+                (isSplit && creditPortion > Decimal.zero)),
             status: const drift.Value(DocumentStatus.draft),
             shippingCost: drift.Value(_shippingCost),
             otherExpenses: drift.Value(_otherExpenses),
@@ -1022,6 +1105,11 @@ class _SalesInvoicePageState extends State<SalesInvoicePage> {
             paymentTerms: drift.Value(_termsController.text.isNotEmpty
                 ? _termsController.text
                 : null),
+            notes: drift.Value(_notesController.text.trim().isNotEmpty
+                ? _notesController.text.trim()
+                : null),
+            paidAmount: drift.Value(isSplit ? cashPortion : Decimal.zero),
+            dueDate: drift.Value(_dueDate),
           );
 
           await db.salesDao.createSale(
@@ -1044,7 +1132,8 @@ class _SalesInvoicePageState extends State<SalesInvoicePage> {
             discount: drift.Value(
                 _discount + Decimal.parse(totalItemDiscount.toString())),
             paymentMethod: drift.Value(method),
-            isCredit: drift.Value(_paymentType == 'credit'),
+            isCredit: drift.Value(_paymentType == 'credit' ||
+                (isSplit && creditPortion > Decimal.zero)),
             shippingCost: drift.Value(_shippingCost),
             otherExpenses: drift.Value(_otherExpenses),
             warehouseId: drift.Value(_selectedWarehouse?.id),
@@ -1055,6 +1144,11 @@ class _SalesInvoicePageState extends State<SalesInvoicePage> {
             paymentTerms: drift.Value(_termsController.text.isNotEmpty
                 ? _termsController.text
                 : null),
+            notes: drift.Value(_notesController.text.trim().isNotEmpty
+                ? _notesController.text.trim()
+                : null),
+            paidAmount: drift.Value(isSplit ? cashPortion : Decimal.zero),
+            dueDate: drift.Value(_dueDate),
           );
 
           await db.salesDao.updateSale(

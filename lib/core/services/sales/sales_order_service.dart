@@ -3,16 +3,56 @@ import 'package:uuid/uuid.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:supermarket/core/constants/app_enums.dart';
 import 'package:supermarket/core/exceptions/app_exception.dart';
+import 'package:supermarket/core/services/transaction_engine.dart';
 
 class SalesOrderService {
   final AppDatabase db;
+  final TransactionEngine _transactionEngine;
 
-  SalesOrderService(this.db);
+  SalesOrderService(this.db, this._transactionEngine);
 
   Future<List<SalesOrder>> getAllOrders() async {
     return (db.select(db.salesOrders)
           ..orderBy([(o) => OrderingTerm.desc(o.createdAt)]))
         .get();
+  }
+
+  Future<List<SalesOrderWithCustomer>> getAllOrdersWithCustomer() async {
+    final query = db.select(db.salesOrders).join([
+      leftOuterJoin(
+        db.customers,
+        db.customers.id.equalsExp(db.salesOrders.customerId),
+      ),
+    ])
+      ..orderBy([OrderingTerm.desc(db.salesOrders.createdAt)]);
+
+    final rows = await query.get();
+    return rows.map((row) {
+      return SalesOrderWithCustomer(
+        order: row.readTable(db.salesOrders),
+        customer: row.readTableOrNull(db.customers),
+      );
+    }).toList();
+  }
+
+  Future<List<SalesOrderWithCustomer>> getOrdersWithCustomerByStatus(
+      String status) async {
+    final query = db.select(db.salesOrders).join([
+      leftOuterJoin(
+        db.customers,
+        db.customers.id.equalsExp(db.salesOrders.customerId),
+      ),
+    ])
+      ..where(db.salesOrders.status.equals(status))
+      ..orderBy([OrderingTerm.desc(db.salesOrders.createdAt)]);
+
+    final rows = await query.get();
+    return rows.map((row) {
+      return SalesOrderWithCustomer(
+        order: row.readTable(db.salesOrders),
+        customer: row.readTableOrNull(db.customers),
+      );
+    }).toList();
   }
 
   Stream<List<SalesOrder>> watchAllOrders() {
@@ -244,30 +284,42 @@ class SalesOrderService {
     final saleId = const Uuid().v4();
 
     await db.transaction(() async {
-      await db.into(db.sales).insert(
-            SalesCompanion.insert(
-              id: Value(saleId),
-              customerId: Value(order.customerId),
-              total: order.total,
-              paymentMethod: PaymentMethod.cash,
-              status: const Value(DocumentStatus.draft),
-              saleType: const Value('ORDER'),
-            ),
-          );
+      // 1) Create the invoice through the official creation path
+      //    (same as the sales invoice page: UI -> Service -> DAO -> DB)
+      final itemsCompanions = <SaleItemsCompanion>[
+        for (final item in items)
+          SaleItemsCompanion.insert(
+            id: Value(const Uuid().v4()),
+            saleId: saleId,
+            productId: item.productId,
+            quantity: item.quantity,
+            price: item.price,
+            unitId: Value(item.unitId),
+          ),
+      ];
 
-      for (final item in items) {
-        await db.into(db.saleItems).insert(
-              SaleItemsCompanion.insert(
-                id: Value(const Uuid().v4()),
-                saleId: saleId,
-                productId: item.productId,
-                quantity: item.quantity,
-                price: item.price,
-                unitId: Value(item.unitId),
-              ),
-            );
-      }
+      final saleCompanion = SalesCompanion.insert(
+        id: Value(saleId),
+        customerId: Value(order.customerId),
+        total: order.total,
+        paymentMethod: PaymentMethod.cash,
+        status: const Value(DocumentStatus.draft),
+        saleType: const Value('ORDER'),
+        referenceNumber: Value(order.orderNumber),
+        notes: Value(order.notes),
+      );
 
+      await db.salesDao.createSale(
+        saleCompanion: saleCompanion,
+        itemsCompanions: itemsCompanions,
+        userId: userId,
+      );
+
+      // 2) Post through the official accounting engine:
+      //    inventory movement + customer balance + journal entry
+      await _transactionEngine.postSale(saleId, userId: userId);
+
+      // 3) Update order status only after the full chain succeeded
       await updateStatus(orderId, 'INVOICED', userId: userId);
 
       await db.into(db.auditLogs).insert(
@@ -276,12 +328,97 @@ class SalesOrderService {
               action: 'CONVERT',
               targetEntity: 'SALES_ORDER',
               entityId: orderId,
-              details: Value('Converted order to sale: $saleId'),
+              details: Value('Converted order to posted sale: $saleId'),
             ),
           );
     });
 
     return (db.select(db.sales)..where((s) => s.id.equals(saleId))).getSingle();
+  }
+
+  Future<PurchaseOrder> convertToPurchaseOrder(
+    String orderId, {
+    required String supplierId,
+    String? warehouseId,
+    String? userId,
+  }) async {
+    final order = await getOrderById(orderId);
+    if (order == null) throw const BusinessException(message: 'الطلبية غير موجودة.');
+    if (order.status == 'CANCELLED') {
+      throw const BusinessException(message: 'لا يمكن تحويل طلبية ملغاة.');
+    }
+    if (order.status == 'INVOICED') {
+      throw const BusinessException(message: 'تم تحويل هذه الطلبية بالفعل.');
+    }
+
+    final items = await getOrderItems(orderId);
+    if (items.isEmpty) throw const BusinessException(message: 'الطلبية لا تحتوي على أصناف.');
+
+    final supplier = await (db.select(db.suppliers)
+          ..where((s) => s.id.equals(supplierId)))
+        .getSingleOrNull();
+    if (supplier == null) {
+      throw const BusinessException(message: 'المورد المحدد غير موجود.');
+    }
+
+    final poId = const Uuid().v4();
+    final poNumber = await _generatePurchaseOrderNumber();
+
+    await db.transaction(() async {
+      // 1) Create the purchase order through the official DAO path
+      await db.purchasesDao.createPurchaseOrder(
+        orderCompanion: PurchaseOrdersCompanion.insert(
+          id: Value(poId),
+          supplierId: Value(supplierId),
+          warehouseId: Value(warehouseId),
+          total: Value(order.total),
+          orderNumber: Value(poNumber),
+          status: const Value('PENDING'),
+          notes: Value(
+            'محول من طلبية مبيعات: ${order.orderNumber ?? order.id.substring(0, 8)}',
+          ),
+        ),
+        itemsCompanions: [
+          for (final item in items)
+            PurchaseOrderItemsCompanion.insert(
+              id: Value(const Uuid().v4()),
+              orderId: poId,
+              productId: item.productId,
+              quantity: Value(item.quantity),
+              price: Value(item.price),
+              unitId: Value(item.unitId),
+            ),
+        ],
+      );
+
+      // 2) Update the sales order status only after the full chain succeeded
+      await updateStatus(orderId, 'DELIVERED', userId: userId);
+
+      await db.into(db.auditLogs).insert(
+            AuditLogsCompanion.insert(
+              userId: Value(userId),
+              action: 'CONVERT',
+              targetEntity: 'SALES_ORDER',
+              entityId: orderId,
+              details: Value('Converted order to purchase order: $poId'),
+            ),
+          );
+    });
+
+    return (db.select(db.purchaseOrders)..where((o) => o.id.equals(poId)))
+        .getSingle();
+  }
+
+  Future<String> _generatePurchaseOrderNumber() async {
+    final now = DateTime.now();
+    final prefix =
+        'PO${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}';
+    final count = await db.customSelect(
+      "SELECT COUNT(*) as cnt FROM purchase_orders WHERE order_number LIKE ?",
+      variables: [Variable.withString('$prefix%')],
+    ).getSingle();
+    final seq = (count.data['cnt'] as int) + 1;
+    return '$prefix${seq.toString().padLeft(4, '0')}';
   }
 
   Future<void> cancelOrder(String orderId, {String? userId}) async {
@@ -314,4 +451,13 @@ class SalesOrderItemData {
     required this.price,
     this.unitId,
   });
+}
+
+class SalesOrderWithCustomer {
+  final SalesOrder order;
+  final Customer? customer;
+
+  SalesOrderWithCustomer({required this.order, this.customer});
+
+  String get displayName => customer?.name ?? '';
 }

@@ -66,71 +66,109 @@ class _SalesHistoryPageState extends State<SalesHistoryPage> {
         children: [
           if (_showFilters) _buildFiltersPanel(context, db, l10n),
           Expanded(
-            child: FutureBuilder<List<Sale>>(
+            child: FutureBuilder<_SalesPage>(
               future: _fetchFilteredSales(db),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 }
-                final allSales = snapshot.data ?? [];
-                if (allSales.isEmpty) {
+                final data = snapshot.data;
+                if (data == null || data.sales.isEmpty) {
                   return Center(child: Text(l10n.noSalesFound));
                 }
 
-                final start = _currentPage * _pageSize;
-                final end = (start + _pageSize < allSales.length)
-                    ? start + _pageSize
-                    : allSales.length;
-                final sales = allSales.sublist(start, end);
+                final sales = data.sales;
+                final hasMore = data.hasMore;
 
-                return ListView.separated(
-                  itemCount: sales.length,
-                  separatorBuilder: (context, index) => const Divider(),
-                  itemBuilder: (context, index) {
-                    final sale = sales[index];
-                    return ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: Theme.of(
-                          context,
-                        ).colorScheme.primary.withAlpha(26),
-                        child: Icon(
-                          sale.paymentMethod == PaymentMethod.cash
-                              ? Icons.money
-                              : Icons.credit_card,
-                          color: Theme.of(context).colorScheme.primary,
+                return Column(
+                  children: [
+                    Expanded(
+                      child: ListView.separated(
+                        itemCount: sales.length,
+                        separatorBuilder: (context, index) => const Divider(),
+                        itemBuilder: (context, index) {
+                          final sale = sales[index];
+                          return ListTile(
+                            leading: CircleAvatar(
+                              backgroundColor: Theme.of(
+                                context,
+                              ).colorScheme.primary.withAlpha(26),
+                              child: Icon(
+                                sale.paymentMethod == PaymentMethod.cash
+                                    ? Icons.money
+                                    : Icons.credit_card,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                            ),
+                            title: Text(
+                                l10n.saleIdLabel(sale.id.substring(0, 8))),
+                            subtitle: Text(
+                              DateFormat('yyyy-MM-dd HH:mm')
+                                  .format(sale.createdAt),
+                            ),
+                            trailing: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  sale.total.toStringAsFixed(2),
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                                Text(
+                                  sale.status == DocumentStatus.posted
+                                      ? l10n.synced
+                                      : 'غير مرحل',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: sale.status ==
+                                            DocumentStatus.posted
+                                        ? Colors.green
+                                        : Colors.orange,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            onTap: () =>
+                                _showSaleDetails(context, db, sale, l10n),
+                          );
+                        },
+                      ),
+                    ),
+                    if (hasMore || _currentPage > 0)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            if (_currentPage > 0)
+                              OutlinedButton.icon(
+                                icon: const Icon(Icons.chevron_right),
+                                label: const Text('السابق'),
+                                onPressed: () => setState(() {
+                                  _currentPage--;
+                                }),
+                              ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'صفحة ${_currentPage + 1}',
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                            const SizedBox(width: 8),
+                            if (hasMore)
+                              ElevatedButton.icon(
+                                icon: const Icon(Icons.chevron_left),
+                                label: const Text('التالي'),
+                                onPressed: () => setState(() {
+                                  _currentPage++;
+                                }),
+                              ),
+                          ],
                         ),
                       ),
-                      title: Text(l10n.saleIdLabel(sale.id.substring(0, 8))),
-                      subtitle: Text(
-                        DateFormat('yyyy-MM-dd HH:mm').format(sale.createdAt),
-                      ),
-                      trailing: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            sale.total.toStringAsFixed(2),
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
-                          Text(
-                            sale.status == DocumentStatus.posted
-                                ? l10n.synced
-                                : 'غير مرحل',
-                            style: TextStyle(
-                              fontSize: 10,
-                              color: sale.status == DocumentStatus.posted
-                                  ? Colors.green
-                                  : Colors.orange,
-                            ),
-                          ),
-                        ],
-                      ),
-                      onTap: () => _showSaleDetails(context, db, sale, l10n),
-                    );
-                  },
+                  ],
                 );
               },
             ),
@@ -230,6 +268,60 @@ class _SalesHistoryPageState extends State<SalesHistoryPage> {
           Row(
             children: [
               Expanded(
+                child: StreamBuilder<List<Customer>>(
+                  stream: db.select(db.customers).watch(),
+                  builder: (context, snapshot) {
+                    final customers = snapshot.data ?? [];
+                    return DropdownButtonFormField<String?>(
+                      value: _customerIdFilter,
+                      decoration: const InputDecoration(
+                        labelText: 'العميل',
+                        contentPadding: EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 8),
+                      ),
+                      items: [
+                        const DropdownMenuItem(
+                            value: null, child: Text('كل العملاء')),
+                        ...customers.map((c) =>
+                            DropdownMenuItem(value: c.id, child: Text(c.name))),
+                      ],
+                      onChanged: (value) =>
+                          setState(() => _customerIdFilter = value),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: StreamBuilder<List<Warehouse>>(
+                  stream: db.select(db.warehouses).watch(),
+                  builder: (context, snapshot) {
+                    final warehouses = snapshot.data ?? [];
+                    return DropdownButtonFormField<String?>(
+                      value: _warehouseIdFilter,
+                      decoration: const InputDecoration(
+                        labelText: 'المستودع',
+                        contentPadding: EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 8),
+                      ),
+                      items: [
+                        const DropdownMenuItem(
+                            value: null, child: Text('كل المستودعات')),
+                        ...warehouses.map((w) =>
+                            DropdownMenuItem(value: w.id, child: Text(w.name))),
+                      ],
+                      onChanged: (value) =>
+                          setState(() => _warehouseIdFilter = value),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
                 child: ElevatedButton.icon(
                   icon: const Icon(Icons.search),
                   label: const Text('بحث'),
@@ -255,7 +347,7 @@ class _SalesHistoryPageState extends State<SalesHistoryPage> {
     );
   }
 
-  Future<List<Sale>> _fetchFilteredSales(AppDatabase db) async {
+  Future<_SalesPage> _fetchFilteredSales(AppDatabase db) async {
     var query = db.select(db.sales);
 
     if (_startDate != null) {
@@ -276,6 +368,41 @@ class _SalesHistoryPageState extends State<SalesHistoryPage> {
     }
 
     query = query..orderBy([(t) => drift.OrderingTerm.desc(t.createdAt)]);
-    return query.get();
+
+    final countQuery = db.selectOnly(db.sales);
+    if (_startDate != null) {
+      countQuery.where(db.sales.createdAt.isBiggerOrEqualValue(_startDate!));
+    }
+    if (_endDate != null) {
+      countQuery.where(db.sales.createdAt.isSmallerOrEqualValue(_endDate!));
+    }
+    if (_statusFilter != null) {
+      countQuery.where(db.sales.status.equals(_statusFilter!.index));
+    }
+    if (_customerIdFilter != null) {
+      countQuery.where(db.sales.customerId.equals(_customerIdFilter!));
+    }
+    if (_warehouseIdFilter != null) {
+      countQuery.where(db.sales.warehouseId.equals(_warehouseIdFilter!));
+    }
+    final countExp = db.sales.id.count();
+    countQuery.addColumns([countExp]);
+    final count = (await countQuery.getSingle()).read(countExp) ?? 0;
+
+    final sales = await (query
+          ..limit(_pageSize, offset: _currentPage * _pageSize))
+        .get();
+
+    final start = _currentPage * _pageSize;
+    final hasMore = (start + sales.length) < count;
+
+    return _SalesPage(sales: sales, hasMore: hasMore);
   }
+}
+
+class _SalesPage {
+  final List<Sale> sales;
+  final bool hasMore;
+
+  _SalesPage({required this.sales, required this.hasMore});
 }

@@ -1,12 +1,14 @@
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import 'package:printing/printing.dart';
+import 'package:drift/drift.dart' as drift;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
+import 'package:supermarket/core/services/purchases/purchase_printing_service.dart';
+import 'package:supermarket/core/services/purchases/purchase_totals.dart';
 import 'package:supermarket/l10n/app_localizations.dart';
 import 'package:supermarket/presentation/widgets/app_snack_bar.dart';
+import 'package:supermarket/injection_container.dart' as di;
 
 class PurchaseDetailsPage extends StatelessWidget {
   final String purchaseId;
@@ -166,7 +168,7 @@ class PurchaseDetailsPage extends StatelessWidget {
     Purchase purchase,
     AppLocalizations l10n,
   ) {
-    final subtotal = purchase.total - purchase.tax;
+    final totals = PurchaseTotalsCalculator.fromPurchase(purchase);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -175,10 +177,18 @@ class PurchaseDetailsPage extends StatelessWidget {
       ),
       child: Column(
         children: [
-          _buildInfoRow(l10n.subtotal, subtotal.toStringAsFixed(2)),
-          _buildInfoRow(l10n.tax, purchase.tax.toStringAsFixed(2)),
+          _buildInfoRow(l10n.subtotal, totals.subtotal.toStringAsFixed(2)),
+          if (totals.discount > Decimal.zero)
+            _buildInfoRow(l10n.discount, '-${totals.discount.toStringAsFixed(2)}'),
+          if (totals.shippingCost > Decimal.zero)
+            _buildInfoRow('الشحن', totals.shippingCost.toStringAsFixed(2)),
+          if (totals.otherExpenses > Decimal.zero)
+            _buildInfoRow('مصاريف أخرى', totals.otherExpenses.toStringAsFixed(2)),
+          if (totals.landedCosts > Decimal.zero)
+            _buildInfoRow('تكاليف واردة', totals.landedCosts.toStringAsFixed(2)),
+          _buildInfoRow(l10n.tax, totals.tax.toStringAsFixed(2)),
           const Divider(),
-          _buildInfoRow(l10n.total, purchase.total.toStringAsFixed(2)),
+          _buildInfoRow(l10n.total, totals.total.toStringAsFixed(2)),
         ],
       ),
     );
@@ -203,19 +213,20 @@ class PurchaseDetailsPage extends StatelessWidget {
   Future<List<PurchaseItemWithProduct>> _getPurchaseItems(
     AppDatabase db,
   ) async {
-    final items = await (db.select(
-      db.purchaseItems,
-    )..where((t) => t.purchaseId.equals(purchaseId)))
-        .get();
-    final List<PurchaseItemWithProduct> result = [];
-    for (var item in items) {
-      final product = await (db.select(
+    final rows = await (db.select(db.purchaseItems).join([
+      drift.leftOuterJoin(
         db.products,
-      )..where((t) => t.id.equals(item.productId)))
-          .getSingleOrNull();
-      result.add(PurchaseItemWithProduct(item, product));
-    }
-    return result;
+        db.products.id.equalsExp(db.purchaseItems.productId),
+      ),
+    ])
+          ..where(db.purchaseItems.purchaseId.equals(purchaseId)))
+        .get();
+    return rows
+        .map((row) => PurchaseItemWithProduct(
+              row.readTable(db.purchaseItems),
+              row.readTableOrNull(db.products),
+            ))
+        .toList();
   }
 
   Future<void> _sendMessage(
@@ -257,50 +268,14 @@ class PurchaseDetailsPage extends StatelessWidget {
     Supplier? supplier,
   ) async {
     try {
-      final items = await (db.select(db.purchaseItems)
-            ..where((i) => i.purchaseId.equals(purchaseId)))
-          .get();
-
-      if (!context.mounted) return;
-
       AppSnackBar.info(context, 'جاري تحضير الطباعة...');
-
-      final pdfData = await _generatePdfData(purchase, items, supplier);
-      await Printing.layoutPdf(onLayout: (format) async => pdfData);
+      await di.sl<PurchasePrintingService>().printPurchase(purchase.id);
     } catch (e) {
       debugPrint('Print error: $e');
       if (context.mounted) {
         AppSnackBar.error(context, 'خطأ في الطباعة: $e');
       }
     }
-  }
-
-  Future<Uint8List> _generatePdfData(
-    Purchase purchase,
-    List<PurchaseItem> items,
-    Supplier? supplier,
-  ) async {
-    final buffer = StringBuffer();
-    buffer.writeln('==============================');
-    buffer.writeln('       فاتورة مشتريات         ');
-    buffer.writeln('==============================');
-    buffer.writeln('رقم الفاتورة: ${purchase.id.substring(0, 8)}');
-    buffer.writeln('التاريخ: ${DateFormat.yMMMd().format(purchase.date)}');
-    if (supplier != null) {
-      buffer.writeln('المورد: ${supplier.name}');
-    }
-    buffer.writeln('------------------------------');
-    buffer.writeln('الصنف          | الكمية | السعر');
-    buffer.writeln('------------------------------');
-    for (var item in items) {
-      buffer.writeln(
-          '${item.productId.substring(0, 8)} | ${item.quantity} | ${item.unitPrice}');
-    }
-    buffer.writeln('------------------------------');
-    buffer.writeln('الإجمالي: ${purchase.total.toStringAsFixed(2)}');
-    buffer.writeln('==============================');
-
-    return Uint8List.fromList(buffer.toString().codeUnits);
   }
 }
 

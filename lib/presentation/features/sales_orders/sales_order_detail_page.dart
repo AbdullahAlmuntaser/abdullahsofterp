@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:drift/drift.dart' as drift;
 import 'package:supermarket/core/auth/auth_provider.dart';
 import 'package:supermarket/core/services/notification_service.dart';
 import 'package:supermarket/core/services/sales/sales_order_service.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:supermarket/injection_container.dart' as di;
+import 'package:supermarket/presentation/widgets/entity_picker.dart';
 
 class SalesOrderDetailPage extends StatefulWidget {
   final String orderId;
@@ -342,50 +342,50 @@ class _SalesOrderDetailPageState extends State<SalesOrderDetailPage> {
   }
 
   void _convertToPurchaseOrder() async {
+    final db = di.sl<AppDatabase>();
+    Supplier? selectedSupplier;
+
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('تحويل لأمر شراء'),
-        content: const Text('هل تريد تحويل هذه الطلبية لأمر شراء من المورد؟'),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('إلغاء')),
-          ElevatedButton(
-              onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('تحويل')),
-        ],
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: const Text('تحويل لأمر شراء'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('حدد المورد الذي سيُنفذ هذه الطلبية:'),
+              const SizedBox(height: 16),
+              SupplierPicker(
+                db: db,
+                value: selectedSupplier,
+                onChanged: (supplier) =>
+                    setDialogState(() => selectedSupplier = supplier),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: const Text('إلغاء')),
+            ElevatedButton(
+              onPressed: selectedSupplier == null
+                  ? null
+                  : () => Navigator.pop(ctx, true),
+              child: const Text('تحويل'),
+            ),
+          ],
+        ),
       ),
     );
 
-    if (confirmed == true) {
+    if (confirmed == true && selectedSupplier != null) {
       final userId = di.sl<AuthProvider>().currentUser?.id;
       try {
-        final db = di.sl<AppDatabase>();
-        final items = await _service.getOrderItems(widget.orderId);
-
-        final poId = await db.into(db.purchaseOrders).insert(
-              PurchaseOrdersCompanion.insert(
-                total: drift.Value(_order!.total),
-                status: const drift.Value('PENDING'),
-                notes: drift.Value(
-                    'محول من طلبية مبيعات: ${_order!.orderNumber ?? _order!.id.substring(0, 8)}'),
-              ),
-            );
-
-        for (final item in items) {
-          await db.into(db.purchaseOrderItems).insert(
-                PurchaseOrderItemsCompanion.insert(
-                  orderId: poId.toString(),
-                  productId: item.productId,
-                  quantity: drift.Value(item.quantity),
-                  price: drift.Value(item.price),
-                ),
-              );
-        }
-
-        await _service.updateStatus(widget.orderId, 'DELIVERED',
-            userId: userId);
+        await _service.convertToPurchaseOrder(
+          widget.orderId,
+          supplierId: selectedSupplier!.id,
+          userId: userId,
+        );
 
         di.sl<NotificationService>().notify(
               title: 'تحويل الطلبية لأمر شراء',

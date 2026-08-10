@@ -213,7 +213,7 @@ class AccountingDao extends DatabaseAccessor<AppDatabase> with SyncLogMixin impl
       AccountTransactionsCompanion.insert(
         accountId: line.accountId,
         type: entry.referenceType ?? 'MANUAL',
-        referenceId: Value(entry.referenceId),
+        referenceId: Value(entry.id),
         debit: Value(line.debit),
         credit: Value(line.credit),
         date: Value(entry.date),
@@ -230,21 +230,24 @@ class AccountingDao extends DatabaseAccessor<AppDatabase> with SyncLogMixin impl
     var query = db.select(db.accountTransactions).join([
       innerJoin(db.gLEntries, db.gLEntries.id.equalsExp(db.accountTransactions.referenceId)),
     ])
-      ..where(db.accountTransactions.accountId.equals(accountId));
+      ..where(db.accountTransactions.accountId.equals(accountId))
+      // Only posted entries count (cancelled entries are excluded from balances)
+      ..where(db.gLEntries.status.equals('POSTED'));
 
     if (branchId != null) {
       query = query..where(db.accountTransactions.branchId.equals(branchId));
     }
 
     final rows = await query.get();
-    if (rows.isEmpty) return Decimal.zero;
 
     Decimal debit = Decimal.zero;
     Decimal credit = Decimal.zero;
     for (final row in rows) {
-      debit += row.readTable(db.accountTransactions).debit;
-      credit += row.readTable(db.accountTransactions).credit;
+      final accountTx = row.readTable(db.accountTransactions);
+      debit += accountTx.debit;
+      credit += accountTx.credit;
     }
+    if (rows.isEmpty) return Decimal.zero;
 
     if ([enums.AccountType.asset, enums.AccountType.expense].contains(account.accountType)) {
       return debit - credit;
@@ -319,6 +322,8 @@ class AccountingDao extends DatabaseAccessor<AppDatabase> with SyncLogMixin impl
     if (asOfDate != null) {
       query = query..where(db.gLEntries.date.isSmallerOrEqual(Variable(asOfDate)));
     }
+    // Only posted entries count (cancelled entries are excluded from reports)
+    query = query..where(db.gLEntries.status.equals('POSTED'));
 
     final rows = await query.get();
 
@@ -353,7 +358,8 @@ class AccountingDao extends DatabaseAccessor<AppDatabase> with SyncLogMixin impl
     if (account == null) return Decimal.zero;
 
     var predicate = db.gLLines.accountId.equals(accountId) &
-        db.gLEntries.date.isSmallerOrEqual(Variable(asOfDate));
+        db.gLEntries.date.isSmallerOrEqual(Variable(asOfDate)) &
+        db.gLEntries.status.equals('POSTED');
 
     if (branchId != null) {
       predicate = predicate & db.gLLines.branchId.equals(branchId);
@@ -393,7 +399,8 @@ class AccountingDao extends DatabaseAccessor<AppDatabase> with SyncLogMixin impl
     if (account == null) return Decimal.zero;
 
     var predicate = db.gLLines.accountId.equals(accountId) &
-        db.gLEntries.date.isBetween(Variable(startDate), Variable(endDate));
+        db.gLEntries.date.isBetween(Variable(startDate), Variable(endDate)) &
+        db.gLEntries.status.equals('POSTED');
 
     if (branchId != null) {
       predicate = predicate & db.gLLines.branchId.equals(branchId);
@@ -429,7 +436,9 @@ class AccountingDao extends DatabaseAccessor<AppDatabase> with SyncLogMixin impl
   }) async {
     final allAccounts = await getAllAccounts();
 
-    var predicate = db.gLEntries.date.isSmallerOrEqual(Variable(asOfDate));
+    var predicate =
+        db.gLEntries.date.isSmallerOrEqual(Variable(asOfDate)) &
+        db.gLEntries.status.equals('POSTED');
     if (branchId != null) {
       predicate = predicate & db.gLLines.branchId.equals(branchId);
     }
@@ -467,7 +476,8 @@ class AccountingDao extends DatabaseAccessor<AppDatabase> with SyncLogMixin impl
     final allAccounts = await getAllAccounts();
 
     var predicate =
-        db.gLEntries.date.isBetween(Variable(startDate), Variable(endDate));
+        db.gLEntries.date.isBetween(Variable(startDate), Variable(endDate)) &
+        db.gLEntries.status.equals('POSTED');
     if (branchId != null) {
       predicate = predicate & db.gLLines.branchId.equals(branchId);
     }
@@ -504,7 +514,8 @@ class AccountingDao extends DatabaseAccessor<AppDatabase> with SyncLogMixin impl
     String? branchId,
   }) {
     var predicate = db.gLLines.accountId.equals(accountId) &
-        db.gLEntries.date.isBetween(Variable(startDate), Variable(endDate));
+        db.gLEntries.date.isBetween(Variable(startDate), Variable(endDate)) &
+        db.gLEntries.status.equals('POSTED');
 
     if (branchId != null) {
       predicate = predicate & db.gLLines.branchId.equals(branchId);
@@ -525,7 +536,8 @@ class AccountingDao extends DatabaseAccessor<AppDatabase> with SyncLogMixin impl
     String? branchId,
   }) async {
     var predicate =
-        db.gLEntries.date.isBetween(Variable(startDate), Variable(endDate));
+        db.gLEntries.date.isBetween(Variable(startDate), Variable(endDate)) &
+        db.gLEntries.status.equals('POSTED');
 
     if (branchId != null) {
       predicate = predicate & db.gLLines.branchId.equals(branchId);
@@ -638,7 +650,8 @@ class AccountingDao extends DatabaseAccessor<AppDatabase> with SyncLogMixin impl
     String? branchId,
   }) async {
     var predicate =
-        db.gLEntries.date.isBetween(Variable(startDate), Variable(endDate));
+        db.gLEntries.date.isBetween(Variable(startDate), Variable(endDate)) &
+        db.gLEntries.status.equals('POSTED');
 
     if (branchId != null) {
       predicate = predicate & db.gLLines.branchId.equals(branchId);

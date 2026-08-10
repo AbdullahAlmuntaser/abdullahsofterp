@@ -441,17 +441,21 @@ class TransactionEngine {
       );
 
       // Update customer balance for credit sales
+      // (split payment: only the unpaid/credit portion is added to the balance)
       if (sale.isCredit && sale.customerId != null) {
-        final customer = await (db.select(
-          db.customers,
-        )..where((c) => c.id.equals(sale.customerId!)))
-            .getSingle();
-        await (db.update(
-          db.customers,
-        )..where((c) => c.id.equals(customer.id)))
-            .write(
-          CustomersCompanion(balance: Value(customer.balance + sale.total)),
-        );
+        final creditPortion = (sale.total - sale.paidAmount);
+        if (creditPortion > Decimal.zero) {
+          final customer = await (db.select(
+            db.customers,
+          )..where((c) => c.id.equals(sale.customerId!)))
+              .getSingle();
+          await (db.update(
+            db.customers,
+          )..where((c) => c.id.equals(customer.id)))
+              .write(
+            CustomersCompanion(balance: Value(customer.balance + creditPortion)),
+          );
+        }
       }
 
       // Single accounting entry through PostingEngine (revenue + tax)
@@ -462,7 +466,10 @@ class TransactionEngine {
           'amount': sale.total,
           'tax': sale.tax,
           'cogs': saleCogs,
-          'paymentMethod': sale.isCredit ? 'credit' : 'cash',
+          'paymentMethod': sale.paymentMethod == PaymentMethod.split
+              ? 'split'
+              : (sale.isCredit ? 'credit' : 'cash'),
+          'paidAmount': sale.paidAmount,
           'description': 'إثبات فاتورة مبيعات #${saleId.substring(0, 8)}',
           'customerId': sale.customerId,
           'branchId': sale.branchId,
@@ -659,7 +666,10 @@ class TransactionEngine {
           'tax': returnTax,
           'cogs': returnCogs,
           'originalSaleId': saleReturn.saleId,
-          'paymentMethod': sale.isCredit ? 'credit' : 'cash',
+          'paymentMethod': sale.paymentMethod == PaymentMethod.split
+              ? 'split'
+              : (sale.isCredit ? 'credit' : 'cash'),
+          'paidAmount': sale.paidAmount,
           'description': 'مردود مبيعات #${returnId.substring(0, 8)}',
           'branchId': sale.branchId,
           'date': saleReturn.createdAt,
@@ -846,14 +856,18 @@ class TransactionEngine {
       }
 
       // 2. Reverse customer balance for credit sales
+      //    (split payment: reverse only the unpaid/credit portion)
       if (sale.isCredit && sale.customerId != null) {
-        final customer = await (db.select(db.customers)
-              ..where((c) => c.id.equals(sale.customerId!)))
-            .getSingle();
-        await (db.update(db.customers)..where((c) => c.id.equals(customer.id)))
-            .write(CustomersCompanion(
-              balance: Value(customer.balance - sale.total),
-            ));
+        final creditPortion = (sale.total - sale.paidAmount);
+        if (creditPortion > Decimal.zero) {
+          final customer = await (db.select(db.customers)
+                ..where((c) => c.id.equals(sale.customerId!)))
+              .getSingle();
+          await (db.update(db.customers)..where((c) => c.id.equals(customer.id)))
+              .write(CustomersCompanion(
+                balance: Value(customer.balance - creditPortion),
+              ));
+        }
       }
 
       // 3. Reverse GL entries: mark originals cancelled + create reversal entries
@@ -863,36 +877,31 @@ class TransactionEngine {
           .get();
 
       for (final entry in existingEntries) {
-        await (db.update(db.gLEntries)
-              ..where((e) => e.id.equals(entry.id)))
-            .write(const GLEntriesCompanion(
-              status: Value('CANCELLED'),
-            ));
-
-        final reversalEntryId = const Uuid().v4();
         final originalLines = await (db.select(db.gLLines)
               ..where((l) => l.entryId.equals(entry.id)))
             .get();
 
-        await db.into(db.gLEntries).insert(GLEntriesCompanion.insert(
-          id: Value(reversalEntryId),
-          description: 'إلغاء: ${entry.description}',
-          date: Value(DateTime.now()),
-          referenceType: const Value('SALE_CANCELLATION'),
-          referenceId: Value(saleId),
-          status: const Value('POSTED'),
-          postedAt: Value(DateTime.now()),
-          branchId: Value(entry.branchId),
-        ));
-
-        for (final line in originalLines) {
-          await db.into(db.gLLines).insert(GLLinesCompanion.insert(
-            entryId: reversalEntryId,
-            accountId: line.accountId,
-            debit: Value(line.credit),
-            credit: Value(line.debit),
-          ));
-        }
+        await db.accountingDao.createEntry(
+          GLEntriesCompanion.insert(
+            description: 'إلغاء: ${entry.description}',
+            date: Value(DateTime.now()),
+            referenceType: Value(entry.referenceType == 'COGS'
+                ? 'COGS_CANCELLATION'
+                : 'SALE_CANCELLATION'),
+            referenceId: Value(saleId),
+            status: const Value('POSTED'),
+            postedAt: Value(DateTime.now()),
+            branchId: Value(entry.branchId),
+          ),
+          originalLines
+              .map((line) => GLLinesCompanion.insert(
+                    entryId: entry.id,
+                    accountId: line.accountId,
+                    debit: Value(line.credit),
+                    credit: Value(line.debit),
+                  ))
+              .toList(),
+        );
       }
 
       // 4. Mark sale as cancelled
@@ -1000,36 +1009,29 @@ class TransactionEngine {
           .get();
 
       for (final entry in existingEntries) {
-        await (db.update(db.gLEntries)
-              ..where((e) => e.id.equals(entry.id)))
-            .write(const GLEntriesCompanion(
-              status: Value('CANCELLED'),
-            ));
-
-        final reversalEntryId = const Uuid().v4();
         final originalLines = await (db.select(db.gLLines)
               ..where((l) => l.entryId.equals(entry.id)))
             .get();
 
-        await db.into(db.gLEntries).insert(GLEntriesCompanion.insert(
-          id: Value(reversalEntryId),
-          description: 'إلغاء: ${entry.description}',
-          date: Value(DateTime.now()),
-          referenceType: const Value('PURCHASE_CANCELLATION'),
-          referenceId: Value(purchaseId),
-          status: const Value('POSTED'),
-          postedAt: Value(DateTime.now()),
-          branchId: Value(entry.branchId),
-        ));
-
-        for (final line in originalLines) {
-          await db.into(db.gLLines).insert(GLLinesCompanion.insert(
-            entryId: reversalEntryId,
-            accountId: line.accountId,
-            debit: Value(line.credit),
-            credit: Value(line.debit),
-          ));
-        }
+        await db.accountingDao.createEntry(
+          GLEntriesCompanion.insert(
+            description: 'إلغاء: ${entry.description}',
+            date: Value(DateTime.now()),
+            referenceType: const Value('PURCHASE_CANCELLATION'),
+            referenceId: Value(purchaseId),
+            status: const Value('POSTED'),
+            postedAt: Value(DateTime.now()),
+            branchId: Value(entry.branchId),
+          ),
+          originalLines
+              .map((line) => GLLinesCompanion.insert(
+                    entryId: entry.id,
+                    accountId: line.accountId,
+                    debit: Value(line.credit),
+                    credit: Value(line.debit),
+                  ))
+              .toList(),
+        );
       }
 
       // 4. Mark purchase as cancelled
@@ -1059,6 +1061,8 @@ class TransactionEngine {
     String? userId,
     DateTime? paymentDate,
   }) async {
+    await _checkAccountingPeriodOpen();
+
     await db.transaction(() async {
       final paymentId = const Uuid().v4();
       await db.into(db.customerPayments).insert(
@@ -1103,6 +1107,8 @@ class TransactionEngine {
     String? userId,
     DateTime? paymentDate,
   }) async {
+    await _checkAccountingPeriodOpen();
+
     await db.transaction(() async {
       final paymentId = const Uuid().v4();
       await db.into(db.supplierPayments).insert(
@@ -1147,6 +1153,8 @@ class TransactionEngine {
     DateTime? paymentDate,
     required List<({String saleId, Decimal amount})> allocations,
   }) async {
+    await _checkAccountingPeriodOpen();
+
     await db.transaction(() async {
       final paymentId = const Uuid().v4();
       await db.into(db.customerPayments).insert(
@@ -1201,6 +1209,8 @@ class TransactionEngine {
     DateTime? paymentDate,
     required List<({String purchaseId, Decimal amount})> allocations,
   }) async {
+    await _checkAccountingPeriodOpen();
+
     await db.transaction(() async {
       final paymentId = const Uuid().v4();
       await db.into(db.supplierPayments).insert(

@@ -91,8 +91,20 @@ class PostingEngine {
     // Use posting profiles if available, otherwise use hardcoded defaults
     final profiles = await _getPostingProfiles('SALE');
 
+    final paidAmount = _readAmount(context['paidAmount']);
+    final isSplit = paymentMethod == 'split';
+    final creditPortion = isSplit ? (amount - paidAmount) : Decimal.zero;
+
+    String? cashAccountId;
+    String? receivableAccountId;
     String debitAccountId;
-    if (paymentMethod == 'credit') {
+    if (isSplit) {
+      cashAccountId =
+          await _getAccountByProfileOrCode(profiles, 'CASH', '1010');
+      receivableAccountId =
+          await _getAccountByProfileOrCode(profiles, 'RECEIVABLE', '1030');
+      debitAccountId = receivableAccountId;
+    } else if (paymentMethod == 'credit') {
       debitAccountId =
           await _getAccountByProfileOrCode(profiles, 'RECEIVABLE', '1030');
     } else {
@@ -124,13 +136,30 @@ class PostingEngine {
     );
 
     final lines = [
-      GLLinesCompanion.insert(
-        entryId: entryId,
-        accountId: debitAccountId,
-        debit: Value(amount),
-        credit: Value(Decimal.zero),
-        branchId: Value(branchId),
-      ),
+      if (isSplit && paidAmount > Decimal.zero)
+        GLLinesCompanion.insert(
+          entryId: entryId,
+          accountId: cashAccountId!,
+          debit: Value(paidAmount),
+          credit: Value(Decimal.zero),
+          branchId: Value(branchId),
+        ),
+      if (isSplit && creditPortion > Decimal.zero)
+        GLLinesCompanion.insert(
+          entryId: entryId,
+          accountId: receivableAccountId!,
+          debit: Value(creditPortion),
+          credit: Value(Decimal.zero),
+          branchId: Value(branchId),
+        ),
+      if (!isSplit)
+        GLLinesCompanion.insert(
+          entryId: entryId,
+          accountId: debitAccountId,
+          debit: Value(amount),
+          credit: Value(Decimal.zero),
+          branchId: Value(branchId),
+        ),
       GLLinesCompanion.insert(
         entryId: entryId,
         accountId: revenueAccount,
@@ -280,6 +309,14 @@ class PostingEngine {
     final returnAccount =
         await _getAccountByProfileOrCode(profiles, 'RETURN', '4020');
 
+    final paidAmount = _readAmount(context['paidAmount']);
+    final isSplit = paymentMethod == 'split';
+    // For split invoices the refund is credited back to cash (paid portion)
+    // and receivable (unpaid portion).
+    final cashPortion =
+        isSplit ? (paidAmount < amount ? paidAmount : amount) : Decimal.zero;
+    final receivablePortion = isSplit ? amount - cashPortion : Decimal.zero;
+
     String creditAccountId;
     if (paymentMethod == 'credit') {
       creditAccountId =
@@ -288,6 +325,12 @@ class PostingEngine {
       creditAccountId =
           await _getAccountByProfileOrCode(profiles, 'CASH', '1010');
     }
+    final cashAccount = isSplit
+        ? await _getAccountByProfileOrCode(profiles, 'CASH', '1010')
+        : null;
+    final receivableAccount = isSplit
+        ? await _getAccountByProfileOrCode(profiles, 'RECEIVABLE', '1030')
+        : null;
 
     final entry = GLEntriesCompanion.insert(
       id: Value(entryId),
@@ -309,13 +352,30 @@ class PostingEngine {
         credit: Value(Decimal.zero),
         branchId: Value(branchId),
       ),
-      GLLinesCompanion.insert(
-        entryId: entryId,
-        accountId: creditAccountId,
-        debit: Value(Decimal.zero),
-        credit: Value(amount),
-        branchId: Value(branchId),
-      ),
+      if (isSplit && cashPortion > Decimal.zero)
+        GLLinesCompanion.insert(
+          entryId: entryId,
+          accountId: cashAccount!,
+          debit: Value(Decimal.zero),
+          credit: Value(cashPortion),
+          branchId: Value(branchId),
+        ),
+      if (isSplit && receivablePortion > Decimal.zero)
+        GLLinesCompanion.insert(
+          entryId: entryId,
+          accountId: receivableAccount!,
+          debit: Value(Decimal.zero),
+          credit: Value(receivablePortion),
+          branchId: Value(branchId),
+        ),
+      if (!isSplit)
+        GLLinesCompanion.insert(
+          entryId: entryId,
+          accountId: creditAccountId,
+          debit: Value(Decimal.zero),
+          credit: Value(amount),
+          branchId: Value(branchId),
+        ),
       // Reverse output VAT
       if (tax > Decimal.zero)
         GLLinesCompanion.insert(

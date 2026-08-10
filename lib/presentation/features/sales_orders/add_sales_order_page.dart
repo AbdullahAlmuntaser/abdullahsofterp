@@ -43,6 +43,13 @@ class _AddSalesOrderPageState extends State<AddSalesOrderPage> {
             ..where((p) => p.id.isIn(productIds)))
           .get();
       final nameMap = {for (final p in products) p.id: p.name};
+      final unitIds = items.map((i) => i.unitId).whereType<String>().toSet().toList();
+      final units = unitIds.isEmpty
+          ? <ProductUnit>[]
+          : await (db.select(db.productUnits)
+                ..where((u) => u.id.isIn(unitIds)))
+              .get();
+      final unitMap = {for (final u in units) u.id: u};
 
       setState(() {
         _selectedCustomerId = order.customerId;
@@ -55,6 +62,8 @@ class _AddSalesOrderPageState extends State<AddSalesOrderPage> {
             quantity: item.quantity.toDouble(),
             price: item.price.toDouble(),
             unitId: item.unitId,
+            unitName: unitMap[item.unitId]?.unitName,
+            selectedUnit: unitMap[item.unitId],
           ));
         }
       });
@@ -230,9 +239,48 @@ class _AddSalesOrderPageState extends State<AddSalesOrderPage> {
                 ),
               ],
             ),
+            const SizedBox(height: 8),
+            _buildUnitSelector(index, item),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildUnitSelector(int index, _OrderItem item) {
+    final db = di.sl<AppDatabase>();
+    return StreamBuilder<List<ProductUnit>>(
+      stream: (db.select(db.productUnits)
+            ..where((t) => t.productId.equals(item.productId)))
+          .watch(),
+      builder: (context, snapshot) {
+        final conversions = snapshot.data ?? [];
+        return DropdownButtonFormField<ProductUnit?>(
+          value: item.selectedUnit,
+          decoration: const InputDecoration(labelText: 'الوحدة', isDense: true),
+          items: [
+            DropdownMenuItem(
+              value: null,
+              child: Text(item.unitName ?? 'الوحدة الأساسية'),
+            ),
+            ...conversions.map(
+              (u) => DropdownMenuItem(value: u, child: Text(u.unitName)),
+            ),
+          ],
+          onChanged: (value) {
+            setState(() {
+              _items[index].selectedUnit = value;
+              _items[index].unitId = value?.id;
+              _items[index].unitName = value?.unitName;
+              if (value != null) {
+                final factor = value.unitFactor.toDouble();
+                _items[index].price =
+                    _items[index].price * factor;
+              }
+            });
+          },
+        );
+      },
     );
   }
 
@@ -306,6 +354,9 @@ class _AddSalesOrderPageState extends State<AddSalesOrderPage> {
           productName: result['productName'] ?? '',
           quantity: result['quantity'] ?? 1.0,
           price: result['price'] ?? 0.0,
+          unitId: result['unitId'],
+          unitName: result['unitName'],
+          selectedUnit: result['unit'] as ProductUnit?,
         ));
       });
     }
@@ -331,7 +382,7 @@ class _AddSalesOrderPageState extends State<AddSalesOrderPage> {
               productId: item.productId,
               quantity: Decimal.parse(item.quantity.toString()),
               price: Decimal.parse(item.price.toString()),
-              unitId: item.unitId,
+              unitId: item.unitId ?? item.selectedUnit?.id,
             ))
         .toList();
 
@@ -408,6 +459,8 @@ class _OrderItem {
   double quantity;
   double price;
   String? unitId;
+  String? unitName;
+  ProductUnit? selectedUnit;
 
   _OrderItem({
     required this.productId,
@@ -415,6 +468,8 @@ class _OrderItem {
     required this.quantity,
     required this.price,
     this.unitId,
+    this.unitName,
+    this.selectedUnit,
   });
 }
 
@@ -429,6 +484,8 @@ class _AddProductDialogState extends State<_AddProductDialog> {
   final _qtyController = TextEditingController(text: '1');
   final _priceController = TextEditingController(text: '0');
   List<Product> _products = [];
+  List<ProductUnit> _selectedUnits = [];
+  ProductUnit? _selectedUnit;
   bool _isLoading = true;
 
   @override
@@ -498,9 +555,11 @@ class _AddProductDialogState extends State<_AddProductDialog> {
                           onChanged: (val) {
                             setState(() {
                               _selectedProductId = val;
+                              _selectedUnit = null;
                               _priceController.text =
                                   product.sellPrice.toString();
                             });
+                            _loadProductUnits(product.id);
                           },
                         );
                       },
@@ -534,6 +593,42 @@ class _AddProductDialogState extends State<_AddProductDialog> {
                       ),
                     ],
                   ),
+                  if (_selectedProductId != null && _selectedUnits.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: DropdownButtonFormField<ProductUnit?>(
+                        value: _selectedUnit,
+                        decoration: const InputDecoration(
+                          labelText: 'الوحدة',
+                          border: OutlineInputBorder(),
+                          isDense: true,
+                        ),
+                        items: [
+                          const DropdownMenuItem(
+                            value: null,
+                            child: Text('الوحدة الأساسية'),
+                          ),
+                          ..._selectedUnits.map(
+                            (u) => DropdownMenuItem(
+                              value: u,
+                              child: Text(u.unitName),
+                            ),
+                          ),
+                        ],
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedUnit = value;
+                            final factor =
+                                (value?.unitFactor ?? Decimal.one).toDouble();
+                            final product = _products.firstWhere(
+                                (p) => p.id == _selectedProductId);
+                            _priceController.text =
+                                (product.sellPrice.toDouble() * factor)
+                                    .toString();
+                          });
+                        },
+                      ),
+                    ),
                 ],
               ),
       ),
@@ -552,11 +647,24 @@ class _AddProductDialogState extends State<_AddProductDialog> {
                     'productName': product.name,
                     'quantity': double.tryParse(_qtyController.text) ?? 1,
                     'price': double.tryParse(_priceController.text) ?? 0,
+                    'unitId': _selectedUnit?.id,
+                    'unitName': _selectedUnit?.unitName,
+                    'unit': _selectedUnit,
                   });
                 },
           child: const Text('إضافة'),
         ),
       ],
     );
+  }
+
+  Future<void> _loadProductUnits(String productId) async {
+    final db = di.sl<AppDatabase>();
+    final units = await (db.select(db.productUnits)
+          ..where((u) => u.productId.equals(productId)))
+        .get();
+    if (mounted) {
+      setState(() => _selectedUnits = units);
+    }
   }
 }

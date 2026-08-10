@@ -1,6 +1,7 @@
 import 'package:get_it/get_it.dart';
 import 'package:supermarket/core/services/purchases/purchase_service.dart';
 import 'package:supermarket/core/services/purchases/purchase_converter.dart';
+import 'package:supermarket/core/services/purchases/purchase_printing_service.dart';
 import 'package:supermarket/core/services/purchases/grn_service.dart';
 import 'package:supermarket/core/services/purchases/supplier_analytics_service.dart';
 import 'package:supermarket/core/services/purchases/aging_service.dart';
@@ -21,6 +22,8 @@ void registerPurchaseModule(GetIt sl) {
         sl<InventoryCostingService>(), sl<AppConfigService>()),
   );
   sl.registerLazySingleton<PurchaseConverter>(() => PurchaseConverter(db));
+  sl.registerLazySingleton<PurchasePrintingService>(
+      () => PurchasePrintingService(db));
   sl.registerLazySingleton<GrnService>(() => GrnService(db));
   sl.registerLazySingleton<SupplierAnalyticsService>(() => SupplierAnalyticsService(db));
   sl.registerLazySingleton<AgingService>(() => AgingService(db));

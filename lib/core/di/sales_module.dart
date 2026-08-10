@@ -10,6 +10,7 @@ import 'package:supermarket/core/services/sales/unified_statement_service.dart';
 import 'package:supermarket/core/services/sales/sales_commission_service.dart';
 import 'package:supermarket/core/services/sales/loyalty_service.dart';
 import 'package:supermarket/core/services/sales/pricing_service.dart';
+import 'package:supermarket/core/services/transaction_engine.dart';
 import 'package:supermarket/core/services/app_config_service.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:supermarket/data/datasources/local/daos/sales_dao.dart';
@@ -20,7 +21,8 @@ void registerSalesModule(GetIt sl) {
 
   sl.registerLazySingleton<ISalesRepository>(() => SalesDao(db));
 
-  sl.registerLazySingleton<SalesOrderService>(() => SalesOrderService(db));
+  sl.registerLazySingleton<SalesOrderService>(
+      () => SalesOrderService(db, sl<TransactionEngine>()));
   sl.registerLazySingleton<DeliveryNotesService>(() => DeliveryNotesService(db));
   sl.registerLazySingleton<InvoiceService>(() => InvoiceService(db));
   sl.registerLazySingleton<CreditNoteService>(() => CreditNoteService(db));
