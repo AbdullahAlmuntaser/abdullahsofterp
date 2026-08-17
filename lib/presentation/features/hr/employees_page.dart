@@ -102,6 +102,9 @@ class _EmployeesPageState extends State<EmployeesPage> {
         TextEditingController(text: emp?.basicSalary.toString());
     final joinDateController = TextEditingController(
         text: emp?.hireDate.toIso8601String().substring(0, 10));
+    final contractExpiryController = TextEditingController(
+        text: emp?.contractExpiry?.toIso8601String().substring(0, 10));
+    final attachmentsController = TextEditingController(text: emp?.attachments ?? '');
 
     showDialog(
       context: context,
@@ -158,6 +161,32 @@ class _EmployeesPageState extends State<EmployeesPage> {
                     }
                   },
                 ),
+                TextField(
+                  controller: contractExpiryController,
+                  decoration: const InputDecoration(
+                    labelText: 'تاريخ انتهاء العقد',
+                    hintText: 'YYYY-MM-DD',
+                  ),
+                  onTap: () async {
+                    final date = await showDatePicker(
+                      context: context,
+                      initialDate: DateTime.now().add(const Duration(days: 365)),
+                      firstDate: DateTime(2000),
+                      lastDate: DateTime(2100),
+                    );
+                    if (date != null) {
+                      contractExpiryController.text =
+                          date.toIso8601String().substring(0, 10);
+                    }
+                  },
+                ),
+                TextField(
+                  controller: attachmentsController,
+                  decoration: const InputDecoration(
+                    labelText: 'المرفقات (روابط مفصولة بفاصلة)',
+                    hintText: 'رابط1، رابط2',
+                  ),
+                ),
               ],
             ),
           ),
@@ -174,6 +203,11 @@ class _EmployeesPageState extends State<EmployeesPage> {
               final salary = Decimal.tryParse(salaryController.text) ?? Decimal.zero;
               final hireDate =
                   DateTime.tryParse(joinDateController.text) ?? DateTime.now();
+              final contractExpiry =
+                  DateTime.tryParse(contractExpiryController.text);
+              final attachments = attachmentsController.text.trim().isEmpty
+                  ? null
+                  : attachmentsController.text.trim();
 
               try {
                 if (emp == null) {
@@ -184,6 +218,8 @@ class _EmployeesPageState extends State<EmployeesPage> {
                       position: Value(positionController.text.trim()),
                       basicSalary: salary,
                       hireDate: hireDate,
+                      contractExpiry: Value(contractExpiry),
+                      attachments: Value(attachments),
                     ),
                   );
                 } else {
@@ -195,6 +231,8 @@ class _EmployeesPageState extends State<EmployeesPage> {
                       position: Value(positionController.text.trim()),
                       basicSalary: Value(salary),
                       hireDate: Value(hireDate),
+                      contractExpiry: Value(contractExpiry),
+                      attachments: Value(attachments),
                     ),
                   );
                 }

@@ -40,7 +40,35 @@ TODO | IN_PROGRESS | DONE | BLOCKED | VERIFIED | REGRESSION
 
 ## المرحلة الثالثة: المخزون والعملاء/الموردون والتقارير (AUD-018 → AUD-034)
 
-### AUD-018: فحص الوحدات المتعددة (IN_PROGRESS)
-- Root cause: (قيد الفحص)
-- Planned change: (قيد الفحص)
-- Files expected: (قيد الفحص)
+| ID | المشكلة | الأولوية | الحالة | الملفات المعدلة | الاختبارات | النتيجة | ملاحظات |
+|----|---------|----------|--------|-----------------|-----------|---------|---------|
+| AUD-018 | فحص الوحدات المتعددة | MEDIUM | VERIFIED | product_units_dao.dart, unit_conversion_service.dart, stock_display_adapter.dart | flutter analyze | PASS | النظام موجود فعلاً: ProductUnits table + UnitConversionService + StockDisplayAdapter للعرض بالوحدات المناسبة |
+| AUD-019 | فحص الوحدة الأساسية | MEDIUM | VERIFIED | products table (unit column) | flutter analyze | PASS | products.unit يحتوي على الوحدة الأساسية (افتراضي 'pcs') |
+| AUD-020 | فحص Conversion Factors | MEDIUM | VERIFIED | ProductUnits.unitFactor | flutter analyze | PASS | ProductUnits.unitFactor يُستخدم في UnitConversionService لتحويل الوحدات |
+| AUD-021 | ربط Minimum Stock بتنبيهات المخزون | MEDIUM | VERIFIED | products table (alertLimit), low_stock_alert_page.dart | flutter analyze | PASS | alertLimit + watchLowStockProducts() + LowStockAlertPage تعمل بشكل صحيح |
+| AUD-022 | إكمال Expiry Date | MEDIUM | VERIFIED | product_batches table (expiryDate), products_dao.dart | flutter analyze | PASS | productBatches.expiryDate + getExpiringBatches + watchExpiringBatches موجودة |
+| AUD-023 | فحص Serial Numbers والتتبع التاريخي | MEDIUM | VERIFIED | serial_number_service.dart, serial_numbers_page.dart | flutter analyze | PASS | SerialNumberService كامل: register/markAsSold/markAsReturned/reserve + SerialNumbersPage |
+| AUD-024 | إكمال الجرد الدائري | MEDIUM | VERIFIED | stock_take_page.dart, stock_operation_service.dart | flutter analyze | PASS | StockTakePage + performInventoryAudit + inventory_audits table موجودة |
+| AUD-025 | إعادة تنظيم صفحات الموردين | MEDIUM | VERIFIED | suppliers_page.dart, supplier_report_page.dart | flutter analyze | PASS | لا توجد مشاكل في الوصول المباشر لقاعدة البيانات، الصفحات تستخدم DAOs |
+| AUD-026 | إضافة Pagination للبيانات الكبيرة | MEDIUM | DONE | supplier_report_page.dart | flutter analyze | PASS | أضيف pagination مع _pageSize=20 + _currentPage + عرض عدد العناصر |
+| AUD-027 | إصلاح معالجة أخطاء supplier_performance_page | MEDIUM | DONE | supplier_performance_page.dart | flutter analyze | PASS | أضيف try-catch + حالة خطأ + زر إعادة محاولة + SnackBar للرسائل |
+| AUD-028 | إكمال الحقول الناقصة للموظفين | MEDIUM | DONE | payroll_tables.dart, employees_page.dart, v59_to_v60.dart | flutter analyze | PASS | أضيف contractExpiry + attachments + migration v59_to_v60 + تحديث الواجهة |
+| AUD-029 | فحص التقارير والتأكد من مصادر البيانات | MEDIUM | VERIFIED | report_engine_service.dart, sales_dao.dart | flutter analyze | PASS | التقارير تستخدم DAOs والـ Services الصحيحة (لا يوجد وصول مباشر) |
+| AUD-030 | إضافة التقارير المخصصة | MEDIUM | VERIFIED | report_engine_service.dart | flutter analyze | PASS | ReportEngineService يحتوي على getTopSellingProducts + getProfitMarginReport + getDailySalesReport + getInventoryValuationReport |
+| AUD-031 | إضافة المقارنات بين الفترات | MEDIUM | VERIFIED | sales_reports_page.dart, product_profitability_page.dart, advanced_profit_report_page.dart | flutter analyze | PASS | جميع التقارير المالية تحتوي على منتقي تاريخ (Date Range Picker) |
+| AUD-032 | إضافة قيمة المخزون | MEDIUM | VERIFIED | inventory_value_report.dart, inventory_costing_service.dart | flutter analyze | PASS | InventoryValueReport + getTotalInventoryValue + getInventoryValuationReport موجودة |
+| AUD-033 | إضافة هامش الربح حسب المنتج | MEDIUM | VERIFIED | product_profitability_page.dart, sales_dao.dart (getProductProfitability) | flutter analyze | PASS | ProductProfitabilityPage + getProductProfitability في SalesDao |
+| AUD-034 | إضافة Excel export | MEDIUM | VERIFIED | export_service.dart | flutter analyze | PASS | ExportService يدعم CSV + PDF + Excel للعديد من الأنواع |
+
+## ملاحظات المرحلة الثالثة
+- flutter analyze: نظيف (ملاحظتا l10n المولدة موجودتان مسبقًا)
+- flutter test: 17/17 لاختبارات المرحلة الثالثة (phase3_inventory_reports_test.dart)
+- Schema Migration: v59 → v60 (إضافة contract_expiry + attachments لجدول hr_employees)
+- الملفات المعدلة:
+  - lib/presentation/features/purchases/supplier_performance_page.dart (AUD-027)
+  - lib/presentation/features/reports/supplier_report_page.dart (AUD-026)
+  - lib/presentation/features/hr/employees_page.dart (AUD-028)
+  - lib/data/datasources/local/tables/payroll_tables.dart (AUD-028)
+  - lib/data/migrations/v59_to_v60.dart (AUD-028)
+  - lib/data/datasources/local/app_database.dart (AUD-028)
+  - test/unit/phase3_inventory_reports_test.dart (جديد)

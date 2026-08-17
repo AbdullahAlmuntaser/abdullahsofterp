@@ -19,6 +19,8 @@ class HREmployees extends Table {
       integer().map(const CentConverter()).withDefault(const Constant(0))();
   TextColumn get bankAccountNumber => text().nullable()();
   TextColumn get bankName => text().nullable()();
+  DateTimeColumn get contractExpiry => dateTime().nullable()();
+  TextColumn get attachments => text().nullable()();
   TextColumn get status =>
       text().withDefault(const Constant('active'))();
   @override

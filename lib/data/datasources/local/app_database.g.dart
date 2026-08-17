@@ -56837,6 +56837,18 @@ class $HREmployeesTable extends HREmployees
   late final GeneratedColumn<String> bankName = GeneratedColumn<String>(
       'bank_name', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _contractExpiryMeta =
+      const VerificationMeta('contractExpiry');
+  @override
+  late final GeneratedColumn<DateTime> contractExpiry =
+      GeneratedColumn<DateTime>('contract_expiry', aliasedName, true,
+          type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _attachmentsMeta =
+      const VerificationMeta('attachments');
+  @override
+  late final GeneratedColumn<String> attachments = GeneratedColumn<String>(
+      'attachments', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _statusMeta = const VerificationMeta('status');
   @override
   late final GeneratedColumn<String> status = GeneratedColumn<String>(
@@ -56859,6 +56871,8 @@ class $HREmployeesTable extends HREmployees
         totalDeductions,
         bankAccountNumber,
         bankName,
+        contractExpiry,
+        attachments,
         status
       ];
   @override
@@ -56917,6 +56931,18 @@ class $HREmployeesTable extends HREmployees
       context.handle(_bankNameMeta,
           bankName.isAcceptableOrUnknown(data['bank_name']!, _bankNameMeta));
     }
+    if (data.containsKey('contract_expiry')) {
+      context.handle(
+          _contractExpiryMeta,
+          contractExpiry.isAcceptableOrUnknown(
+              data['contract_expiry']!, _contractExpiryMeta));
+    }
+    if (data.containsKey('attachments')) {
+      context.handle(
+          _attachmentsMeta,
+          attachments.isAcceptableOrUnknown(
+              data['attachments']!, _attachmentsMeta));
+    }
     if (data.containsKey('status')) {
       context.handle(_statusMeta,
           status.isAcceptableOrUnknown(data['status']!, _statusMeta));
@@ -56961,6 +56987,10 @@ class $HREmployeesTable extends HREmployees
           DriftSqlType.string, data['${effectivePrefix}bank_account_number']),
       bankName: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}bank_name']),
+      contractExpiry: attachedDatabase.typeMapping.read(
+          DriftSqlType.dateTime, data['${effectivePrefix}contract_expiry']),
+      attachments: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}attachments']),
       status: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}status'])!,
     );
@@ -56997,6 +57027,8 @@ class HREmployee extends DataClass implements Insertable<HREmployee> {
   final Decimal totalDeductions;
   final String? bankAccountNumber;
   final String? bankName;
+  final DateTime? contractExpiry;
+  final String? attachments;
   final String status;
   const HREmployee(
       {required this.id,
@@ -57012,6 +57044,8 @@ class HREmployee extends DataClass implements Insertable<HREmployee> {
       required this.totalDeductions,
       this.bankAccountNumber,
       this.bankName,
+      this.contractExpiry,
+      this.attachments,
       required this.status});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -57053,6 +57087,12 @@ class HREmployee extends DataClass implements Insertable<HREmployee> {
     if (!nullToAbsent || bankName != null) {
       map['bank_name'] = Variable<String>(bankName);
     }
+    if (!nullToAbsent || contractExpiry != null) {
+      map['contract_expiry'] = Variable<DateTime>(contractExpiry);
+    }
+    if (!nullToAbsent || attachments != null) {
+      map['attachments'] = Variable<String>(attachments);
+    }
     map['status'] = Variable<String>(status);
     return map;
   }
@@ -57080,6 +57120,12 @@ class HREmployee extends DataClass implements Insertable<HREmployee> {
       bankName: bankName == null && nullToAbsent
           ? const Value.absent()
           : Value(bankName),
+      contractExpiry: contractExpiry == null && nullToAbsent
+          ? const Value.absent()
+          : Value(contractExpiry),
+      attachments: attachments == null && nullToAbsent
+          ? const Value.absent()
+          : Value(attachments),
       status: Value(status),
     );
   }
@@ -57103,6 +57149,8 @@ class HREmployee extends DataClass implements Insertable<HREmployee> {
       bankAccountNumber:
           serializer.fromJson<String?>(json['bankAccountNumber']),
       bankName: serializer.fromJson<String?>(json['bankName']),
+      contractExpiry: serializer.fromJson<DateTime?>(json['contractExpiry']),
+      attachments: serializer.fromJson<String?>(json['attachments']),
       status: serializer.fromJson<String>(json['status']),
     );
   }
@@ -57123,6 +57171,8 @@ class HREmployee extends DataClass implements Insertable<HREmployee> {
       'totalDeductions': serializer.toJson<Decimal>(totalDeductions),
       'bankAccountNumber': serializer.toJson<String?>(bankAccountNumber),
       'bankName': serializer.toJson<String?>(bankName),
+      'contractExpiry': serializer.toJson<DateTime?>(contractExpiry),
+      'attachments': serializer.toJson<String?>(attachments),
       'status': serializer.toJson<String>(status),
     };
   }
@@ -57141,6 +57191,8 @@ class HREmployee extends DataClass implements Insertable<HREmployee> {
           Decimal? totalDeductions,
           Value<String?> bankAccountNumber = const Value.absent(),
           Value<String?> bankName = const Value.absent(),
+          Value<DateTime?> contractExpiry = const Value.absent(),
+          Value<String?> attachments = const Value.absent(),
           String? status}) =>
       HREmployee(
         id: id ?? this.id,
@@ -57158,6 +57210,9 @@ class HREmployee extends DataClass implements Insertable<HREmployee> {
             ? bankAccountNumber.value
             : this.bankAccountNumber,
         bankName: bankName.present ? bankName.value : this.bankName,
+        contractExpiry:
+            contractExpiry.present ? contractExpiry.value : this.contractExpiry,
+        attachments: attachments.present ? attachments.value : this.attachments,
         status: status ?? this.status,
       );
   HREmployee copyWithCompanion(HREmployeesCompanion data) {
@@ -57187,6 +57242,11 @@ class HREmployee extends DataClass implements Insertable<HREmployee> {
           ? data.bankAccountNumber.value
           : this.bankAccountNumber,
       bankName: data.bankName.present ? data.bankName.value : this.bankName,
+      contractExpiry: data.contractExpiry.present
+          ? data.contractExpiry.value
+          : this.contractExpiry,
+      attachments:
+          data.attachments.present ? data.attachments.value : this.attachments,
       status: data.status.present ? data.status.value : this.status,
     );
   }
@@ -57207,6 +57267,8 @@ class HREmployee extends DataClass implements Insertable<HREmployee> {
           ..write('totalDeductions: $totalDeductions, ')
           ..write('bankAccountNumber: $bankAccountNumber, ')
           ..write('bankName: $bankName, ')
+          ..write('contractExpiry: $contractExpiry, ')
+          ..write('attachments: $attachments, ')
           ..write('status: $status')
           ..write(')'))
         .toString();
@@ -57227,6 +57289,8 @@ class HREmployee extends DataClass implements Insertable<HREmployee> {
       totalDeductions,
       bankAccountNumber,
       bankName,
+      contractExpiry,
+      attachments,
       status);
   @override
   bool operator ==(Object other) =>
@@ -57245,6 +57309,8 @@ class HREmployee extends DataClass implements Insertable<HREmployee> {
           other.totalDeductions == this.totalDeductions &&
           other.bankAccountNumber == this.bankAccountNumber &&
           other.bankName == this.bankName &&
+          other.contractExpiry == this.contractExpiry &&
+          other.attachments == this.attachments &&
           other.status == this.status);
 }
 
@@ -57262,6 +57328,8 @@ class HREmployeesCompanion extends UpdateCompanion<HREmployee> {
   final Value<Decimal> totalDeductions;
   final Value<String?> bankAccountNumber;
   final Value<String?> bankName;
+  final Value<DateTime?> contractExpiry;
+  final Value<String?> attachments;
   final Value<String> status;
   final Value<int> rowid;
   const HREmployeesCompanion({
@@ -57278,6 +57346,8 @@ class HREmployeesCompanion extends UpdateCompanion<HREmployee> {
     this.totalDeductions = const Value.absent(),
     this.bankAccountNumber = const Value.absent(),
     this.bankName = const Value.absent(),
+    this.contractExpiry = const Value.absent(),
+    this.attachments = const Value.absent(),
     this.status = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -57295,6 +57365,8 @@ class HREmployeesCompanion extends UpdateCompanion<HREmployee> {
     this.totalDeductions = const Value.absent(),
     this.bankAccountNumber = const Value.absent(),
     this.bankName = const Value.absent(),
+    this.contractExpiry = const Value.absent(),
+    this.attachments = const Value.absent(),
     this.status = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : name = Value(name),
@@ -57315,6 +57387,8 @@ class HREmployeesCompanion extends UpdateCompanion<HREmployee> {
     Expression<int>? totalDeductions,
     Expression<String>? bankAccountNumber,
     Expression<String>? bankName,
+    Expression<DateTime>? contractExpiry,
+    Expression<String>? attachments,
     Expression<String>? status,
     Expression<int>? rowid,
   }) {
@@ -57332,6 +57406,8 @@ class HREmployeesCompanion extends UpdateCompanion<HREmployee> {
       if (totalDeductions != null) 'total_deductions': totalDeductions,
       if (bankAccountNumber != null) 'bank_account_number': bankAccountNumber,
       if (bankName != null) 'bank_name': bankName,
+      if (contractExpiry != null) 'contract_expiry': contractExpiry,
+      if (attachments != null) 'attachments': attachments,
       if (status != null) 'status': status,
       if (rowid != null) 'rowid': rowid,
     });
@@ -57351,6 +57427,8 @@ class HREmployeesCompanion extends UpdateCompanion<HREmployee> {
       Value<Decimal>? totalDeductions,
       Value<String?>? bankAccountNumber,
       Value<String?>? bankName,
+      Value<DateTime?>? contractExpiry,
+      Value<String?>? attachments,
       Value<String>? status,
       Value<int>? rowid}) {
     return HREmployeesCompanion(
@@ -57367,6 +57445,8 @@ class HREmployeesCompanion extends UpdateCompanion<HREmployee> {
       totalDeductions: totalDeductions ?? this.totalDeductions,
       bankAccountNumber: bankAccountNumber ?? this.bankAccountNumber,
       bankName: bankName ?? this.bankName,
+      contractExpiry: contractExpiry ?? this.contractExpiry,
+      attachments: attachments ?? this.attachments,
       status: status ?? this.status,
       rowid: rowid ?? this.rowid,
     );
@@ -57423,6 +57503,12 @@ class HREmployeesCompanion extends UpdateCompanion<HREmployee> {
     if (bankName.present) {
       map['bank_name'] = Variable<String>(bankName.value);
     }
+    if (contractExpiry.present) {
+      map['contract_expiry'] = Variable<DateTime>(contractExpiry.value);
+    }
+    if (attachments.present) {
+      map['attachments'] = Variable<String>(attachments.value);
+    }
     if (status.present) {
       map['status'] = Variable<String>(status.value);
     }
@@ -57448,6 +57534,8 @@ class HREmployeesCompanion extends UpdateCompanion<HREmployee> {
           ..write('totalDeductions: $totalDeductions, ')
           ..write('bankAccountNumber: $bankAccountNumber, ')
           ..write('bankName: $bankName, ')
+          ..write('contractExpiry: $contractExpiry, ')
+          ..write('attachments: $attachments, ')
           ..write('status: $status, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -137799,6 +137887,8 @@ typedef $$HREmployeesTableCreateCompanionBuilder = HREmployeesCompanion
   Value<Decimal> totalDeductions,
   Value<String?> bankAccountNumber,
   Value<String?> bankName,
+  Value<DateTime?> contractExpiry,
+  Value<String?> attachments,
   Value<String> status,
   Value<int> rowid,
 });
@@ -137817,6 +137907,8 @@ typedef $$HREmployeesTableUpdateCompanionBuilder = HREmployeesCompanion
   Value<Decimal> totalDeductions,
   Value<String?> bankAccountNumber,
   Value<String?> bankName,
+  Value<DateTime?> contractExpiry,
+  Value<String?> attachments,
   Value<String> status,
   Value<int> rowid,
 });
@@ -137921,6 +138013,13 @@ class $$HREmployeesTableFilterComposer
   ColumnFilters<String> get bankName => $composableBuilder(
       column: $table.bankName, builder: (column) => ColumnFilters(column));
 
+  ColumnFilters<DateTime> get contractExpiry => $composableBuilder(
+      column: $table.contractExpiry,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get attachments => $composableBuilder(
+      column: $table.attachments, builder: (column) => ColumnFilters(column));
+
   ColumnFilters<String> get status => $composableBuilder(
       column: $table.status, builder: (column) => ColumnFilters(column));
 
@@ -138022,6 +138121,13 @@ class $$HREmployeesTableOrderingComposer
   ColumnOrderings<String> get bankName => $composableBuilder(
       column: $table.bankName, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<DateTime> get contractExpiry => $composableBuilder(
+      column: $table.contractExpiry,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get attachments => $composableBuilder(
+      column: $table.attachments, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get status => $composableBuilder(
       column: $table.status, builder: (column) => ColumnOrderings(column));
 }
@@ -138078,6 +138184,12 @@ class $$HREmployeesTableAnnotationComposer
 
   GeneratedColumn<String> get bankName =>
       $composableBuilder(column: $table.bankName, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get contractExpiry => $composableBuilder(
+      column: $table.contractExpiry, builder: (column) => column);
+
+  GeneratedColumn<String> get attachments => $composableBuilder(
+      column: $table.attachments, builder: (column) => column);
 
   GeneratedColumn<String> get status =>
       $composableBuilder(column: $table.status, builder: (column) => column);
@@ -138164,6 +138276,8 @@ class $$HREmployeesTableTableManager extends RootTableManager<
             Value<Decimal> totalDeductions = const Value.absent(),
             Value<String?> bankAccountNumber = const Value.absent(),
             Value<String?> bankName = const Value.absent(),
+            Value<DateTime?> contractExpiry = const Value.absent(),
+            Value<String?> attachments = const Value.absent(),
             Value<String> status = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
@@ -138181,6 +138295,8 @@ class $$HREmployeesTableTableManager extends RootTableManager<
             totalDeductions: totalDeductions,
             bankAccountNumber: bankAccountNumber,
             bankName: bankName,
+            contractExpiry: contractExpiry,
+            attachments: attachments,
             status: status,
             rowid: rowid,
           ),
@@ -138198,6 +138314,8 @@ class $$HREmployeesTableTableManager extends RootTableManager<
             Value<Decimal> totalDeductions = const Value.absent(),
             Value<String?> bankAccountNumber = const Value.absent(),
             Value<String?> bankName = const Value.absent(),
+            Value<DateTime?> contractExpiry = const Value.absent(),
+            Value<String?> attachments = const Value.absent(),
             Value<String> status = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
@@ -138215,6 +138333,8 @@ class $$HREmployeesTableTableManager extends RootTableManager<
             totalDeductions: totalDeductions,
             bankAccountNumber: bankAccountNumber,
             bankName: bankName,
+            contractExpiry: contractExpiry,
+            attachments: attachments,
             status: status,
             rowid: rowid,
           ),
