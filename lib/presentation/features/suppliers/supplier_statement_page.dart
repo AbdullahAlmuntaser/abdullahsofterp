@@ -5,6 +5,7 @@ import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:intl/intl.dart';
 import 'package:supermarket/injection_container.dart';
 import 'package:supermarket/core/services/sales/statement_printing_service.dart';
+import 'package:supermarket/core/utils/currency_formatter.dart';
 
 class SupplierStatementPage extends StatefulWidget {
   final String supplierId;
@@ -149,7 +150,7 @@ class _SupplierStatementPageState extends State<SupplierStatementPage> {
           ),
           const SizedBox(height: 8),
           Text(
-            '${_supplier!.balance.toStringAsFixed(2)} SAR',
+            CurrencyFormatter.format(_supplier!.balance),
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                   fontWeight: FontWeight.bold,
                   color: _supplier!.balance > Decimal.zero

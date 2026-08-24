@@ -63,8 +63,8 @@ class _HomePageState extends State<HomePage> {
   PreferredSizeWidget _buildAppBar(BuildContext context, UserRole role) {
     final l10n = AppLocalizations.of(context)!;
     return AppBar(
-      title: const Text('ERP Command Center',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+      title: Text(l10n.appTitle,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
       actions: [
         IconButton(
           icon: const Icon(Icons.dashboard_customize_outlined, size: 20),
@@ -388,7 +388,7 @@ class _HomePageState extends State<HomePage> {
       },
       items: [
         BottomNavigationBarItem(icon: const Icon(Icons.home), label: l10n.home),
-        const BottomNavigationBarItem(icon: Icon(Icons.point_of_sale), label: 'POS'),
+        BottomNavigationBarItem(icon: const Icon(Icons.point_of_sale), label: l10n.pos),
         BottomNavigationBarItem(
             icon: const Icon(Icons.add_circle_outline), label: l10n.newLabel),
         BottomNavigationBarItem(icon: const Icon(Icons.menu), label: l10n.menuLabel),

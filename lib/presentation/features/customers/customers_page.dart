@@ -10,6 +10,7 @@ import 'package:supermarket/presentation/features/customers/widgets/customer_pay
 import 'package:supermarket/core/services/transaction_engine.dart';
 import 'package:supermarket/injection_container.dart';
 import 'package:supermarket/core/auth/auth_provider.dart';
+import 'package:supermarket/core/utils/currency_formatter.dart';
 
 class CustomersPage extends StatefulWidget {
   const CustomersPage({super.key});
@@ -364,7 +365,7 @@ class _CustomersPageState extends State<CustomersPage> {
                         style: TextStyle(fontSize: 10, color: Colors.grey),
                       ),
                       Text(
-                        "${customer.balance.toStringAsFixed(2)} ر.س",
+                        CurrencyFormatter.format(customer.balance),
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 18,

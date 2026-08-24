@@ -10,6 +10,7 @@ import 'package:supermarket/core/constants/app_enums.dart';
 import 'package:supermarket/injection_container.dart' as di;
 import 'package:supermarket/core/services/audit_service.dart';
 import 'package:supermarket/presentation/widgets/app_snack_bar.dart';
+import 'package:supermarket/core/utils/currency_formatter.dart';
 
 class SaleDetailsBottomSheet extends StatelessWidget {
   final Sale sale;
@@ -385,7 +386,7 @@ class SaleDetailsBottomSheet extends StatelessWidget {
   ) async {
     final message = 'شكراً لتعاملكم معنا!\n'
         'فاتورة رقم: ${sale.id.substring(0, 8)}\n'
-        'المبلغ: ${sale.total.toStringAsFixed(2)} SAR\n'
+        'المبلغ: ${CurrencyFormatter.format(sale.total)}\n'
         'التاريخ: ${DateFormat.yMMMd().format(sale.createdAt)}';
 
     String url;

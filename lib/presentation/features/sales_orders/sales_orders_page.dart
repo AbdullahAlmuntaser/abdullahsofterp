@@ -10,6 +10,7 @@ import 'package:supermarket/injection_container.dart' as di;
 import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:supermarket/presentation/widgets/entity_picker.dart';
 import 'sales_orders_provider.dart';
+import 'package:supermarket/core/utils/currency_formatter.dart';
 
 class SalesOrdersPage extends StatefulWidget {
   const SalesOrdersPage({super.key});
@@ -338,7 +339,7 @@ class _SalesOrdersPageState extends State<SalesOrdersPage> {
             ),
             const SizedBox(height: 2),
             Text(
-              '${order.total} ر.س',
+              CurrencyFormatter.format(order.total),
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
           ],

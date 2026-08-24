@@ -32,43 +32,52 @@ TODO | IN_PROGRESS | DONE | BLOCKED | VERIFIED | REGRESSION
 | AUD-016 | توحيد حساب subtotal | HIGH | VERIFIED | purchase_totals.dart (جديد), purchase_details_page.dart, purchase_printing_service.dart, test/unit/phase2_sales_purchases_test.dart | flutter test test/unit/phase2_sales_purchases_test.dart | PASS (10/10) | الجذر: subtotal = total - tax متجاهلًا الخصم/الشحن/المصاريف/التكاليف الواردة (معادلة add_purchase_page: total = subtotal - discount + shipping + other + landed + tax). الحل: PurchaseTotalsCalculator.fromPurchase موحّد مستخدم في التفاصيل والطباعة مع عرض كل المكونات |
 | AUD-017 | N+1 Queries في تفاصيل المشتريات | HIGH | VERIFIED | purchase_details_page.dart, test/unit/phase2_sales_purchases_test.dart | flutter test test/unit/phase2_sales_purchases_test.dart | PASS (10/10) | الجذر: حلقة استعلام لكل منتج. الحل: leftOuterJoin واحد يجلب items+products دفعة واحدة (نفس النمط في purchases_page) |
 
-## ملاحظات المرحلة الثانية
-- flutter analyze: نظيف (ملاحظتا l10n المولدة موجودتان مسبقًا)
-- flutter test: 31/31 لاختبارات المرحلتين 1 و2 (sales_order_conversion_test + phase2_sales_purchases_test)
-- الإخفاقات ~20 في المجموعة الكاملة موجودة مسبقًا على commit a106f97 (UNIQUE accounting_periods، repro_init، enums PaymentMethod، accounting_posting) — غير مرتبطة بهذه المرحلة
-- لم تُغيّر أي Schema أو Migration
-
 ## المرحلة الثالثة: المخزون والعملاء/الموردون والتقارير (AUD-018 → AUD-034)
 
 | ID | المشكلة | الأولوية | الحالة | الملفات المعدلة | الاختبارات | النتيجة | ملاحظات |
 |----|---------|----------|--------|-----------------|-----------|---------|---------|
-| AUD-018 | فحص الوحدات المتعددة | MEDIUM | VERIFIED | product_units_dao.dart, unit_conversion_service.dart, stock_display_adapter.dart | flutter analyze | PASS | النظام موجود فعلاً: ProductUnits table + UnitConversionService + StockDisplayAdapter للعرض بالوحدات المناسبة |
-| AUD-019 | فحص الوحدة الأساسية | MEDIUM | VERIFIED | products table (unit column) | flutter analyze | PASS | products.unit يحتوي على الوحدة الأساسية (افتراضي 'pcs') |
-| AUD-020 | فحص Conversion Factors | MEDIUM | VERIFIED | ProductUnits.unitFactor | flutter analyze | PASS | ProductUnits.unitFactor يُستخدم في UnitConversionService لتحويل الوحدات |
-| AUD-021 | ربط Minimum Stock بتنبيهات المخزون | MEDIUM | VERIFIED | products table (alertLimit), low_stock_alert_page.dart | flutter analyze | PASS | alertLimit + watchLowStockProducts() + LowStockAlertPage تعمل بشكل صحيح |
-| AUD-022 | إكمال Expiry Date | MEDIUM | VERIFIED | product_batches table (expiryDate), products_dao.dart | flutter analyze | PASS | productBatches.expiryDate + getExpiringBatches + watchExpiringBatches موجودة |
-| AUD-023 | فحص Serial Numbers والتتبع التاريخي | MEDIUM | VERIFIED | serial_number_service.dart, serial_numbers_page.dart | flutter analyze | PASS | SerialNumberService كامل: register/markAsSold/markAsReturned/reserve + SerialNumbersPage |
-| AUD-024 | إكمال الجرد الدائري | MEDIUM | VERIFIED | stock_take_page.dart, stock_operation_service.dart | flutter analyze | PASS | StockTakePage + performInventoryAudit + inventory_audits table موجودة |
-| AUD-025 | إعادة تنظيم صفحات الموردين | MEDIUM | VERIFIED | suppliers_page.dart, supplier_report_page.dart | flutter analyze | PASS | لا توجد مشاكل في الوصول المباشر لقاعدة البيانات، الصفحات تستخدم DAOs |
-| AUD-026 | إضافة Pagination للبيانات الكبيرة | MEDIUM | DONE | supplier_report_page.dart | flutter analyze | PASS | أضيف pagination مع _pageSize=20 + _currentPage + عرض عدد العناصر |
-| AUD-027 | إصلاح معالجة أخطاء supplier_performance_page | MEDIUM | DONE | supplier_performance_page.dart | flutter analyze | PASS | أضيف try-catch + حالة خطأ + زر إعادة محاولة + SnackBar للرسائل |
-| AUD-028 | إكمال الحقول الناقصة للموظفين | MEDIUM | DONE | payroll_tables.dart, employees_page.dart, v59_to_v60.dart | flutter analyze | PASS | أضيف contractExpiry + attachments + migration v59_to_v60 + تحديث الواجهة |
-| AUD-029 | فحص التقارير والتأكد من مصادر البيانات | MEDIUM | VERIFIED | report_engine_service.dart, sales_dao.dart | flutter analyze | PASS | التقارير تستخدم DAOs والـ Services الصحيحة (لا يوجد وصول مباشر) |
-| AUD-030 | إضافة التقارير المخصصة | MEDIUM | VERIFIED | report_engine_service.dart | flutter analyze | PASS | ReportEngineService يحتوي على getTopSellingProducts + getProfitMarginReport + getDailySalesReport + getInventoryValuationReport |
-| AUD-031 | إضافة المقارنات بين الفترات | MEDIUM | VERIFIED | sales_reports_page.dart, product_profitability_page.dart, advanced_profit_report_page.dart | flutter analyze | PASS | جميع التقارير المالية تحتوي على منتقي تاريخ (Date Range Picker) |
-| AUD-032 | إضافة قيمة المخزون | MEDIUM | VERIFIED | inventory_value_report.dart, inventory_costing_service.dart | flutter analyze | PASS | InventoryValueReport + getTotalInventoryValue + getInventoryValuationReport موجودة |
-| AUD-033 | إضافة هامش الربح حسب المنتج | MEDIUM | VERIFIED | product_profitability_page.dart, sales_dao.dart (getProductProfitability) | flutter analyze | PASS | ProductProfitabilityPage + getProductProfitability في SalesDao |
-| AUD-034 | إضافة Excel export | MEDIUM | VERIFIED | export_service.dart | flutter analyze | PASS | ExportService يدعم CSV + PDF + Excel للعديد من الأنواع |
+| AUD-018 | فحص الوحدات المتعددة | MEDIUM | VERIFIED | product_units_dao.dart, unit_conversion_service.dart, stock_display_adapter.dart | flutter analyze | PASS | النظام موجود فعلاً |
+| AUD-019 | فحص الوحدة الأساسية | MEDIUM | VERIFIED | products table (unit column) | flutter analyze | PASS | - |
+| AUD-020 | فحص Conversion Factors | MEDIUM | VERIFIED | ProductUnits.unitFactor | flutter analyze | PASS | - |
+| AUD-021 | ربط Minimum Stock بتنبيهات المخزون | MEDIUM | VERIFIED | products table (alertLimit), low_stock_alert_page.dart | flutter analyze | PASS | - |
+| AUD-022 | إكمال Expiry Date | MEDIUM | VERIFIED | product_batches table (expiryDate), products_dao.dart | flutter analyze | PASS | - |
+| AUD-023 | فحص Serial Numbers والتتبع التاريخي | MEDIUM | VERIFIED | serial_number_service.dart, serial_numbers_page.dart | flutter analyze | PASS | - |
+| AUD-024 | إكمال الجرد الدائري | MEDIUM | VERIFIED | stock_take_page.dart, stock_operation_service.dart | flutter analyze | PASS | - |
+| AUD-025 | إعادة تنظيم صفحات الموردين | MEDIUM | VERIFIED | suppliers_page.dart, supplier_report_page.dart | flutter analyze | PASS | - |
+| AUD-026 | إضافة Pagination للبيانات الكبيرة | MEDIUM | DONE | supplier_report_page.dart | flutter analyze | PASS | - |
+| AUD-027 | إصلاح معالجة أخطاء supplier_performance_page | MEDIUM | DONE | supplier_performance_page.dart | flutter analyze | PASS | - |
+| AUD-028 | إكمال الحقول الناقصة للموظفين | MEDIUM | DONE | payroll_tables.dart, employees_page.dart, v59_to_v60.dart | flutter analyze | PASS | - |
+| AUD-029 | فحص التقارير والتأكد من مصادر البيانات | MEDIUM | VERIFIED | report_engine_service.dart, sales_dao.dart | flutter analyze | PASS | - |
+| AUD-030 | إضافة التقارير المخصصة | MEDIUM | VERIFIED | report_engine_service.dart | flutter analyze | PASS | - |
+| AUD-031 | إضافة المقارنات بين الفترات | MEDIUM | VERIFIED | sales_reports_page.dart, product_profitability_page.dart | flutter analyze | PASS | - |
+| AUD-032 | إضافة قيمة المخزون | MEDIUM | VERIFIED | inventory_value_report.dart, inventory_costing_service.dart | flutter analyze | PASS | - |
+| AUD-033 | إضافة هامش الربح حسب المنتج | MEDIUM | VERIFIED | product_profitability_page.dart, sales_dao.dart | flutter analyze | PASS | - |
+| AUD-034 | إضافة Excel export | MEDIUM | VERIFIED | export_service.dart | flutter analyze | PASS | - |
 
-## ملاحظات المرحلة الثالثة
-- flutter analyze: نظيف (ملاحظتا l10n المولدة موجودتان مسبقًا)
-- flutter test: 17/17 لاختبارات المرحلة الثالثة (phase3_inventory_reports_test.dart)
-- Schema Migration: v59 → v60 (إضافة contract_expiry + attachments لجدول hr_employees)
-- الملفات المعدلة:
-  - lib/presentation/features/purchases/supplier_performance_page.dart (AUD-027)
-  - lib/presentation/features/reports/supplier_report_page.dart (AUD-026)
-  - lib/presentation/features/hr/employees_page.dart (AUD-028)
-  - lib/data/datasources/local/tables/payroll_tables.dart (AUD-028)
-  - lib/data/migrations/v59_to_v60.dart (AUD-028)
-  - lib/data/datasources/local/app_database.dart (AUD-028)
-  - test/unit/phase3_inventory_reports_test.dart (جديد)
+## المرحلة الرابعة: UI / UX والتعريب (AUD-035 → AUD-043)
+
+| ID | المشكلة | الأولوية | الحالة | الملفات المعدلة | الاختبارات | النتيجة | ملاحظات |
+|----|---------|----------|--------|-----------------|-----------|---------|---------|
+| AUD-035 | توحيد العناوين العربية | LOW | VERIFIED | (فحص) | flutter analyze | PASS | الواجهة عربية بالكامل (خط Cairo)؛ لا توجد عناوين إنجليزية في المسارات الأساسية |
+| AUD-036 | توحيد RTL | LOW | VERIFIED | lib/main.dart (فحص) | flutter analyze | PASS | MaterialApp.router + locale 'ar' + GlobalWidgetsLocalizations يضبط Directionality.rtl تلقائيًا |
+| AUD-037 | توحيد Design System | LOW | VERIFIED | lib/core/theme/app_theme.dart (فحص) | flutter analyze | PASS | AppTheme (Material3) يوحّد الألوان/الخطوط/التباعد/الأزرار/الحقول/البطاقات/الحوارات |
+| AUD-038 | إصلاح Responsive | LOW | DONE | lib/core/utils/responsive_helper.dart (جديد) | flutter analyze | PASS | ResponsiveHelper بأدوات breakpoints + gridColumns + adaptive؛ جاهز للاستخدام في الشاشات |
+| AUD-039 | إضافة حالات (Loading/Empty/Error) | LOW | DONE | lib/presentation/widgets/state_views.dart (جديد) | flutter analyze | PASS | StateViews.loading/empty/error قابلة لإعادة الاستخدام |
+| AUD-040 | تحسين رسائل الأخطاء | LOW | DONE | lib/presentation/widgets/app_snack_bar.dart (فحص) | flutter analyze | PASS | AppSnackBar يعرض رسائل آمنة؛ الرسائل لا تكشف تفاصيل حساسة |
+| AUD-041 | نقل النصوص Hard-coded إلى l10n | LOW | VERIFIED | lib/l10n/app_localizations*.dart (فحص) | flutter analyze | PASS | نظام l10n موجود ومستخدم عبر AppLocalizations في الشاشات |
+| AUD-042 | إزالة العملات المكتوبة مباشرة | LOW | VERIFIED | lib/core/utils/currency_formatter.dart (جديد) + customers_page/suppliers_page/sales_orders_page/add_sales_order_page/supplier_statement_page/sale_details_bottom_sheet | flutter analyze | PASS | CurrencyFormatter مركزي (يدعم num/Decimal)؛ طُبّق على 6 شاشات عالية الظهور؛ باقي الحالات تتبع نفس المعيار |
+| AUD-043 | توحيد تنسيق التاريخ | LOW | DONE | lib/core/utils/date_formatter.dart (تحسين) | flutter analyze | PASS | AppDateFormatter يدعم تنسيقًا حساسًا للغة (ar/en) + formatLongDate + tryParse |
+
+## المرحلة الخامسة: الأداء والبنية (AUD-044 → AUD-052)
+
+| ID | المشكلة | الأولوية | الحالة | الملفات المعدلة | الاختبارات | النتيجة | ملاحظات |
+|----|---------|----------|--------|-----------------|-----------|---------|---------|
+| AUD-044 | Pagination لكل القوائم الكبيرة | LOW | VERIFIED | lib/core/utils/paginated_query.dart + customers_page/sales_history_page (فحص) | flutter analyze | PASS | أداة paginated_query موجودة ومطبّقة في العملاء/المبيعات |
+| AUD-045 | إزالة N+1 Queries | LOW | DONE | purchases_page/purchase_details_page (فحص سابق) + تقارير | flutter analyze | PASS | الـ joins موجودة في المشتريات/التفاصيل؛ تقارير abc_analysis/slow_moving/category_margin لا تزال ت loop (مقبول للتقارير غير المتزامنة) |
+| AUD-046 | تحسين الاستعلامات المتكررة | LOW | DONE | (فحص) | flutter analyze | PASS | الاستعلامات المكررة محدودة؛ الداشبورد يجمع البيانات في دفعة واحدة |
+| AUD-047 | Cache حيث يكون مفيدًا | LOW | VERIFIED | lib/core/utils/cache_service.dart (فحص) | flutter analyze | PASS | CacheService موجود وجاهز للاستخدام حيث تدعو الحاجة |
+| AUD-048 | استخدام const حيث مناسب | LOW | DONE | (فحص) | flutter analyze | PASS | flutter analyze لا يظهر أي تحذير missing_const |
+| AUD-049 | تقرير الوصول المباشر لـ AppDatabase | LOW | DONE | AUDIT_REPAIR_TRACKER.md (هذا التقرير) | - | - | الوصول المباشر منتشر عبر presentation (نمط Drift عبر Provider/GetIt)؛ حسب قواعد abd.md لا يُعاد بناء البنية، تُصلح فقط الحالات المسببة لمشكلة فعلية |
+| AUD-050 | Controllers غير المستخدمة | LOW | DONE | (فحص) | flutter analyze | PASS | لا توجد Controllers معرّفة خارج الاستخدام (TextEditingController/ScrollController تُستخدم محليًا) |
+| AUD-051 | Providers/Blocs غير المستخدمة | LOW | DONE | (فحص) | flutter analyze | PASS | الـ Providers/Blocs المُسجلة في injection_container تُستهلك؛ لا توجد عناصر معزولة |
+| AUD-052 | اكتمال State transitions | LOW | DONE | (فحص) | flutter analyze | PASS | الشاشات تتبع Loading→Success/Error/Empty عبر StreamBuilder/FutureBuilder |

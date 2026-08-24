@@ -13,6 +13,7 @@ import 'package:supermarket/core/services/transaction_engine.dart';
 import 'package:supermarket/injection_container.dart';
 import 'package:supermarket/core/auth/auth_provider.dart';
 import 'package:supermarket/core/services/communication_service.dart';
+import 'package:supermarket/core/utils/currency_formatter.dart';
 
 class SuppliersPage extends StatefulWidget {
   const SuppliersPage({super.key});
@@ -224,7 +225,7 @@ class _SuppliersPageState extends State<SuppliersPage> {
                         style: TextStyle(fontSize: 10, color: Colors.grey),
                       ),
                       Text(
-                        "${supplier.balance.toStringAsFixed(2)} ر.س",
+                        CurrencyFormatter.format(supplier.balance),
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 18,

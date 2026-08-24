@@ -5,6 +5,7 @@ import 'package:supermarket/core/services/sales/sales_order_service.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:supermarket/injection_container.dart' as di;
 import 'sales_orders_provider.dart';
+import 'package:supermarket/core/utils/currency_formatter.dart';
 
 class AddSalesOrderPage extends StatefulWidget {
   final String? orderId;
@@ -43,11 +44,11 @@ class _AddSalesOrderPageState extends State<AddSalesOrderPage> {
             ..where((p) => p.id.isIn(productIds)))
           .get();
       final nameMap = {for (final p in products) p.id: p.name};
-      final unitIds = items.map((i) => i.unitId).whereType<String>().toSet().toList();
+      final unitIds =
+          items.map((i) => i.unitId).whereType<String>().toSet().toList();
       final units = unitIds.isEmpty
           ? <ProductUnit>[]
-          : await (db.select(db.productUnits)
-                ..where((u) => u.id.isIn(unitIds)))
+          : await (db.select(db.productUnits)..where((u) => u.id.isIn(unitIds)))
               .get();
       final unitMap = {for (final u in units) u.id: u};
 
@@ -274,8 +275,7 @@ class _AddSalesOrderPageState extends State<AddSalesOrderPage> {
               _items[index].unitName = value?.unitName;
               if (value != null) {
                 final factor = value.unitFactor.toDouble();
-                _items[index].price =
-                    _items[index].price * factor;
+                _items[index].price = _items[index].price * factor;
               }
             });
           },
@@ -314,7 +314,7 @@ class _AddSalesOrderPageState extends State<AddSalesOrderPage> {
             const Text('الإجمالي:',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             Text(
-              '${total.toStringAsFixed(2)} ر.س',
+              CurrencyFormatter.format(total),
               style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
           ],
@@ -549,7 +549,7 @@ class _AddProductDialogState extends State<_AddProductDialog> {
                         return RadioListTile<String>(
                           title: Text(product.name),
                           subtitle: Text(
-                              '${product.sellPrice} ر.س - المخزون: ${product.stock.toStringAsFixed(0)}'),
+                              '${CurrencyFormatter.format(product.sellPrice)} - المخزون: ${product.stock.toStringAsFixed(0)}'),
                           value: product.id,
                           groupValue: _selectedProductId,
                           onChanged: (val) {
@@ -620,8 +620,8 @@ class _AddProductDialogState extends State<_AddProductDialog> {
                             _selectedUnit = value;
                             final factor =
                                 (value?.unitFactor ?? Decimal.one).toDouble();
-                            final product = _products.firstWhere(
-                                (p) => p.id == _selectedProductId);
+                            final product = _products
+                                .firstWhere((p) => p.id == _selectedProductId);
                             _priceController.text =
                                 (product.sellPrice.toDouble() * factor)
                                     .toString();

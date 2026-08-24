@@ -21,6 +21,7 @@ import 'package:supermarket/core/services/transaction_engine.dart';
 import 'package:supermarket/core/services/sales/loyalty_service.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:decimal/decimal.dart';
 
 class PosPage extends StatelessWidget {
   const PosPage({super.key});
@@ -307,7 +308,7 @@ class _PosViewState extends State<PosView> {
               return ListTile(
                 leading: CircleAvatar(child: Text('${index + 1}')),
                 title: Text(l10n.itemsCount(itemCount)),
-                subtitle: Text('${total.toStringAsFixed(2)} ${l10n.currencySar}'),
+                subtitle: Text('${total.toStringAsFixed(2)} ${l10n.currencySymbol}'),
                 trailing: const Icon(Icons.play_arrow),
                 onTap: () {
                   Navigator.pop(ctx);
