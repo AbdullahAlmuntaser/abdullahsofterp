@@ -2,7 +2,6 @@ import 'package:supermarket/core/auth/auth_provider.dart';
 import 'package:supermarket/presentation/widgets/permission_guard.dart';
 import 'package:supermarket/core/services/permission_service.dart';
 import 'package:supermarket/core/services/audit_service.dart';
-import 'package:supermarket/core/services/inventory/unit_conversion_service.dart';
 import 'package:drift/drift.dart' as drift;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -236,8 +235,13 @@ class _SalesInvoicePageState extends State<SalesInvoicePage> {
       final row = unitQuery.first;
       final product = row.readTable(db.products);
       final unit = row.readTable(db.productUnits);
-      _addItemToInvoice(product, 1,
-          (unit.sellPrice ?? product.sellPrice).toDouble(), unit.unitName);
+      _addItemToInvoice(
+        product,
+        1,
+        (unit.sellPrice ?? product.sellPrice).toDouble(),
+        unit.unitName,
+        unit.unitFactor.toDouble(),
+      );
       _barcodeController.clear();
       return;
     }
@@ -249,7 +253,12 @@ class _SalesInvoicePageState extends State<SalesInvoicePage> {
   }
 
   void _addItemToInvoice(
-      Product product, double qty, double price, String unit) {
+    Product product,
+    double qty,
+    double price,
+    String unit, [
+    double unitFactor = 1,
+  ]) {
     if (_isLockedForEditing) {
       AppSnackBar.warning(
         context,
@@ -264,6 +273,7 @@ class _SalesInvoicePageState extends State<SalesInvoicePage> {
           quantity: qty,
           price: price,
           selectedUnit: unit,
+          unitFactor: unitFactor,
         ),
       );
     });
@@ -1063,17 +1073,11 @@ class _SalesInvoicePageState extends State<SalesInvoicePage> {
 
         final itemsCompanions = <SaleItemsCompanion>[];
         for (var item in _items) {
-          final baseQuantity =
-              await sl<UnitConversionService>().convertToBaseUnit(
-            productId: item.product!.id,
-            quantity: item.quantity,
-            unitName: item.selectedUnit,
-          );
           itemsCompanions.add(
             SaleItemsCompanion.insert(
               saleId: saleId,
               productId: item.product!.id,
-              quantity: Decimal.parse(baseQuantity.toString()),
+              quantity: Decimal.parse(item.quantity.toString()),
               price: Decimal.parse(item.price.toString()),
               unitName: drift.Value(item.selectedUnit),
               unitFactor:

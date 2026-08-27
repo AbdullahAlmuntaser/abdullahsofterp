@@ -44,11 +44,47 @@ class PurchasesDao extends DatabaseAccessor<AppDatabase> with SyncLogMixin imple
     }
 
     return transaction(() async {
-      // 1. Insert Purchase
+      // 1. Validate foreign keys before inserting so the UI can show the
+      // real invalid field instead of a generic SQLite FK error.
       final purchaseId = purchaseCompanion.id.value;
+      final supplierId = purchaseCompanion.supplierId.value;
+      final warehouseId = purchaseCompanion.warehouseId.value;
+      if (supplierId != null && supplierId.isNotEmpty) {
+        final supplier = await (select(db.suppliers)..where((s) => s.id.equals(supplierId))).getSingleOrNull();
+        if (supplier == null) {
+          throw const BusinessException(message: 'المورد المحدد غير موجود أو تم حذفه. اختر مورداً صحيحاً.');
+        }
+      }
+      if (warehouseId != null && warehouseId.isNotEmpty) {
+        final warehouse = await (select(db.warehouses)..where((w) => w.id.equals(warehouseId))).getSingleOrNull();
+        if (warehouse == null) {
+          throw const BusinessException(message: 'المستودع المحدد غير موجود أو تم حذفه. اختر مستودعاً صحيحاً.');
+        }
+      }
+      for (final item in itemsCompanions) {
+        final productId = item.productId.value;
+        final product = await (select(db.products)..where((p) => p.id.equals(productId))).getSingleOrNull();
+        if (product == null) {
+          throw BusinessException(message: 'الصنف المحدد غير موجود أو تم حذفه: $productId');
+        }
+        final quantity = item.quantity.value;
+        final unitFactor = item.unitFactor.present ? item.unitFactor.value : Decimal.one;
+        final unitPrice = item.unitPrice.value;
+        if (quantity <= Decimal.zero) {
+          throw BusinessException(message: 'كمية الصنف ${product.name} يجب أن تكون أكبر من صفر.');
+        }
+        if (unitFactor <= Decimal.zero) {
+          throw BusinessException(message: 'معامل تحويل وحدة الصنف ${product.name} يجب أن يكون أكبر من صفر.');
+        }
+        if (unitPrice < Decimal.zero) {
+          throw BusinessException(message: 'سعر شراء الصنف ${product.name} يجب أن يكون أكبر من أو يساوي صفر.');
+        }
+      }
+
+      // 2. Insert Purchase
       await into(db.purchases).insert(purchaseCompanion);
 
-      // 2. Insert Items
+      // 3. Insert Items
       for (var item in itemsCompanions) {
         await into(db.purchaseItems).insert(item);
       }

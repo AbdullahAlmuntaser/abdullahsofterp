@@ -315,7 +315,7 @@ class TransactionEngine {
           );
         }
 
-        Decimal remainingToDeduct = item.quantity * item.unitFactor;
+        Decimal remainingToDeduct = item.quantity;
         final product = await (db.select(
           db.products,
         )..where((p) => p.id.equals(item.productId)))
@@ -355,28 +355,36 @@ class TransactionEngine {
           }
         }
 
-        // Deduct from batches using costing service
-        final batches = await _costingService.getBatchesForSale(
-          item.productId,
-          remainingToDeduct,
-          warehouseId: sale.warehouseId,
-        );
+        // Deduct only from batches stored in the same sold unit. This keeps
+        // closed cartons/carton stock separate from loose piece stock; explicit
+        // breakdown operations are responsible for moving quantity between units.
+        var unitBatchesQuery = db.select(db.productBatches)
+          ..where((b) => b.productId.equals(item.productId))
+          ..where((b) => b.quantity.isBiggerThanValue(Decimal.zero));
+        if (sale.warehouseId != null && sale.warehouseId!.isNotEmpty) {
+          unitBatchesQuery = unitBatchesQuery
+            ..where((b) => b.warehouseId.equals(sale.warehouseId!));
+        }
+        final unitBatches = (await unitBatchesQuery.get())
+            .where((batch) => batch.storedUnitId == item.unitName ||
+                (batch.storedUnitId == null && item.unitName == product.unit))
+            .toList()
+          ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+
         Decimal totalDeducted = Decimal.zero;
-        for (var batchData in batches) {
-          if (batchData.remainingQuantity <= Decimal.zero) continue;
-          final deduct = batchData.remainingQuantity;
-          final reserved = batchData.batch.reservedQuantity;
-          final deductFromReserved =
-              reserved >= deduct ? deduct : reserved;
-          final currentBatch = batchData.batch;
-          final changes = await (db.update(
-            db.productBatches,
-          )..where((b) => b.id.equals(currentBatch.id) & b.version.equals(currentBatch.version)))
+        for (final currentBatch in unitBatches) {
+          if (remainingToDeduct <= Decimal.zero) break;
+          final available = currentBatch.quantity - currentBatch.reservedQuantity;
+          final deduct = remainingToDeduct > available ? available : remainingToDeduct;
+          if (deduct <= Decimal.zero) continue;
+          final reserved = currentBatch.reservedQuantity;
+          final deductFromReserved = reserved >= deduct ? deduct : reserved;
+          final changes = await (db.update(db.productBatches)
+                ..where((b) => b.id.equals(currentBatch.id) & b.version.equals(currentBatch.version)))
               .write(
             ProductBatchesCompanion(
               quantity: Value(currentBatch.quantity - deduct),
-              reservedQuantity:
-                  Value(reserved - deductFromReserved),
+              reservedQuantity: Value(reserved - deductFromReserved),
             ).copyWith(version: Value(currentBatch.version + 1)),
           );
           if (changes == 0) {
@@ -385,15 +393,21 @@ class TransactionEngine {
           await db.into(db.inventoryTransactions).insert(
                 InventoryTransactionsCompanion.insert(
                   productId: item.productId,
-                  warehouseId: batchData.batch.warehouseId,
-                  batchId: Value(batchData.batch.id),
-                  quantity: Value(-(batchData.remainingQuantity)),
+                  warehouseId: currentBatch.warehouseId,
+                  batchId: Value(currentBatch.id),
+                  quantity: Value(-deduct),
                   type: 'SALE',
                   referenceId: saleId,
                 ),
               );
-          totalDeducted += batchData.remainingQuantity;
-          saleCogs += batchData.remainingQuantity * batchData.costPerUnit;
+          totalDeducted += deduct;
+          saleCogs += deduct * currentBatch.costPrice;
+          remainingToDeduct -= deduct;
+        }
+        if (remainingToDeduct > Decimal.zero) {
+          throw BusinessException(
+            message: 'المخزون غير كافٍ للمنتج: ${product.name} بوحدة ${item.unitName}. المتبقي غير المتوفر: $remainingToDeduct',
+          );
         }
         await (db.update(
           db.products,
