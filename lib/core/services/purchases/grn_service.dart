@@ -68,8 +68,7 @@ class GrnService {
       for (var item in purchaseItems) {
         final String productId = item.productId;
         final Decimal qty = item.quantity;
-        final Decimal unitFactor = item.unitFactor;
-        final Decimal qtyInBaseUnit = qty * unitFactor;
+        final Decimal qtyInStockUnit = item.quantityInBaseUnit ?? qty;
 
         Decimal landedCostPerUnit = Decimal.zero;
         if (landedCosts > Decimal.zero && itemsSubtotal > Decimal.zero) {
@@ -87,10 +86,12 @@ class GrnService {
                 productId: productId,
                 warehouseId: warehouseId,
                 batchNumber: item.batchNumber ?? 'BATCH-$grnNumber',
-                quantity: Value(qtyInBaseUnit),
-                initialQuantity: Value(qtyInBaseUnit),
+                quantity: Value(qty),
+                initialQuantity: Value(qty),
                 costPrice: Value(unitCost),
                 expiryDate: Value(item.expiryDate),
+                storedUnitId: Value(item.unitId),
+                quantityInStoredUnit: Value(qtyInStockUnit),
               ),
             );
 
@@ -101,7 +102,7 @@ class GrnService {
         await (db.update(db.products)..where((p) => p.id.equals(productId)))
             .write(
           ProductsCompanion(
-            stock: Value(product.stock + qtyInBaseUnit),
+            stock: Value(product.stock + qty),
             buyPrice: Value(unitCost),
           ),
         );
@@ -111,7 +112,7 @@ class GrnService {
                 productId: productId,
                 warehouseId: warehouseId,
                 batchId: Value(batchId),
-                quantity: Value(qtyInBaseUnit),
+                quantity: Value(qty),
                 type: 'PURCHASE',
                 referenceId: grnId,
               ),

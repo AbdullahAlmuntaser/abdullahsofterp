@@ -746,7 +746,9 @@ class _AddPurchasePageState extends State<AddPurchasePage> {
     } catch (e) {
       debugPrint('خطأ في حفظ الفاتورة: $e');
       String errorMessage = 'حدث خطأ غير متوقع أثناء الحفظ.';
-      if (e.toString().contains('FOREIGN KEY constraint failed')) {
+      if (e is BusinessException) {
+        errorMessage = e.message;
+      } else if (e.toString().contains('FOREIGN KEY constraint failed')) {
         errorMessage =
             'خطأ في الربط: تأكد من صحة البيانات المختارة (المستودع أو المورد أو الأصناف).';
       } else if (e.toString().contains('UNIQUE constraint failed')) {
