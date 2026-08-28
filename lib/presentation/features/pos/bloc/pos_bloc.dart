@@ -472,7 +472,7 @@ class PosBloc extends Bloc<PosEvent, PosState> {
           .getSingleOrNull();
 
       Product? product;
-      String unitName = 'حبة';
+      String unitName = '';
       Decimal factor = Decimal.one;
       Decimal? specificPrice;
 

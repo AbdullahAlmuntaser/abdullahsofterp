@@ -4,6 +4,7 @@ import 'package:supermarket/core/exceptions/concurrency_exception.dart';
 import 'package:supermarket/core/services/inventory/inventory_costing_service.dart';
 import 'package:supermarket/core/services/app_config_service.dart';
 import 'package:supermarket/core/utils/stock_display_adapter.dart';
+import 'package:uuid/uuid.dart';
 import 'dart:developer' as developer;
 
 class BreakResult {
@@ -78,11 +79,12 @@ class PackagingEngine {
           final available = currentBatch.quantity - currentBatch.reservedQuantity;
           if (available < unit.unitFactor) break;
 
-          final toBreak =
-              shortfall >= unit.unitFactor ? unit.unitFactor : shortfall;
+          // Only break full packages (partial package breaking doesn't make sense)
+          if (shortfall < unit.unitFactor) break;
+
           final result = await _breakOnePackage(
             batch: currentBatch,
-            packageSize: toBreak,
+            packageSize: unit.unitFactor,
             productId: productId,
             warehouseId: warehouseId,
           );
@@ -114,28 +116,129 @@ class PackagingEngine {
     final actualDeduction =
         packageSize < currentBatch.quantity ? packageSize : currentBatch.quantity;
     final costPerUnit = currentBatch.costPrice;
-    final newReserved = currentBatch.reservedQuantity + actualDeduction;
+
+    // Deduct from source batch
+    final newQuantity = currentBatch.quantity - actualDeduction;
+    final newReserved = currentBatch.reservedQuantity;
 
     final changes = await (db.update(db.productBatches)..where((b) => b.id.equals(currentBatch.id) & b.version.equals(currentBatch.version)))
         .write(ProductBatchesCompanion(
+      quantity: Value(newQuantity),
       reservedQuantity: Value(newReserved),
     ).copyWith(version: Value(currentBatch.version + 1)));
     if (changes == 0) {
       throw ConcurrencyException('ProductBatch ${currentBatch.id} was modified by another transaction');
     }
 
+    // Create new batch for broken units (in base unit)
+    final newBatchId = const Uuid().v4();
+    await db.into(db.productBatches).insert(
+      ProductBatchesCompanion.insert(
+        id: Value(newBatchId),
+        productId: productId,
+        warehouseId: warehouseId,
+        batchNumber: 'BRK-${currentBatch.batchNumber}',
+        quantity: Value(actualDeduction),
+        initialQuantity: Value(actualDeduction),
+        costPrice: Value(costPerUnit),
+        storedUnitId: const Value(null),
+        quantityInStoredUnit: Value(actualDeduction),
+        syncStatus: const Value.absent(),
+      ),
+    );
+
+    // Create inventory transactions for disassembly
+    await db.into(db.inventoryTransactions).insert(
+      InventoryTransactionsCompanion.insert(
+        productId: productId,
+        warehouseId: warehouseId,
+        batchId: Value(currentBatch.id),
+        quantity: Value(-actualDeduction),
+        type: 'DISASSEMBLY',
+        referenceId: currentBatch.id,
+      ),
+    );
+
+    await db.into(db.inventoryTransactions).insert(
+      InventoryTransactionsCompanion.insert(
+        productId: productId,
+        warehouseId: warehouseId,
+        batchId: Value(newBatchId),
+        quantity: Value(actualDeduction),
+        type: 'DISASSEMBLY',
+        referenceId: currentBatch.id,
+      ),
+    );
+
     developer.log(
-      'Reserved $actualDeduction units from batch ${currentBatch.batchNumber} '
-      '(total reserved: $newReserved, available: ${currentBatch.quantity - newReserved})',
+      'Broke $actualDeduction units from batch ${currentBatch.batchNumber} '
+      'into new batch $newBatchId',
       name: 'packaging_engine',
     );
 
     return BreakResult(
       sourceBatchId: currentBatch.id,
-      targetBatchId: null,
+      targetBatchId: newBatchId,
       brokenQuantity: actualDeduction,
       costPerUnit: costPerUnit,
     );
+  }
+
+  /// Standalone disassembly operation: break N packages from a batch
+  /// into base units. This is an independent operation, not a purchase or sale.
+  Future<List<BreakResult>> breakPackages({
+    required String productId,
+    required String warehouseId,
+    required String sourceBatchId,
+    required Decimal packagesToBreak,
+  }) async {
+    final results = <BreakResult>[];
+    if (packagesToBreak <= Decimal.zero) return results;
+
+    final batch = await (db.select(db.productBatches)
+          ..where((b) => b.id.equals(sourceBatchId)))
+      .getSingleOrNull();
+    if (batch == null) return results;
+
+    // Get unit factor for the batch's stored unit
+    Decimal unitFactor = Decimal.one;
+    if (batch.storedUnitId != null) {
+      final unit = await (db.select(db.productUnits)
+            ..where((u) => u.productId.equals(productId))
+            ..where((u) => u.unitName.equals(batch.storedUnitId!)))
+          .getSingleOrNull();
+      if (unit != null) {
+        unitFactor = unit.unitFactor;
+      }
+    }
+
+    Decimal remainingToBreak = packagesToBreak;
+    int breakCount = 0;
+    const maxBreaks = 100;
+
+    while (remainingToBreak > Decimal.zero && breakCount < maxBreaks) {
+      final currentBatch = await (db.select(db.productBatches)
+            ..where((b) => b.id.equals(sourceBatchId)))
+          .getSingle();
+      final available = currentBatch.quantity - currentBatch.reservedQuantity;
+      if (available < unitFactor) break;
+
+      final result = await _breakOnePackage(
+        batch: currentBatch,
+        packageSize: unitFactor,
+        productId: productId,
+        warehouseId: warehouseId,
+      );
+      results.add(result);
+      remainingToBreak -= Decimal.one;
+      breakCount++;
+    }
+
+    if (results.isNotEmpty) {
+      await _postPackagingBreakGL(results, productId);
+    }
+
+    return results;
   }
 
   Future<Decimal> _getAvailableQuantity(
@@ -196,11 +299,15 @@ class PackagingEngine {
         }
       }
       final hierarchy = await getPackagingHierarchy(productId);
-      if (hierarchy.isEmpty) return '${totalQtyInBase.toStringAsFixed(0)} حبة';
+      final product = await (db.select(db.products)
+            ..where((p) => p.id.equals(productId)))
+          .getSingleOrNull();
+      final baseUnit = product?.unit ?? 'حبة';
 
-      const baseUnitSynonyms = {'حبة', 'قطعة', 'pcs', 'piece', 'each', 'unit', 'واحد', 'فردي'};
+      if (hierarchy.isEmpty) return '${totalQtyInBase.toStringAsFixed(0)} $baseUnit';
+
       final packagingUnits = hierarchy.where((u) =>
-          !baseUnitSynonyms.contains(u.unitName) && u.unitFactor > Decimal.one);
+          u.unitName != baseUnit && u.unitFactor > Decimal.one);
 
       final sortedHierarchy = packagingUnits.toList()
         ..sort((a, b) => b.unitFactor.compareTo(a.unitFactor));
@@ -219,7 +326,7 @@ class PackagingEngine {
       }
 
       if (remaining > Decimal.zero || parts.isEmpty) {
-        parts.add('${remaining.toStringAsFixed(0)} حبة');
+        parts.add('${remaining.toStringAsFixed(0)} $baseUnit');
       }
 
       return parts.join(' + ');

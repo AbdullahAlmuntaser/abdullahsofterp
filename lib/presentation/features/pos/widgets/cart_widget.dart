@@ -408,11 +408,8 @@ class CartWidget extends StatelessWidget {
   }
 
   void _showUnitSelection(BuildContext context, CartItem item) {
-    // Names that represent the base "individual item" concept (not packaging)
-    const baseUnitSynonyms = {'حبة', 'قطعة', 'pcs', 'piece', 'each', 'unit', 'واحد', 'فردي'};
     final filteredUnits = item.availableUnits.where((u) =>
         u.unitName != item.product.unit &&
-        !baseUnitSynonyms.contains(u.unitName.toLowerCase()) &&
         u.unitFactor > Decimal.one);
 
     showModalBottomSheet(
@@ -494,26 +491,12 @@ class CartWidget extends StatelessWidget {
       final unitName = result['unitName'] as String;
       final factor = Decimal.parse(result['factor'].toString());
 
-      // Names that represent the base "individual item" concept
-      const baseUnitSynonyms = {'حبة', 'قطعة', 'pcs', 'piece', 'each', 'unit', 'واحد', 'فردي'};
-
       // Validate: cannot create a unit with the same name as the base unit
       if (unitName == item.product.unit) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
                 content: Text('لا يمكن إضافة وحدة بنفس اسم الوحدة الأساسية')),
-          );
-        }
-        return;
-      }
-
-      // Validate: cannot use a name that represents the individual item
-      if (baseUnitSynonyms.contains(unitName)) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: Text('"$unitName" هي الوحدة الأساسية. غيّر اسم الوحدة الأساسية للمنتج بدلاً من إضافتها كوحدة فرعية')),
           );
         }
         return;

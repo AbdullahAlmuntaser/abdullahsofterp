@@ -10,22 +10,27 @@ class StockDisplayAdapter {
     ProductBatch batch, {
     List<ProductUnit>? productUnits,
   }) async {
+    final product = await (_db.select(_db.products)
+          ..where((p) => p.id.equals(batch.productId)))
+        .getSingleOrNull();
+    final baseUnit = product?.unit ?? 'حبة';
+
     final storedQty = batch.quantityInStoredUnit;
     if (storedQty == null || batch.storedUnitId == null || storedQty <= Decimal.zero) {
-      return '${batch.quantity.toStringAsFixed(0)} حبة';
+      return '${batch.quantity.toStringAsFixed(0)} $baseUnit';
     }
 
     final units = productUnits ?? await _getProductUnits(batch.productId);
     final storedUnit = units.where((u) => u.id == batch.storedUnitId).firstOrNull;
     if (storedUnit == null) {
-      return '${batch.quantity.toStringAsFixed(0)} حبة';
+      return '${batch.quantity.toStringAsFixed(0)} $baseUnit';
     }
 
     final wholeUnits = Decimal.parse(storedQty.toStringAsFixed(0));
     final remainder = (storedQty - wholeUnits) * storedUnit.unitFactor;
 
     if (remainder > Decimal.zero) {
-      return '${wholeUnits.toStringAsFixed(0)} ${storedUnit.unitName} + ${remainder.toStringAsFixed(0)} حبة';
+      return '${wholeUnits.toStringAsFixed(0)} ${storedUnit.unitName} + ${remainder.toStringAsFixed(0)} $baseUnit';
     }
     return '${wholeUnits.toStringAsFixed(0)} ${storedUnit.unitName}';
   }
@@ -36,7 +41,7 @@ class StockDisplayAdapter {
     List<ProductUnit>? productUnits,
   }) async {
     if (product.stock <= Decimal.zero) {
-      return '0 حبة';
+      return '0 ${product.unit}';
     }
 
     final units = productUnits ?? await _getProductUnits(product.id);
@@ -46,7 +51,7 @@ class StockDisplayAdapter {
 
     final bestUnit = _findBestUnit(units, product.stock, preferredUnitId);
     if (bestUnit == null) {
-      return '${product.stock.toStringAsFixed(0)} حبة';
+      return '${product.stock.toStringAsFixed(0)} ${product.unit}';
     }
 
     final unitFactor_ = bestUnit.unitFactor;
@@ -57,7 +62,7 @@ class StockDisplayAdapter {
     final remaining = product.stock - (wholeUnits * unitFactor_);
 
     if (remaining > Decimal.zero) {
-      return '$wholeUnits ${bestUnit.unitName} + $remaining حبة';
+      return '$wholeUnits ${bestUnit.unitName} + $remaining ${product.unit}';
     }
     return '$wholeUnits ${bestUnit.unitName}';
   }

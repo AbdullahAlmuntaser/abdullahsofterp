@@ -136,75 +136,119 @@ class TransactionEngine {
         subtotal += item.quantity * item.price;
       }
 
-      // Process each item: update stock, create batches, allocate landed costs
-      for (var item in items) {
-        Decimal itemValue = item.quantity * item.price;
-        Decimal proportion = subtotal > Decimal.zero
-            ? (itemValue / subtotal).toDecimal()
-            : Decimal.zero;
-        Decimal allocatedLandedCost = purchase.landedCosts * proportion;
-        Decimal landedCostPerUnit = item.quantity > Decimal.zero
-            ? (allocatedLandedCost / item.quantity).toDecimal()
-            : Decimal.zero;
-        Decimal finalUnitCost = item.price + landedCostPerUnit;
+      // Check if batches already exist (e.g., from createGrnFromPurchase)
+      // to avoid double-counting stock
+      final hasExistingBatches = await _checkExistingBatchesForPurchase(purchaseId, items);
 
-        final product = await (db.select(
-          db.products,
-        )..where((p) => p.id.equals(item.productId)))
-            .getSingle();
+      if (!hasExistingBatches) {
+        // Process each item: update stock, create batches, allocate landed costs
+        for (var item in items) {
+          Decimal itemValue = item.quantity * item.price;
+          Decimal proportion = subtotal > Decimal.zero
+              ? (itemValue / subtotal).toDecimal()
+              : Decimal.zero;
+          Decimal allocatedLandedCost = purchase.landedCosts * proportion;
+          Decimal landedCostPerUnit = item.quantity > Decimal.zero
+              ? (allocatedLandedCost / item.quantity).toDecimal()
+              : Decimal.zero;
+          Decimal finalUnitCost = item.price + landedCostPerUnit;
 
-        Decimal qtyInBaseUnit = item.quantity * item.unitFactor;
+          final product = await (db.select(
+            db.products,
+          )..where((p) => p.id.equals(item.productId)))
+              .getSingle();
 
-        final batchId = const Uuid().v4();
-        String? storedUnitId;
-        if (item.unitId != null && item.unitId!.isNotEmpty) {
-          storedUnitId = item.unitId;
-        }
-        await db.into(db.productBatches).insert(
-              ProductBatchesCompanion.insert(
-                id: Value(batchId),
-                productId: item.productId,
-                warehouseId: purchase.warehouseId ?? '',
-                batchNumber:
-                    item.batchNumber != null && item.batchNumber!.isNotEmpty
-                        ? item.batchNumber!
-                        : 'PUR-${purchase.id.substring(0, 8)}',
-                expiryDate: Value(item.expiryDate),
-                quantity: Value(qtyInBaseUnit),
-                initialQuantity: Value(qtyInBaseUnit),
-                costPrice: Value(
-                  (finalUnitCost / item.unitFactor).toDecimal(),
+          Decimal qtyInBaseUnit = item.quantity * item.unitFactor;
+
+          final batchId = const Uuid().v4();
+          String? storedUnitId;
+          if (item.unitId != null && item.unitId!.isNotEmpty) {
+            storedUnitId = item.unitId;
+          }
+          await db.into(db.productBatches).insert(
+                ProductBatchesCompanion.insert(
+                  id: Value(batchId),
+                  productId: item.productId,
+                  warehouseId: purchase.warehouseId ?? '',
+                  batchNumber:
+                      item.batchNumber != null && item.batchNumber!.isNotEmpty
+                          ? item.batchNumber!
+                          : 'PUR-${purchase.id.substring(0, 8)}',
+                  expiryDate: Value(item.expiryDate),
+                  quantity: Value(qtyInBaseUnit),
+                  initialQuantity: Value(qtyInBaseUnit),
+                  costPrice: Value(
+                    (finalUnitCost / item.unitFactor).toDecimal(),
+                  ),
+                  storedUnitId: Value(storedUnitId),
+                  quantityInStoredUnit: Value(item.quantity),
+                  syncStatus: const Value.absent(),
                 ),
-                storedUnitId: Value(storedUnitId),
-                quantityInStoredUnit: Value(item.quantity),
-                syncStatus: const Value.absent(),
-              ),
-            );
+              );
 
-        await (db.update(db.purchaseItems)
-              ..where((pi) => pi.id.equals(item.id)))
-            .write(PurchaseItemsCompanion(batchId: Value(batchId)));
+          await (db.update(db.purchaseItems)
+                ..where((pi) => pi.id.equals(item.id)))
+              .write(PurchaseItemsCompanion(batchId: Value(batchId)));
 
-        await db.into(db.inventoryTransactions).insert(
-              InventoryTransactionsCompanion.insert(
-                productId: item.productId,
-                warehouseId: purchase.warehouseId ?? '',
-                batchId: Value(batchId),
-                quantity: Value(qtyInBaseUnit),
-                type: 'PURCHASE',
-                referenceId: purchaseId,
-              ),
-            );
+          await db.into(db.inventoryTransactions).insert(
+                InventoryTransactionsCompanion.insert(
+                  productId: item.productId,
+                  warehouseId: purchase.warehouseId ?? '',
+                  batchId: Value(batchId),
+                  quantity: Value(qtyInBaseUnit),
+                  type: 'PURCHASE',
+                  referenceId: purchaseId,
+                ),
+              );
 
-        await (db.update(
-          db.products,
-        )..where((p) => p.id.equals(item.productId)))
-            .write(
-          ProductsCompanion(
-            stock: Value(product.stock + qtyInBaseUnit),
-            buyPrice: Value(finalUnitCost),
-          ),
-        );
+          await (db.update(
+            db.products,
+          )..where((p) => p.id.equals(item.productId)))
+              .write(
+            ProductsCompanion(
+              stock: Value(product.stock + qtyInBaseUnit),
+              buyPrice: Value(finalUnitCost),
+            ),
+          );
+        }
+      } else {
+        // Batches already exist, just update purchase items with batch IDs
+        // and update product buy prices
+        for (var item in items) {
+          Decimal itemValue = item.quantity * item.price;
+          Decimal proportion = subtotal > Decimal.zero
+              ? (itemValue / subtotal).toDecimal()
+              : Decimal.zero;
+          Decimal allocatedLandedCost = purchase.landedCosts * proportion;
+          Decimal landedCostPerUnit = item.quantity > Decimal.zero
+              ? (allocatedLandedCost / item.quantity).toDecimal()
+              : Decimal.zero;
+          Decimal finalUnitCost = item.price + landedCostPerUnit;
+
+          // Find existing batch for this item
+          final existingBatch = await (db.select(db.productBatches)
+                ..where((b) => b.productId.equals(item.productId))
+                ..where((b) => b.warehouseId.equals(purchase.warehouseId ?? ''))
+                ..where((b) => b.batchNumber.equals('PUR-${purchase.id.substring(0, 8)}'))
+                ..limit(1))
+              .getSingleOrNull();
+
+          if (existingBatch != null && item.batchId == null) {
+            await (db.update(db.purchaseItems)
+                  ..where((pi) => pi.id.equals(item.id)))
+                .write(PurchaseItemsCompanion(batchId: Value(existingBatch.id)));
+          }
+
+          // Update buy price
+          await (db.update(
+            db.products,
+          )..where((p) => p.id.equals(item.productId)))
+              .write(
+            ProductsCompanion(
+              buyPrice: Value(finalUnitCost),
+            ),
+          );
+        }
       }
 
       // Update purchase status
@@ -253,6 +297,29 @@ class TransactionEngine {
 
       eventBus.fire(PurchasePostedEvent(purchase, items, userId: userId));
     });
+  }
+
+  /// Checks if batches already exist for this purchase's items
+  /// (e.g., from createGrnFromPurchase) to avoid double-counting stock
+  Future<bool> _checkExistingBatchesForPurchase(
+      String purchaseId, List<PurchaseItem> items) async {
+    final purchase = await (db.select(
+      db.purchases,
+    )..where((p) => p.id.equals(purchaseId)))
+        .getSingleOrNull();
+    if (purchase == null) return false;
+
+    for (final item in items) {
+      final batchNumber = 'PUR-${purchaseId.substring(0, 8)}';
+      final existingBatch = await (db.select(db.productBatches)
+            ..where((b) => b.productId.equals(item.productId))
+            ..where((b) => b.warehouseId.equals(purchase.warehouseId ?? ''))
+            ..where((b) => b.batchNumber.equals(batchNumber))
+            ..limit(1))
+          .getSingleOrNull();
+      if (existingBatch == null) return false;
+    }
+    return true;
   }
 
   /// ==================== POST SALE ====================
@@ -360,7 +427,7 @@ class TransactionEngine {
         // breakdown operations are responsible for moving quantity between units.
         var unitBatchesQuery = db.select(db.productBatches)
           ..where((b) => b.productId.equals(item.productId))
-          ..where((b) => b.quantity.isBiggerThanValue(Decimal.zero));
+          ..where((b) => b.quantity.isBiggerThanValue(Decimal.zero.toString()));
         if (sale.warehouseId != null && sale.warehouseId!.isNotEmpty) {
           unitBatchesQuery = unitBatchesQuery
             ..where((b) => b.warehouseId.equals(sale.warehouseId!));
@@ -578,7 +645,7 @@ class TransactionEngine {
           final existingBatches = await (db.select(db.productBatches)
                 ..where((b) => b.productId.equals(item.productId))
                 ..where((b) =>
-                    b.quantity.isBiggerThan(Constant(Decimal.zero.toString())))
+                    b.quantity.isBiggerThanValue(Decimal.zero.toString()))
                 ..orderBy([
                   (b) => OrderingTerm(
                       expression: b.expiryDate.isNull(),

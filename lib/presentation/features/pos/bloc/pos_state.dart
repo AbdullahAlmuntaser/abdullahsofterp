@@ -16,7 +16,7 @@ class CartItem extends Equatable {
     required this.product,
     required this.quantity,
     this.isWholesale = false,
-    this.unitName = 'حبة',
+    this.unitName = '',
     required this.unitFactor,
     required this.unitPrice,
     this.discount,

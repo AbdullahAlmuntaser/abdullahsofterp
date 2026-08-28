@@ -21,7 +21,7 @@ class _QuickProductAddDialogState extends State<QuickProductAddDialog> {
   final _barcodeController = TextEditingController();
   final _buyPriceController = TextEditingController();
   final _sellPriceController = TextEditingController();
-  final _unitController = TextEditingController(text: 'حبة');
+  final _unitController = TextEditingController(text: '');
 
   Category? _selectedCategory;
   bool _isSaving = false;

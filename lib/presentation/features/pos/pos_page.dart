@@ -21,7 +21,6 @@ import 'package:supermarket/core/services/transaction_engine.dart';
 import 'package:supermarket/core/services/sales/loyalty_service.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:decimal/decimal.dart';
 
 class PosPage extends StatelessWidget {
   const PosPage({super.key});
