@@ -31,13 +31,13 @@ class InventoryBreakdownService {
         throw const BusinessException(message: 'الكمية المتوفرة في هذه الدفعة غير كافية للتفكيك.');
       }
 
-      // 2. حساب الكمية الناتجة بالوحدة الصغيرة
-      // معامل التحويل للوحدة المستهدفة (مثلاً 1 حبة = 1)
-      // نحن نحتاج معامل تحويل الوحدة الكبيرة (مثلاً 1 كرتون = 20 حبة)
-      // سنحصل عليه من الـ ProductUnit الخاصة بالمنتج
-      final product = await (db.select(db.products)..where((p) => p.id.equals(productId))).getSingle();
-      
-      // الحصول على معامل تحويل الوحدة المصدر
+       // 2. حساب الكمية الناتجة بالوحدة الصغيرة
+       // معامل التحويل للوحدة المستهدفة (مثلاً 1 حبة = 1)
+       // نحن نحتاج معامل تحويل الوحدة الكبيرة (مثلاً 1 كرتون = 20 حبة)
+       // سنحصل عليه من الـ ProductUnit الخاصة بالمنتج
+       await (db.select(db.products)..where((p) => p.id.equals(productId))).getSingle();
+       
+       // الحصول على معامل تحويل الوحدة المصدر
       final sourceUnit = await (db.select(db.productUnits)
         ..where((u) => u.productId.equals(productId) & u.unitName.equals(sourceBatch.storedUnitId ?? '')))
         .getSingleOrNull();
@@ -58,7 +58,7 @@ class InventoryBreakdownService {
                 b.productId.equals(productId) &
                 b.warehouseId.equals(warehouseId) &
                 b.storedUnitId.equals(targetUnit.unitName) &
-                b.expiryDate.equals(sourceBatch.expiryDate)))
+                b.expiryDate.equals(sourceBatch.expiryDate ?? DateTime(1970))))
           .getSingleOrNull();
 
       if (existingTargetBatch != null) {
@@ -67,20 +67,20 @@ class InventoryBreakdownService {
           quantity: Value(existingTargetBatch.quantity + Decimal.parse(resultingQuantity.toString())),
         ));
       } else {
-        await db.into(db.productBatches).insert(
-              ProductBatchesCompanion.insert(
-                id: Value(const Uuid().v4()),
-                productId: productId,
-                warehouseId: warehouseId,
-                batchNumber: 'BRK-${sourceBatch.batchNumber}',
-                expiryDate: Value(sourceBatch.expiryDate),
-                quantity: Decimal.parse(resultingQuantity.toString()),
-                initialQuantity: Decimal.parse(resultingQuantity.toString()),
-                costPrice: Value(sourceBatch.costPrice / Decimal.parse(conversionFactor.toString())),
-                storedUnitId: Value(targetUnit.unitName),
-                quantityInStoredUnit: Value(Decimal.parse(resultingQuantity.toString())),
-              ),
-            );
+         await db.into(db.productBatches).insert(
+               ProductBatchesCompanion.insert(
+                 id: Value(const Uuid().v4()),
+                 productId: productId,
+                 warehouseId: warehouseId,
+                 batchNumber: 'BRK-${sourceBatch.batchNumber}',
+                 expiryDate: Value(sourceBatch.expiryDate),
+                 quantity: Value(Decimal.parse(resultingQuantity.toString())),
+                 initialQuantity: Value(Decimal.parse(resultingQuantity.toString())),
+                 costPrice: Value((sourceBatch.costPrice / Decimal.parse(conversionFactor.toString())).toDecimal()),
+                 storedUnitId: Value(targetUnit.unitName),
+                 quantityInStoredUnit: Value(Decimal.parse(resultingQuantity.toString())),
+               ),
+             );
       }
 
       // 5. تسجيل حركة مخزون (نقص كرتون وزيادة حبات)

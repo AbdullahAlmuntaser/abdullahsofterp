@@ -1,4 +1,3 @@
-flutter analyze
 import 'package:drift/drift.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:supermarket/core/events/app_events.dart';
@@ -6,7 +5,6 @@ import 'package:supermarket/core/services/event_bus_service.dart';
 import 'package:supermarket/core/services/audit_service.dart';
 import 'package:supermarket/core/services/inventory/inventory_costing_service.dart';
 import 'package:supermarket/core/services/app_config_service.dart';
-import 'package:supermarket/core/services/cash_management_service.dart';
 import 'package:supermarket/core/services/packaging_engine.dart';
 import 'package:supermarket/core/constants/app_enums.dart';
 import 'package:supermarket/core/exceptions/app_exception.dart';
@@ -14,19 +12,23 @@ import 'package:supermarket/core/services/posting_engine.dart';
 import 'package:supermarket/core/services/accounting/budget_service.dart';
 import 'package:supermarket/core/services/approval_workflow_service.dart';
 import 'package:supermarket/core/services/inventory/serial_number_service.dart';
-import 'package:supermarket/core/exceptions/concurrency_exception.dart';
 import 'package:uuid/uuid.dart';
 
 class TransactionEngine {
   final AppDatabase db;
   final EventBusService eventBus;
   final AuditService _auditService;
+  // ignore: unused_field
   final AppConfigService _configService;
   final PostingEngine _postingEngine;
   final PackagingEngine packagingEngine;
+  // ignore: unused_field
   BudgetService? _budgetService;
+  // ignore: unused_field
   ApprovalWorkflowService? _approvalService;
+  // ignore: unused_field
   final InventoryCostingService _costingService;
+  // ignore: unused_field
   SerialNumberService? _serialNumberService;
 
   TransactionEngine(
@@ -313,7 +315,6 @@ class TransactionEngine {
       final items = await (db.select(db.purchaseReturnItems)..where((ri) => ri.purchaseReturnId.equals(returnId))).get();
       final purchase = await (db.select(db.purchases)..where((p) => p.id.equals(purchaseReturn.purchaseId))).getSingle();
 
-      Decimal returnCogs = Decimal.zero;
       for (var item in items) {
         final product = await (db.select(db.products)..where((p) => p.id.equals(item.productId))).getSingle();
         await (db.update(db.products)..where((p) => p.id.equals(item.productId)))
@@ -337,7 +338,7 @@ class TransactionEngine {
   Future<void> cancelSale(String saleId, {String? userId, String? reason}) async {
     await _checkAccountingPeriodOpen();
     await db.transaction(() async {
-      final sale = await (db.select(db.sales)..where((s) => s.id.equals(saleId))).getSingle();
+      await (db.select(db.sales)..where((s) => s.id.equals(saleId))).getSingle();
       await (db.update(db.sales)..where((s) => s.id.equals(saleId)))
           .write(const SalesCompanion(status: Value(DocumentStatus.cancelled)));
     });
@@ -346,7 +347,7 @@ class TransactionEngine {
   Future<void> cancelPurchase(String purchaseId, {String? userId, String? reason}) async {
     await _checkAccountingPeriodOpen();
     await db.transaction(() async {
-      final purchase = await (db.select(db.purchases)..where((p) => p.id.equals(purchaseId))).getSingle();
+      await (db.select(db.purchases)..where((p) => p.id.equals(purchaseId))).getSingle();
       await (db.update(db.purchases)..where((p) => p.id.equals(purchaseId)))
           .write(const PurchasesCompanion(status: Value(DocumentStatus.cancelled)));
     });
@@ -355,7 +356,6 @@ class TransactionEngine {
   Future<void> postCustomerPayment({required String customerId, required Decimal amount, required String paymentMethod, String? note, String? userId, DateTime? paymentDate}) async {
     await _checkAccountingPeriodOpen();
     await db.transaction(() async {
-      final paymentId = const Uuid().v4();
       await db.into(db.customerPayments).insert(CustomerPaymentsCompanion.insert(
         customerId: customerId,
         amount: amount,
@@ -371,7 +371,6 @@ class TransactionEngine {
   Future<void> postSupplierPayment({required String supplierId, required Decimal amount, required String paymentMethod, String? note, String? userId, DateTime? paymentDate}) async {
     await _checkAccountingPeriodOpen();
     await db.transaction(() async {
-      final paymentId = const Uuid().v4();
       await db.into(db.supplierPayments).insert(SupplierPaymentsCompanion.insert(
         supplierId: supplierId,
         amount: amount,

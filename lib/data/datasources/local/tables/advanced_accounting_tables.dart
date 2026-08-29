@@ -86,6 +86,19 @@ class RecurringEntries extends Table {
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 }
 
+// جدول تفاصيل المطابقة البنكية
+class ReconciliationDetails extends Table {
+  TextColumn get reconciliationId => text().references(Reconciliations, #id)();
+  TextColumn get transactionId => text().references(AccountTransactions, #id)();
+  TextColumn get statementAmount => text().map(const DecimalConverter())();
+  DateTimeColumn get statementDate => dateTime()();
+  TextColumn get reference => text().nullable()();
+  TextColumn get branchId => text().nullable().references(Branches, #id)();
+
+  @override
+  Set<Column> get primaryKey => {reconciliationId, transactionId};
+}
+
 // جدول سجل تنفيذ القيود الدورية
 class RecurringEntryExecutions extends Table {
   IntColumn get id => integer().autoIncrement()();
