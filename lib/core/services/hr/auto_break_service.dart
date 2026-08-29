@@ -174,7 +174,10 @@ class AutoBreakService {
 
     for (final result in results) {
       final sourceUnit = await _getUnitNameForBatch(result.sourceBatchId);
-      const targetUnit = 'حبة';
+      final product = await (db.select(db.products)
+            ..where((p) => p.id.equals(productId)))
+          .getSingleOrNull();
+      final targetUnit = product?.unit ?? 'وحدة';
 
       steps.add(BreakStep(
         sourceUnit: sourceUnit ?? 'وحدة',

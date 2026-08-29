@@ -155,7 +155,7 @@ class ProformaItemInput {
     required this.quantity,
     required this.price,
     this.unitId,
-    this.unitName = 'حبة',
+    this.unitName = '',
     this.unitFactor = 1.0,
     this.discount = 0,
   });
