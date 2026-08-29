@@ -28,7 +28,7 @@ class Products extends Table with SyncableTable {
   TextColumn get barcode => text().unique().nullable()();
   TextColumn get categoryId => text().nullable().references(Categories, #id)();
   TextColumn get unit =>
-      text().withDefault(const Constant('pcs'))();
+      text().withDefault(const Constant('\u062D\u0622\u0628\u0629'))();
   TextColumn get kiloUnit => text().nullable()();
   TextColumn get boxUnit => text().nullable()();
   TextColumn get buyPrice => text()
@@ -209,7 +209,7 @@ class SaleItems extends Table with SyncableTable {
   TextColumn get quantity => text().map(const DecimalConverter())();
   TextColumn get price => text().map(const DecimalConverter())();
   TextColumn get unitId => text().nullable().references(GlobalUnits, #id)();
-  TextColumn get unitName => text().withDefault(const Constant('\u062D\u0628\u0629'))();
+  TextColumn get unitName => text().withDefault(const Constant('\u062D\u0622\u0628\u0629'))();
   TextColumn get unitFactor => text()
       .map(const DecimalConverter())
       .withDefault(Constant(Decimal.one.toString()))();
@@ -535,84 +535,6 @@ class AccountingPeriods extends Table with SyncableTable {
   ];
 }
 
-class ApprovalWorkflows extends Table {
-  IntColumn get id => integer().autoIncrement()();
-  TextColumn get name => text()();
-  TextColumn get documentType => text()();
-  TextColumn get conditionType => text().nullable()();
-  TextColumn get conditionValue => text().map(const DecimalConverter()).nullable()();
-  TextColumn get operator => text().nullable()();
-  IntColumn get levelOrder => integer().withDefault(const Constant(1))();
-  BoolColumn get isActive => boolean().withDefault(const Constant(true))();
-  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
-}
-
-class ApprovalLevels extends Table {
-  IntColumn get id => integer().autoIncrement()();
-  IntColumn get workflowId => integer()();
-  IntColumn get levelOrder => integer()();
-  TextColumn get role => text().nullable()();
-  IntColumn get userId => integer().nullable()();
-  TextColumn get minAmount => text().map(const DecimalConverter()).nullable()();
-  TextColumn get maxAmount => text().map(const DecimalConverter()).nullable()();
-  BoolColumn get requiresSignature => boolean().withDefault(const Constant(false))();
-}
-
-class ApprovalRequests extends Table {
-  IntColumn get id => integer().autoIncrement()();
-  TextColumn get documentType => text()();
-  IntColumn get documentId => integer()();
-  IntColumn get workflowId => integer()();
-  IntColumn get currentLevel => integer().withDefault(const Constant(1))();
-  TextColumn get status => text().withDefault(const Constant('pending'))();
-  IntColumn get requestedBy => integer().nullable()();
-  DateTimeColumn get requestedAt => dateTime()();
-  DateTimeColumn get completedAt => dateTime().nullable()();
-}
-
-class ApprovalHistory extends Table {
-  IntColumn get id => integer().autoIncrement()();
-  IntColumn get requestId => integer()();
-  IntColumn get levelOrder => integer()();
-  IntColumn get approverId => integer().nullable()();
-  TextColumn get approverRole => text().nullable()();
-  TextColumn get action => text()();
-  TextColumn get comments => text().nullable()();
-  DateTimeColumn get actionDate => dateTime()();
-}
-
-class Quotations extends Table with SyncableTable {
-  TextColumn get quotationNumber => text().unique()();
-  TextColumn get customerId => text()();
-  TextColumn get warehouseId => text().nullable().references(Warehouses, #id)();
-  DateTimeColumn get date => dateTime()();
-  DateTimeColumn get expiryDate => dateTime().nullable()();
-  TextColumn get status => text().withDefault(const Constant('draft'))();
-  TextColumn get subtotal => text().map(const DecimalConverter()).withDefault(Constant(Decimal.zero.toString()))();
-  TextColumn get discountTotal => text().map(const DecimalConverter()).withDefault(Constant(Decimal.zero.toString()))();
-  TextColumn get taxTotal => text().map(const DecimalConverter()).withDefault(Constant(Decimal.zero.toString()))();
-  TextColumn get totalAmount => text().map(const DecimalConverter()).withDefault(Constant(Decimal.zero.toString()))();
-  TextColumn get notes => text().nullable()();
-  TextColumn get createdBy => text().nullable()();
-  @override
-  DateTimeColumn get createdAt => dateTime()();
-  @override
-  DateTimeColumn get updatedAt => dateTime()();
-}
-
-class QuotationItems extends Table with SyncableTable {
-  TextColumn get quotationId => text().references(Quotations, #id)();
-  TextColumn get productId => text().references(Products, #id)();
-  TextColumn get quantity => text().map(const DecimalConverter())();
-  TextColumn get unitPrice => text().map(const DecimalConverter())();
-  TextColumn get discountPercent => text().map(const DecimalConverter()).withDefault(Constant(Decimal.zero.toString()))();
-  TextColumn get discountAmount => text().map(const DecimalConverter()).withDefault(Constant(Decimal.zero.toString()))();
-  TextColumn get taxPercent => text().map(const DecimalConverter()).withDefault(Constant(Decimal.zero.toString()))();
-  TextColumn get taxAmount => text().map(const DecimalConverter()).withDefault(Constant(Decimal.zero.toString()))();
-  TextColumn get totalAmount => text().map(const DecimalConverter())();
-  TextColumn get notes => text().nullable()();
-}
-
 class SyncQueue extends Table {
   TextColumn get id => text().clientDefault(() => const Uuid().v4())();
   TextColumn get entityTable => text()();
@@ -679,15 +601,6 @@ class Reconciliations extends Table with SyncableTable {
       .map(const DecimalConverter())
       .withDefault(Constant(Decimal.zero.toString()))();
   TextColumn get note => text().nullable()();
-}
-
-class ReconciliationDetails extends Table {
-  TextColumn get reconciliationId => text().references(Reconciliations, #id)();
-  TextColumn get transactionId => text().references(AccountTransactions, #id)();
-  TextColumn get statementAmount => text().map(const DecimalConverter())();
-  DateTimeColumn get statementDate => dateTime()();
-  TextColumn get reference => text().nullable()();
-  TextColumn get branchId => text().nullable().references(Branches, #id)();
 }
 
 class AuditLogs extends Table with SyncableTable {
@@ -885,8 +798,6 @@ class ExchangeRates extends Table {
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 }
 
-/// @deprecated Use Purchases table instead. AP data should be entered via Purchase orders.
-/// Will be removed in a future version once all UI is migrated to Purchases.
 class APInvoices extends Table with SyncableTable {
   TextColumn get supplierId => text().references(Suppliers, #id)();
   TextColumn get invoiceNumber => text()();
@@ -906,8 +817,6 @@ class APInvoices extends Table with SyncableTable {
   TextColumn get accountId => text().nullable().references(GLAccounts, #id)();
 }
 
-/// @deprecated Use Sales table instead. AR data should be entered via Sales orders.
-/// Will be removed in a future version once all UI is migrated to Sales.
 class ARInvoices extends Table with SyncableTable {
   TextColumn get customerId => text().references(Customers, #id)();
   TextColumn get invoiceNumber => text()();
@@ -1201,4 +1110,82 @@ class CustomerPaymentLinks extends Table with SyncableTable {
   TextColumn get saleId => text().references(Sales, #id)();
   TextColumn get amount => text().map(const DecimalConverter()).withDefault(
       Constant(Decimal.zero.toString()))();
+}
+
+class ApprovalWorkflows extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get name => text()();
+  TextColumn get documentType => text()();
+  TextColumn get conditionType => text().nullable()();
+  TextColumn get conditionValue => text().map(const DecimalConverter()).nullable()();
+  TextColumn get operator => text().nullable()();
+  IntColumn get levelOrder => integer().withDefault(const Constant(1))();
+  BoolColumn get isActive => boolean().withDefault(const Constant(true))();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+}
+
+class ApprovalLevels extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get workflowId => integer()();
+  IntColumn get levelOrder => integer()();
+  TextColumn get role => text().nullable()();
+  IntColumn get userId => integer().nullable()();
+  TextColumn get minAmount => text().map(const DecimalConverter()).nullable()();
+  TextColumn get maxAmount => text().map(const DecimalConverter()).nullable()();
+  BoolColumn get requiresSignature => boolean().withDefault(const Constant(false))();
+}
+
+class ApprovalRequests extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get documentType => text()();
+  IntColumn get documentId => integer()();
+  IntColumn get workflowId => integer()();
+  IntColumn get currentLevel => integer().withDefault(const Constant(1))();
+  TextColumn get status => text().withDefault(const Constant('pending'))();
+  IntColumn get requestedBy => integer().nullable()();
+  DateTimeColumn get requestedAt => dateTime()();
+  DateTimeColumn get completedAt => dateTime().nullable()();
+}
+
+class ApprovalHistory extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get requestId => integer()();
+  IntColumn get levelOrder => integer()();
+  IntColumn get approverId => integer().nullable()();
+  TextColumn get approverRole => text().nullable()();
+  TextColumn get action => text()();
+  TextColumn get comments => text().nullable()();
+  DateTimeColumn get actionDate => dateTime()();
+}
+
+class Quotations extends Table with SyncableTable {
+  TextColumn get quotationNumber => text().unique()();
+  TextColumn get customerId => text()();
+  TextColumn get warehouseId => text().nullable().references(Warehouses, #id)();
+  DateTimeColumn get date => dateTime()();
+  DateTimeColumn get expiryDate => dateTime().nullable()();
+  TextColumn get status => text().withDefault(const Constant('draft'))();
+  TextColumn get subtotal => text().map(const DecimalConverter()).withDefault(Constant(Decimal.zero.toString()))();
+  TextColumn get discountTotal => text().map(const DecimalConverter()).withDefault(Constant(Decimal.zero.toString()))();
+  TextColumn get taxTotal => text().map(const DecimalConverter()).withDefault(Constant(Decimal.zero.toString()))();
+  TextColumn get totalAmount => text().map(const DecimalConverter()).withDefault(Constant(Decimal.zero.toString()))();
+  TextColumn get notes => text().nullable()();
+  TextColumn get createdBy => text().nullable()();
+  @override
+  DateTimeColumn get createdAt => dateTime()();
+  @override
+  DateTimeColumn get updatedAt => dateTime()();
+}
+
+class QuotationItems extends Table with SyncableTable {
+  TextColumn get quotationId => text().references(Quotations, #id)();
+  TextColumn get productId => text().references(Products, #id)();
+  TextColumn get quantity => text().map(const DecimalConverter())();
+  TextColumn get unitPrice => text().map(const DecimalConverter())();
+  TextColumn get discountPercent => text().map(const DecimalConverter()).withDefault(Constant(Decimal.zero.toString()))();
+  TextColumn get discountAmount => text().map(const DecimalConverter()).withDefault(Constant(Decimal.zero.toString()))();
+  TextColumn get taxPercent => text().map(const DecimalConverter()).withDefault(Constant(Decimal.zero.toString()))();
+  TextColumn get taxAmount => text().map(const DecimalConverter()).withDefault(Constant(Decimal.zero.toString()))();
+  TextColumn get totalAmount => text().map(const DecimalConverter())();
+  TextColumn get notes => text().nullable()();
 }

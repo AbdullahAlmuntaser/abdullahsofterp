@@ -1,0 +1,197 @@
+Analyzing systemmarket...                                       
+
+warning • The value of the local variable 'product' isn't used • lib/core/services/inventory/breakdown_service.dart:38:13 • unused_local_variable
+  error • The argument type 'DateTime?' can't be assigned to the parameter type 'DateTime'.  • lib/core/services/inventory/breakdown_service.dart:61:37 • argument_type_not_assignable
+  error • The argument type 'Decimal' can't be assigned to the parameter type 'Value<Decimal>'.  • lib/core/services/inventory/breakdown_service.dart:77:27 • argument_type_not_assignable
+  error • The argument type 'Decimal' can't be assigned to the parameter type 'Value<Decimal>'.  • lib/core/services/inventory/breakdown_service.dart:78:34 • argument_type_not_assignable
+  error • The argument type 'Rational' can't be assigned to the parameter type 'Decimal'.  • lib/core/services/inventory/breakdown_service.dart:79:34 • argument_type_not_assignable
+warning • Unused import: 'package:supermarket/core/services/cash_management_service.dart' • lib/core/services/transaction_engine.dart:8:8 • unused_import
+warning • Unused import: 'package:supermarket/core/exceptions/concurrency_exception.dart' • lib/core/services/transaction_engine.dart:16:8 • unused_import
+warning • The value of the field '_configService' isn't used • lib/core/services/transaction_engine.dart:23:26 • unused_field
+warning • The value of the field '_budgetService' isn't used • lib/core/services/transaction_engine.dart:26:18 • unused_field
+warning • The value of the field '_approvalService' isn't used • lib/core/services/transaction_engine.dart:27:28 • unused_field
+warning • The value of the field '_costingService' isn't used • lib/core/services/transaction_engine.dart:28:33 • unused_field
+warning • The value of the field '_serialNumberService' isn't used • lib/core/services/transaction_engine.dart:29:24 • unused_field
+  error • The argument type 'Rational' can't be assigned to the parameter type 'Decimal'.  • lib/core/services/transaction_engine.dart:150:29 • argument_type_not_assignable
+  error • Arguments of a constant creation must be constant expressions • lib/data/datasources/local/app_database.dart:127:5 • const_with_non_constant_argument
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:127:5 • non_constant_list_element
+  error • Undefined name 'PurchaseOrders' • lib/data/datasources/local/app_database.dart:127:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:128:5 • non_constant_list_element
+  error • Undefined name 'PurchaseOrderItems' • lib/data/datasources/local/app_database.dart:128:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:129:5 • non_constant_list_element
+  error • Undefined name 'SalesOrders' • lib/data/datasources/local/app_database.dart:129:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:130:5 • non_constant_list_element
+  error • Undefined name 'SalesOrderItems' • lib/data/datasources/local/app_database.dart:130:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:131:5 • non_constant_list_element
+  error • Undefined name 'ProductionOrders' • lib/data/datasources/local/app_database.dart:131:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:132:5 • non_constant_list_element
+  error • Undefined name 'ProductionOrderItems' • lib/data/datasources/local/app_database.dart:132:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:133:5 • non_constant_list_element
+  error • Undefined name 'SalesReturns' • lib/data/datasources/local/app_database.dart:133:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:134:5 • non_constant_list_element
+  error • Undefined name 'SalesReturnItems' • lib/data/datasources/local/app_database.dart:134:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:135:5 • non_constant_list_element
+  error • Undefined name 'PurchaseReturns' • lib/data/datasources/local/app_database.dart:135:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:136:5 • non_constant_list_element
+  error • Undefined name 'PurchaseReturnItems' • lib/data/datasources/local/app_database.dart:136:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:137:5 • non_constant_list_element
+  error • Undefined name 'CustomerPayments' • lib/data/datasources/local/app_database.dart:137:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:138:5 • non_constant_list_element
+  error • Undefined name 'SupplierPayments' • lib/data/datasources/local/app_database.dart:138:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:139:5 • non_constant_list_element
+  error • Undefined name 'PurchasePaymentLinks' • lib/data/datasources/local/app_database.dart:139:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:140:5 • non_constant_list_element
+  error • Undefined name 'CustomerPaymentLinks' • lib/data/datasources/local/app_database.dart:140:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:141:5 • non_constant_list_element
+  error • Undefined name 'SyncQueue' • lib/data/datasources/local/app_database.dart:141:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:142:5 • non_constant_list_element
+  error • Undefined name 'GLAccounts' • lib/data/datasources/local/app_database.dart:142:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:143:5 • non_constant_list_element
+  error • Undefined name 'CostCenters' • lib/data/datasources/local/app_database.dart:143:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:144:5 • non_constant_list_element
+  error • Undefined name 'GLEntries' • lib/data/datasources/local/app_database.dart:144:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:145:5 • non_constant_list_element
+  error • Undefined name 'GLLines' • lib/data/datasources/local/app_database.dart:145:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:146:5 • non_constant_list_element
+  error • Undefined name 'AccountingPeriods' • lib/data/datasources/local/app_database.dart:146:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:147:5 • non_constant_list_element
+  error • Undefined name 'InventoryAudits' • lib/data/datasources/local/app_database.dart:147:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:148:5 • non_constant_list_element
+  error • Undefined name 'InventoryAuditItems' • lib/data/datasources/local/app_database.dart:148:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:149:5 • non_constant_list_element
+  error • Undefined name 'Shifts' • lib/data/datasources/local/app_database.dart:149:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:150:5 • non_constant_list_element
+  error • Undefined name 'Reconciliations' • lib/data/datasources/local/app_database.dart:150:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:151:5 • non_constant_list_element
+  error • Undefined name 'AuditLogs' • lib/data/datasources/local/app_database.dart:151:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:154:5 • non_constant_list_element
+  error • Undefined name 'ItemVariants' • lib/data/datasources/local/app_database.dart:154:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:155:5 • non_constant_list_element
+  error • Undefined name 'StockTransfers' • lib/data/datasources/local/app_database.dart:155:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:156:5 • non_constant_list_element
+  error • Undefined name 'StockTransferItems' • lib/data/datasources/local/app_database.dart:156:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:157:5 • non_constant_list_element
+  error • Undefined name 'Employees' • lib/data/datasources/local/app_database.dart:157:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:158:5 • non_constant_list_element
+  error • Undefined name 'PayrollEntries' • lib/data/datasources/local/app_database.dart:158:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:159:5 • non_constant_list_element
+  error • Undefined name 'PayrollLines' • lib/data/datasources/local/app_database.dart:159:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:160:5 • non_constant_list_element
+  error • Undefined name 'Permissions' • lib/data/datasources/local/app_database.dart:160:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:161:5 • non_constant_list_element
+  error • Undefined name 'RolePermissions' • lib/data/datasources/local/app_database.dart:161:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:162:5 • non_constant_list_element
+  error • Undefined name 'CashboxTransactions' • lib/data/datasources/local/app_database.dart:162:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:163:5 • non_constant_list_element
+  error • Undefined name 'FinancialTransfers' • lib/data/datasources/local/app_database.dart:163:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:164:5 • non_constant_list_element
+  error • Undefined name 'PriceLists' • lib/data/datasources/local/app_database.dart:164:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:165:5 • non_constant_list_element
+  error • Undefined name 'PriceListItems' • lib/data/datasources/local/app_database.dart:165:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:166:5 • non_constant_list_element
+  error • Undefined name 'Promotions' • lib/data/datasources/local/app_database.dart:166:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:167:5 • non_constant_list_element
+  error • Undefined name 'Currencies' • lib/data/datasources/local/app_database.dart:167:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:168:5 • non_constant_list_element
+  error • Undefined name 'PriceHistory' • lib/data/datasources/local/app_database.dart:168:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:169:5 • non_constant_list_element
+  error • Undefined name 'StockTakes' • lib/data/datasources/local/app_database.dart:169:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:170:5 • non_constant_list_element
+  error • Undefined name 'StockTakeItems' • lib/data/datasources/local/app_database.dart:170:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:171:5 • non_constant_list_element
+  error • Undefined name 'Checks' • lib/data/datasources/local/app_database.dart:171:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:172:5 • non_constant_list_element
+  error • Undefined name 'BillOfMaterials' • lib/data/datasources/local/app_database.dart:172:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:173:5 • non_constant_list_element
+  error • Undefined name 'InventoryTransactions' • lib/data/datasources/local/app_database.dart:173:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:174:5 • non_constant_list_element
+  error • Undefined name 'AccountTransactions' • lib/data/datasources/local/app_database.dart:174:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:175:5 • non_constant_list_element
+  error • Undefined name 'PostingProfiles' • lib/data/datasources/local/app_database.dart:175:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:179:5 • non_constant_list_element
+  error • Undefined name 'APInvoices' • lib/data/datasources/local/app_database.dart:179:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:180:5 • non_constant_list_element
+  error • Undefined name 'ARInvoices' • lib/data/datasources/local/app_database.dart:180:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:181:5 • non_constant_list_element
+  error • Undefined name 'GoodReceivedNotes' • lib/data/datasources/local/app_database.dart:181:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:182:5 • non_constant_list_element
+  error • Undefined name 'GoodReceivedNoteItems' • lib/data/datasources/local/app_database.dart:182:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:183:5 • non_constant_list_element
+  error • Undefined name 'DeliveryNotes' • lib/data/datasources/local/app_database.dart:183:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:184:5 • non_constant_list_element
+  error • Undefined name 'DeliveryNoteItems' • lib/data/datasources/local/app_database.dart:184:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:185:5 • non_constant_list_element
+  error • Undefined name 'PickingLists' • lib/data/datasources/local/app_database.dart:185:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:186:5 • non_constant_list_element
+  error • Undefined name 'PickingListItems' • lib/data/datasources/local/app_database.dart:186:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:187:5 • non_constant_list_element
+  error • Undefined name 'PackingLists' • lib/data/datasources/local/app_database.dart:187:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:188:5 • non_constant_list_element
+  error • Undefined name 'PackingListItems' • lib/data/datasources/local/app_database.dart:188:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:189:5 • non_constant_list_element
+  error • Undefined name 'ExchangeRates' • lib/data/datasources/local/app_database.dart:189:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:220:5 • non_constant_list_element
+  error • Undefined name 'ReconciliationDetails' • lib/data/datasources/local/app_database.dart:220:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:223:5 • non_constant_list_element
+  error • Undefined name 'ApprovalWorkflows' • lib/data/datasources/local/app_database.dart:223:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:224:5 • non_constant_list_element
+  error • Undefined name 'ApprovalLevels' • lib/data/datasources/local/app_database.dart:224:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:225:5 • non_constant_list_element
+  error • Undefined name 'ApprovalRequests' • lib/data/datasources/local/app_database.dart:225:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:226:5 • non_constant_list_element
+  error • Undefined name 'ApprovalHistory' • lib/data/datasources/local/app_database.dart:226:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:227:5 • non_constant_list_element
+  error • Undefined name 'Quotations' • lib/data/datasources/local/app_database.dart:227:5 • undefined_identifier
+  error • The values in a const list literal must be constants • lib/data/datasources/local/app_database.dart:228:5 • non_constant_list_element
+  error • Undefined name 'QuotationItems' • lib/data/datasources/local/app_database.dart:228:5 • undefined_identifier
+  error • Undefined name 'CostCenters' • lib/data/datasources/local/tables/advanced_accounting_tables.dart:9:36 • undefined_identifier
+  error • Undefined name 'GLAccounts' • lib/data/datasources/local/tables/advanced_accounting_tables.dart:11:36 • undefined_identifier
+  error • Undefined name 'GLAccounts' • lib/data/datasources/local/tables/advanced_accounting_tables.dart:27:25 • undefined_identifier
+  error • Undefined name 'GLEntries' • lib/data/datasources/local/tables/advanced_accounting_tables.dart:53:36 • undefined_identifier
+  error • Undefined name 'GLAccounts' • lib/data/datasources/local/tables/advanced_accounting_tables.dart:71:56 • undefined_identifier
+  error • Undefined name 'GLAccounts' • lib/data/datasources/local/tables/advanced_accounting_tables.dart:72:57 • undefined_identifier
+  error • Undefined name 'CostCenters' • lib/data/datasources/local/tables/advanced_accounting_tables.dart:75:36 • undefined_identifier
+  error • Undefined name 'GLEntries' • lib/data/datasources/local/tables/advanced_accounting_tables.dart:94:49 • undefined_identifier
+  error • Undefined name 'Employees' • lib/data/datasources/local/tables/attendance_tables.dart:4:50 • undefined_identifier
+  error • Undefined name 'GLAccounts' • lib/data/datasources/local/tables/core_tables.dart:116:36 • undefined_identifier
+  error • Undefined name 'Currencies' • lib/data/datasources/local/tables/core_tables.dart:117:61 • undefined_identifier
+  error • Undefined name 'GLAccounts' • lib/data/datasources/local/tables/core_tables.dart:146:36 • undefined_identifier
+  error • Undefined name 'Currencies' • lib/data/datasources/local/tables/core_tables.dart:150:61 • undefined_identifier
+  error • Undefined name 'GLAccounts' • lib/data/datasources/local/tables/core_tables.dart:201:60 • undefined_identifier
+  error • Undefined name 'CostCenters' • lib/data/datasources/local/tables/core_tables.dart:219:36 • undefined_identifier
+  error • Undefined name 'GLAccounts' • lib/data/datasources/local/tables/core_tables.dart:282:60 • undefined_identifier
+  error • Undefined name 'GLAccounts' • lib/data/datasources/local/tables/core_tables.dart:330:19 • undefined_identifier
+  error • Undefined name 'Employees' • lib/data/datasources/local/tables/leave_tables.dart:12:50 • undefined_identifier
+  error • Undefined name 'Employees' • lib/data/datasources/local/tables/leave_tables.dart:25:50 • undefined_identifier
+  error • Undefined name 'Employees' • lib/data/datasources/local/tables/zakat_eosb_tables.dart:17:50 • undefined_identifier
+   info • Convert 'locale' to a super parameter • lib/l10n/app_localizations_ar.dart:5:3 • use_super_parameters
+   info • Convert 'locale' to a super parameter • lib/l10n/app_localizations_en.dart:5:3 • use_super_parameters
+  error • The method 'postCustomerPayment' isn't defined for the type 'TransactionEngine' • lib/presentation/features/accounting/manual_voucher_page.dart:403:22 • undefined_method
+  error • The method 'postSupplierPayment' isn't defined for the type 'TransactionEngine' • lib/presentation/features/accounting/manual_voucher_page.dart:410:22 • undefined_method
+  error • The name 'SaleWithBalance' isn't a type, so it can't be used as a type argument • lib/presentation/features/accounting/widgets/bill_allocation_widget.dart:23:8 • non_type_as_type_argument
+  error • The method 'getOutstandingSales' isn't defined for the type 'TransactionEngine' • lib/presentation/features/accounting/widgets/bill_allocation_widget.dart:35:32 • undefined_method
+  error • The method 'getOutstandingSales' isn't defined for the type 'TransactionEngine' • lib/presentation/features/customers/customers_page.dart:460:48 • undefined_method
+  error • The method 'postCustomerPaymentWithAllocations' isn't defined for the type 'TransactionEngine' • lib/presentation/features/customers/customers_page.dart:479:22 • undefined_method
+warning • Unused import: 'package:supermarket/core/services/transaction_engine.dart' • lib/presentation/features/customers/widgets/customer_payment_dialog.dart:2:8 • unused_import
+  error • The name 'SaleWithBalance' isn't a type, so it can't be used as a type argument • lib/presentation/features/customers/widgets/customer_payment_dialog.dart:20:14 • non_type_as_type_argument
+  error • Undefined class 'SaleWithBalance' • lib/presentation/features/customers/widgets/customer_payment_dialog.dart:156:28 • undefined_class
+  error • The method 'postBeginningBalance' isn't defined for the type 'TransactionEngine' • lib/presentation/features/inventory/beginning_of_period_page.dart:360:20 • undefined_method
+  error • The method 'postSaleReturn' isn't defined for the type 'TransactionEngine' • lib/presentation/features/pos/bloc/pos_bloc.dart:231:33 • undefined_method
+  error • The method 'postPurchaseReturn' isn't defined for the type 'TransactionEngine' • lib/presentation/features/purchases/add_purchase_return_page.dart:284:37 • undefined_method
+  error • The method 'postSaleReturn' isn't defined for the type 'TransactionEngine' • lib/presentation/features/returns/create_return_page.dart:250:33 • undefined_method
+  error • The method 'postPurchaseReturn' isn't defined for the type 'TransactionEngine' • lib/presentation/features/returns/create_return_page.dart:282:33 • undefined_method
+  error • The method 'postSaleReturn' isn't defined for the type 'TransactionEngine' • lib/presentation/features/sales/add_sales_return_page.dart:311:37 • undefined_method
+  error • The method 'postSupplierPayment' isn't defined for the type 'TransactionEngine' • lib/presentation/features/suppliers/add_supplier_payment_page.dart:149:37 • undefined_method
+  error • The method 'getOutstandingPurchases' isn't defined for the type 'TransactionEngine' • lib/presentation/features/suppliers/suppliers_page.dart:304:24 • undefined_method
+  error • The method 'postSupplierPaymentWithAllocations' isn't defined for the type 'TransactionEngine' • lib/presentation/features/suppliers/suppliers_page.dart:323:22 • undefined_method
+warning • Unused import: 'package:supermarket/core/services/transaction_engine.dart' • lib/presentation/features/suppliers/widgets/supplier_payment_dialog.dart:2:8 • unused_import
+  error • The name 'PurchaseWithBalance' isn't a type, so it can't be used as a type argument • lib/presentation/features/suppliers/widgets/supplier_payment_dialog.dart:19:14 • non_type_as_type_argument
+  error • Undefined class 'PurchaseWithBalance' • lib/presentation/features/suppliers/widgets/supplier_payment_dialog.dart:153:29 • undefined_class
+  error • The method 'cancelSale' isn't defined for the type 'TransactionEngine' • test/unit/sales_order_conversion_test.dart:320:20 • undefined_method
+  error • The method 'cancelSale' isn't defined for the type 'TransactionEngine' • test/unit/sales_order_conversion_test.dart:349:20 • undefined_method
+  error • The method 'cancelSale' isn't defined for the type 'TransactionEngine' • test/unit/sales_order_conversion_test.dart:409:20 • undefined_method
+  error • The method 'cancelPurchase' isn't defined for the type 'TransactionEngine' • test/unit/sales_order_conversion_test.dart:460:20 • undefined_method
+  error • The method 'cancelSale' isn't defined for the type 'TransactionEngine' • test/unit/sales_order_conversion_test.dart:518:16 • undefined_method
+  error • The method 'postCustomerPayment' isn't defined for the type 'TransactionEngine' • test/unit/sales_order_conversion_test.dart:524:16 • undefined_method
+
+193 issues found. (ran in 22.9s)

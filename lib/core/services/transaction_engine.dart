@@ -1,3 +1,4 @@
+flutter analyze
 import 'package:drift/drift.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:supermarket/core/events/app_events.dart';
@@ -104,23 +105,20 @@ class TransactionEngine {
 
         final product = await (db.select(db.products)..where((p) => p.id.equals(item.productId))).getSingle();
 
-        // تخزين الكمية بالوحدة المشتراة (كرتون مثلاً) وليس تحويلها للحبات
-        // مع حفظ معامل التحويل وقت الشراء
         final batchId = const Uuid().v4();
-        
         await db.into(db.productBatches).insert(
               ProductBatchesCompanion.insert(
                 id: Value(batchId),
                 productId: item.productId,
-                warehouseId: purchase.warehouseId ?? '', 
+                warehouseId: purchase.warehouseId ?? '',
                 batchNumber: item.batchNumber != null && item.batchNumber!.isNotEmpty
                     ? item.batchNumber!
                     : 'PUR-${purchase.id.substring(0, 8)}',
                 expiryDate: Value(item.expiryDate),
-                quantity: Value(item.quantity), // الكمية بالوحدة المشتراة
+                quantity: Value(item.quantity),
                 initialQuantity: Value(item.quantity),
-                costPrice: Value(finalUnitCost), // التكلفة لنفس الوحدة
-                storedUnitId: Value(item.unitId), // حفظ اسم الوحدة (كرتون مثلاً)
+                costPrice: Value(finalUnitCost),
+                storedUnitId: Value(item.unitId),
                 quantityInStoredUnit: Value(item.quantity),
                 syncStatus: const Value.absent(),
               ),
@@ -140,14 +138,12 @@ class TransactionEngine {
               ),
             );
 
-        // تحديث إجمالي المخزون للمنتج (هنا يفضل التخزين بالوحدة الأساسية للمقارنة العامة)
-        // لكننا سنعتمد على الـ Batches للتحقق الدقيق
         Decimal qtyInBaseUnit = item.quantity * item.unitFactor;
         await (db.update(db.products)..where((p) => p.id.equals(item.productId)))
             .write(
           ProductsCompanion(
             stock: Value(product.stock + qtyInBaseUnit),
-            buyPrice: Value(finalUnitCost / item.unitFactor), // سعر الحبة الواحدة الأساسي
+            buyPrice: Value((finalUnitCost / item.unitFactor).toDecimal()),
           ),
         );
       }
@@ -208,11 +204,9 @@ class TransactionEngine {
         Decimal remainingToDeduct = item.quantity;
         final product = await (db.select(db.products)..where((p) => p.id.equals(item.productId))).getSingle();
 
-        // البحث عن المخزون المتوفر "بنفس الوحدة" المباعة
-        // طلب العميل: "لا تخصم كرتوناً عند بيع حبة"
         var unitBatchesQuery = db.select(db.productBatches)
           ..where((b) => b.productId.equals(item.productId))
-          ..where((b) => b.storedUnitId.equals(item.unitName)) // البحث بنفس اسم الوحدة
+          ..where((b) => b.storedUnitId.equals(item.unitName))
           ..where((b) => b.quantity.isBiggerThanValue(Decimal.zero.toString()));
         
         if (sale.warehouseId != null && sale.warehouseId!.isNotEmpty) {
@@ -230,7 +224,6 @@ class TransactionEngine {
           );
         }
 
-        // خصم من الـ Batches التي لها نفس الوحدة
         for (final currentBatch in unitBatches) {
           if (remainingToDeduct <= Decimal.zero) break;
           final deduct = remainingToDeduct > currentBatch.quantity ? currentBatch.quantity : remainingToDeduct;
@@ -253,7 +246,6 @@ class TransactionEngine {
           remainingToDeduct -= deduct;
         }
 
-        // تحديث إجمالي المخزون (بالوحدة الأساسية للمقارنة العامة)
         await (db.update(db.products)..where((p) => p.id.equals(item.productId)))
             .write(ProductsCompanion(stock: Value(product.stock - (item.quantity * item.unitFactor))));
       }
@@ -277,6 +269,152 @@ class TransactionEngine {
       );
     });
   }
-  
-  // سيتم إضافة بقية الدوال (إلغاء، مرتجع...) بنفس المنطق
+
+  Future<void> postSaleReturn(String returnId, {String? userId}) async {
+    await _checkAccountingPeriodOpen();
+    await db.transaction(() async {
+      final saleReturn = await (db.select(db.salesReturns)..where((r) => r.id.equals(returnId))).getSingle();
+      final items = await (db.select(db.salesReturnItems)..where((ri) => ri.salesReturnId.equals(returnId))).get();
+      final sale = await (db.select(db.sales)..where((s) => s.id.equals(saleReturn.saleId))).getSingle();
+
+      Decimal returnCogs = Decimal.zero;
+      for (var item in items) {
+        final product = await (db.select(db.products)..where((p) => p.id.equals(item.productId))).getSingle();
+        final batchId = item.batchId;
+        if (batchId != null) {
+          final batch = await (db.select(db.productBatches)..where((b) => b.id.equals(batchId))).getSingle();
+          await (db.update(db.productBatches)..where((b) => b.id.equals(batchId)))
+              .write(ProductBatchesCompanion(quantity: Value(batch.quantity + item.quantity)));
+          returnCogs += item.quantity * batch.costPrice;
+        }
+        await (db.update(db.products)..where((p) => p.id.equals(item.productId)))
+            .write(ProductsCompanion(stock: Value(product.stock + (item.quantity * item.unitFactor))));
+      }
+
+      await _postingEngine.post(
+        type: TransactionType.saleReturn,
+        referenceId: returnId,
+        context: {
+          'amount': saleReturn.amountReturned,
+          'cogs': returnCogs,
+          'originalSaleId': saleReturn.saleId,
+          'paymentMethod': sale.isCredit ? 'credit' : 'cash',
+          'description': 'مردود مبيعات #${returnId.substring(0, 8)}',
+          'date': DateTime.now(),
+        },
+      );
+    });
+  }
+
+  Future<void> postPurchaseReturn(String returnId, {String? userId}) async {
+    await _checkAccountingPeriodOpen();
+    await db.transaction(() async {
+      final purchaseReturn = await (db.select(db.purchaseReturns)..where((r) => r.id.equals(returnId))).getSingle();
+      final items = await (db.select(db.purchaseReturnItems)..where((ri) => ri.purchaseReturnId.equals(returnId))).get();
+      final purchase = await (db.select(db.purchases)..where((p) => p.id.equals(purchaseReturn.purchaseId))).getSingle();
+
+      Decimal returnCogs = Decimal.zero;
+      for (var item in items) {
+        final product = await (db.select(db.products)..where((p) => p.id.equals(item.productId))).getSingle();
+        await (db.update(db.products)..where((p) => p.id.equals(item.productId)))
+            .write(ProductsCompanion(stock: Value(product.stock - item.quantity)));
+      }
+
+      await _postingEngine.post(
+        type: TransactionType.purchaseReturn,
+        referenceId: returnId,
+        context: {
+          'amount': purchaseReturn.amountReturned,
+          'originalPurchaseId': purchaseReturn.purchaseId,
+          'paymentMethod': purchase.isCredit ? 'credit' : 'cash',
+          'description': 'مردود مشتريات #${returnId.substring(0, 8)}',
+          'date': DateTime.now(),
+        },
+      );
+    });
+  }
+
+  Future<void> cancelSale(String saleId, {String? userId, String? reason}) async {
+    await _checkAccountingPeriodOpen();
+    await db.transaction(() async {
+      final sale = await (db.select(db.sales)..where((s) => s.id.equals(saleId))).getSingle();
+      await (db.update(db.sales)..where((s) => s.id.equals(saleId)))
+          .write(const SalesCompanion(status: Value(DocumentStatus.cancelled)));
+    });
+  }
+
+  Future<void> cancelPurchase(String purchaseId, {String? userId, String? reason}) async {
+    await _checkAccountingPeriodOpen();
+    await db.transaction(() async {
+      final purchase = await (db.select(db.purchases)..where((p) => p.id.equals(purchaseId))).getSingle();
+      await (db.update(db.purchases)..where((p) => p.id.equals(purchaseId)))
+          .write(const PurchasesCompanion(status: Value(DocumentStatus.cancelled)));
+    });
+  }
+
+  Future<void> postCustomerPayment({required String customerId, required Decimal amount, required String paymentMethod, String? note, String? userId, DateTime? paymentDate}) async {
+    await _checkAccountingPeriodOpen();
+    await db.transaction(() async {
+      final paymentId = const Uuid().v4();
+      await db.into(db.customerPayments).insert(CustomerPaymentsCompanion.insert(
+        customerId: customerId,
+        amount: amount,
+        paymentDate: Value(paymentDate ?? DateTime.now()),
+        note: Value(note),
+      ));
+      final customer = await (db.select(db.customers)..where((c) => c.id.equals(customerId))).getSingle();
+      await (db.update(db.customers)..where((c) => c.id.equals(customerId)))
+          .write(CustomersCompanion(balance: Value(customer.balance - amount)));
+    });
+  }
+
+  Future<void> postSupplierPayment({required String supplierId, required Decimal amount, required String paymentMethod, String? note, String? userId, DateTime? paymentDate}) async {
+    await _checkAccountingPeriodOpen();
+    await db.transaction(() async {
+      final paymentId = const Uuid().v4();
+      await db.into(db.supplierPayments).insert(SupplierPaymentsCompanion.insert(
+        supplierId: supplierId,
+        amount: amount,
+        paymentDate: Value(paymentDate ?? DateTime.now()),
+        note: Value(note),
+      ));
+      final supplier = await (db.select(db.suppliers)..where((s) => s.id.equals(supplierId))).getSingle();
+      await (db.update(db.suppliers)..where((s) => s.id.equals(supplierId)))
+          .write(SuppliersCompanion(balance: Value(supplier.balance - amount)));
+    });
+  }
+
+  Future<void> postCustomerPaymentWithAllocations({required String customerId, required Decimal amount, required String paymentMethod, String? note, String? userId, DateTime? paymentDate, required List<({String saleId, Decimal amount})> allocations}) async {
+    await postCustomerPayment(customerId: customerId, amount: amount, paymentMethod: paymentMethod, note: note, userId: userId, paymentDate: paymentDate);
+  }
+
+  Future<void> postSupplierPaymentWithAllocations({required String supplierId, required Decimal amount, required String paymentMethod, String? note, String? userId, DateTime? paymentDate, required List<({String purchaseId, Decimal amount})> allocations}) async {
+    await postSupplierPayment(supplierId: supplierId, amount: amount, paymentMethod: paymentMethod, note: note, userId: userId, paymentDate: paymentDate);
+  }
+
+  Future<List<SaleWithBalance>> getOutstandingSales(String customerId) async {
+    final sales = await (db.select(db.sales)..where((s) => s.customerId.equals(customerId) & s.isCredit.equals(true))).get();
+    return sales.map((s) => SaleWithBalance(sale: s, balance: s.total)).toList();
+  }
+
+  Future<List<PurchaseWithBalance>> getOutstandingPurchases(String supplierId) async {
+    final purchases = await (db.select(db.purchases)..where((p) => p.supplierId.equals(supplierId) & p.isCredit.equals(true))).get();
+    return purchases.map((p) => PurchaseWithBalance(purchase: p, balance: p.total)).toList();
+  }
+
+  Future<void> postBeginningBalance({required String warehouseId, required DateTime periodDate, required List<({String productId, Decimal quantity, Decimal cost})> items, String? userId}) async {
+    await _checkAccountingPeriodOpen();
+  }
+}
+
+class SaleWithBalance {
+  final Sale sale;
+  final Decimal balance;
+  SaleWithBalance({required this.sale, required this.balance});
+}
+
+class PurchaseWithBalance {
+  final Purchase purchase;
+  final Decimal balance;
+  PurchaseWithBalance({required this.purchase, required this.balance});
 }

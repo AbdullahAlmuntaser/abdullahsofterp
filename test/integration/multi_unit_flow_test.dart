@@ -53,7 +53,7 @@ void main() {
           reason: '60 available, need 70 → autoBreak should break cartons');
     });
 
-    test('autoBreak uses reservedQuantity instead of BROKEN batch', () async {
+    test('autoBreak creates new batch for broken units', () async {
       await packagingEngine.autoBreakIfNecessary(
         productId: 'product-1',
         warehouseId: 'wh-1',
@@ -64,113 +64,72 @@ void main() {
             ..where((b) => b.productId.equals('product-1')))
           .get();
 
-      expect(batches.length, equals(1),
-          reason: 'Should still have only 1 batch (no BROKEN created)');
-      expect(batches.first.reservedQuantity, greaterThan(Decimal.zero),
-          reason: 'Cartons should be reserved');
-
-      final brokenBatches =
-          batches.where((b) => b.batchNumber.startsWith('BROKEN-')).toList();
-      expect(brokenBatches, isEmpty,
-          reason: 'No BROKEN batches should be created');
+      expect(batches.length, equals(2),
+          reason: 'Should have 2 batches: original carton + broken pieces');
+      
+      final originalBatch = batches.firstWhere((b) => b.batchNumber == 'BATCH-001');
+      final brokenBatch = batches.firstWhere((b) => b.batchNumber.startsWith('BRK-'));
+      
+      expect(originalBatch.quantity, equals(Decimal.fromInt(48)),
+          reason: '60 - 12 = 48 cartons remaining');
+      expect(brokenBatch.quantity, equals(Decimal.fromInt(12)),
+          reason: '12 pieces from broken carton');
     });
 
-    test('deduction after autoBreak consumes reserved + quantity correctly',
-        () async {
+    test('deduction after autoBreak consumes from broken batch', () async {
       await packagingEngine.autoBreakIfNecessary(
         productId: 'product-1',
         warehouseId: 'wh-1',
         requiredQtyInBase: Decimal.fromInt(70),
       );
 
-      final batch = await (db.select(db.productBatches)
-            ..where((b) => b.batchNumber.equals('BATCH-001')))
+      // Find the broken batch
+      final brokenBatch = await (db.select(db.productBatches)
+            ..where((b) => b.batchNumber.like('BRK-%')))
           .getSingle();
 
+      // Deduct 70 units (all from broken batch + 58 from original)
       final deduct = Decimal.fromInt(70);
-      final deductFromReserved =
-          batch.reservedQuantity >= deduct ? deduct : batch.reservedQuantity;
-
       await (db.update(db.productBatches)
-            ..where((b) => b.id.equals(batch.id)))
+            ..where((b) => b.id.equals(brokenBatch.id)))
           .write(ProductBatchesCompanion(
-        quantity: drift.Value(batch.quantity - deduct),
-        reservedQuantity:
-            drift.Value(batch.reservedQuantity - deductFromReserved),
+        quantity: drift.Value(brokenBatch.quantity - deduct),
       ));
 
-      final updatedBatch = await (db.select(db.productBatches)
-            ..where((b) => b.batchNumber.equals('BATCH-001')))
+      final updatedBroken = await (db.select(db.productBatches)
+            ..where((b) => b.id.equals(brokenBatch.id)))
           .getSingle();
 
-      expect(updatedBatch.quantity, equals(Decimal.fromInt(-10)),
-          reason: '60 - 70 = -10 (negative stock after overselling)');
-      expect(updatedBatch.reservedQuantity, equals(Decimal.zero),
-          reason: 'All reserved was consumed');
+      expect(updatedBroken.quantity, lessThan(Decimal.zero),
+          reason: 'Broken batch can go negative when overselling');
     });
 
-    test('post-sale cleanup releases orphaned reservedQuantity', () async {
+    test('post-sale cleanup not needed after proper disassembly', () async {
       await packagingEngine.autoBreakIfNecessary(
         productId: 'product-1',
         warehouseId: 'wh-1',
         requiredQtyInBase: Decimal.fromInt(70),
       );
 
-      // Batch: qty=60, shortfall=10, reserved=10 (from autoBreak)
-      var batch = await (db.select(db.productBatches)
-            ..where((b) => b.batchNumber.equals('BATCH-001')))
-          .getSingle();
-
-      // Consume less than what was reserved (5 < 10)
-      final deduct = Decimal.fromInt(5);
-      final deductFromReserved =
-          batch.reservedQuantity >= deduct ? deduct : batch.reservedQuantity;
-
-      await (db.update(db.productBatches)
-            ..where((b) => b.id.equals(batch.id)))
-          .write(ProductBatchesCompanion(
-        quantity: drift.Value(batch.quantity - deduct),
-        reservedQuantity:
-            drift.Value(batch.reservedQuantity - deductFromReserved),
-      ));
-
-      batch = await (db.select(db.productBatches)
-            ..where((b) => b.batchNumber.equals('BATCH-001')))
-          .getSingle();
-
-      expect(batch.reservedQuantity, greaterThan(Decimal.zero),
-          reason: 'Orphaned reserved exists after partial consumption (5 remaining)');
-
-      // Simulate post-sale cleanup
+      // After proper disassembly, no reservedQuantity should exist
       final allBatches = await (db.select(db.productBatches)
             ..where((b) => b.productId.equals('product-1')))
           .get();
+      
       for (final b in allBatches) {
-        if (b.reservedQuantity > Decimal.zero) {
-          await (db.update(db.productBatches)
-                ..where((p) => p.id.equals(b.id)))
-              .write(ProductBatchesCompanion(
-            reservedQuantity: drift.Value(Decimal.zero),
-          ));
-        }
+        expect(b.reservedQuantity, equals(Decimal.zero),
+            reason: 'No reservedQuantity after proper disassembly');
       }
-
-      batch = await (db.select(db.productBatches)
-            ..where((b) => b.batchNumber.equals('BATCH-001')))
-          .getSingle();
-
-      expect(batch.reservedQuantity, equals(Decimal.zero),
-          reason: 'Orphaned reserved should be released');
     });
 
-    test('getWarehouseStock accounts for reservedQuantity', () async {
+    test('getWarehouseStock reflects actual available quantity', () async {
       var stockBefore =
           await db.productsDao.getWarehouseStock('product-1', 'wh-1');
       expect(stockBefore, equals(Decimal.fromInt(60)),
           reason: '60 units available initially');
 
       // autoBreak for 70 (60 available, 10 shortfall)
-      // This should reserve 10 units (the shortfall)
+      // This breaks 1 carton (12 pieces) → 48 cartons + 12 pieces = 60 total
       await packagingEngine.autoBreakIfNecessary(
         productId: 'product-1',
         warehouseId: 'wh-1',
@@ -179,13 +138,12 @@ void main() {
 
       var stockAfter =
           await db.productsDao.getWarehouseStock('product-1', 'wh-1');
-      expect(stockAfter, equals(Decimal.fromInt(50)),
-          reason: '50 units after reserving 10 of the 60');
+      expect(stockAfter, equals(Decimal.fromInt(60)),
+          reason: '60 units still available (48 cartons + 12 pieces)');
     });
 
-    test('multiple products with reservedQuantity are independent', () async {
-      // product-1: qty=60, reserved=0, available=60
-      // Need 70 → break 1 carton: reserved=12, available=48
+    test('multiple products with disassembly are independent', () async {
+      // product-1: qty=60, need 70 → break 1 carton: 48 cartons + 12 pieces
       await packagingEngine.autoBreakIfNecessary(
         productId: 'product-1',
         warehouseId: 'wh-1',
@@ -194,8 +152,8 @@ void main() {
 
       var p1Available =
           await db.productsDao.getWarehouseStock('product-1', 'wh-1');
-      expect(p1Available, equals(Decimal.fromInt(50)),
-          reason: 'Product-1: 50 available after reserving 10');
+      expect(p1Available, equals(Decimal.fromInt(60)),
+          reason: 'Product-1: 60 available after disassembly');
 
       // product-2 should be unaffected
       var p2Available =
@@ -218,7 +176,7 @@ void main() {
       var available =
           await db.productsDao.getWarehouseStock('product-1', 'wh-1');
       expect(available, equals(Decimal.zero),
-          reason: 'All stock should be reserved (60 reserved, 0 available)');
+          reason: 'All stock broken into pieces (0 cartons, 0 pieces available)');
     });
   });
 
