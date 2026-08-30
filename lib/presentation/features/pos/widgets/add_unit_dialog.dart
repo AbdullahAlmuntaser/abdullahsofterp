@@ -50,14 +50,14 @@ class _AddUnitDialogState extends State<AddUnitDialog> {
               TextFormField(
                 controller: _factorController,
                 decoration: const InputDecoration(
-                  labelText: 'المعامل (كم وحدة أساسية في هذه الوحدة؟)',
-                  helperText: 'مثال: إذا كان الكرتون = 20 حبة، أدخل 20',
+                  labelText: 'معامل التحويل',
+                  helperText: 'كم وحدة أساسية في هذه الوحدة؟',
                 ),
                 keyboardType: TextInputType.number,
                 validator: (v) {
                   final parsed = double.tryParse(v ?? '');
                   if (parsed == null) return 'أدخل رقماً صحيحاً';
-                  if (parsed <= 1) return 'المعامل يجب أن يكون أكبر من 1';
+                  if (parsed <= 0) return 'المعامل يجب أن يكون أكبر من صفر';
                   return null;
                 },
               ),

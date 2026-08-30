@@ -5,6 +5,8 @@ import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:supermarket/core/exceptions/app_exception.dart';
 
 /// Service for handling unit conversions across the system.
+/// Each product has a user-defined base unit (e.g., كرتون، شدة، صندوق، حبة).
+/// Additional units are defined with conversion factors relative to the base unit.
 /// All quantities are stored in base units internally.
 class UnitConversionService {
   final ProductsDao productsDao;

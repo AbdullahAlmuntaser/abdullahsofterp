@@ -80,43 +80,92 @@ class _UnitConversionPageState extends State<UnitConversionPage> {
                 db.productUnits,
               )..where((t) => t.productId.equals(widget.productId)))
                   .watch(),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                final conversions = snapshot.data!;
-                if (conversions.isEmpty) {
-                  return const Center(
-                    child: Text('لا يوجد تحويلات مضافة بعد.'),
-                  );
-                }
+              builder: (context, unitSnapshot) {
+                return FutureBuilder<Product?>(
+                  future: (db.select(db.products)
+                        ..where((p) => p.id.equals(widget.productId)))
+                      .getSingleOrNull(),
+                  builder: (context, productSnapshot) {
+                    final product = productSnapshot.data;
+                    final conversions = unitSnapshot.data ?? [];
 
-                return ListView.builder(
-                  itemCount: conversions.length,
-                  itemBuilder: (context, index) {
-                    final conv = conversions[index];
-                    return Card(
-                      margin: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      child: ListTile(
-                        title: Text(
-                          '${conv.unitName} (المعامل: ${conv.unitFactor})',
-                        ),
-                        subtitle: Text(
-                          'باركود: ${conv.barcode ?? "لا يوجد"} | السعر: ${conv.sellPrice ?? "افتراضي"}',
-                        ),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.delete, color: Colors.red),
-                          onPressed: () async {
-                            await (db.delete(
-                              db.productUnits,
-                            )..where((t) => t.id.equals(conv.id)))
-                                .go();
-                          },
-                        ),
-                      ),
+                    return Column(
+                      children: [
+                        if (product != null)
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(16),
+                            margin: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.blue.shade50,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.blue.shade200),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'الوحدة الأساسية:',
+                                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                                ),
+                                Text(
+                                  product.unit,
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'جميع الكيات والمخزون بوحدة: ${product.unit}',
+                                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                                ),
+                              ],
+                            ),
+                          ),
+                        if (unitSnapshot.connectionState == ConnectionState.waiting)
+                          const Expanded(child: Center(child: CircularProgressIndicator()))
+                        else if (conversions.isEmpty)
+                          const Expanded(
+                            child: Center(
+                              child: Text('لا يوجد وحدات إضافية مضافة بعد.'),
+                            ),
+                          )
+                        else
+                          Expanded(
+                            child: ListView.builder(
+                              itemCount: conversions.length,
+                              itemBuilder: (context, index) {
+                                final conv = conversions[index];
+                                return Card(
+                                  margin: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 8,
+                                  ),
+                                  child: ListTile(
+                                    title: Text(
+                                      '${conv.unitName} (المعامل: ${conv.unitFactor})',
+                                    ),
+                                    subtitle: Text(
+                                      product != null
+                                          ? '1 ${conv.unitName} = ${conv.unitFactor} ${product.unit}'
+                                          : '1 ${conv.unitName} = ${conv.unitFactor} وحدة أساسية',
+                                    ),
+                                    trailing: IconButton(
+                                      icon: const Icon(Icons.delete, color: Colors.red),
+                                      onPressed: () async {
+                                        await (db.delete(
+                                          db.productUnits,
+                                        )..where((t) => t.id.equals(conv.id)))
+                                            .go();
+                                      },
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                      ],
                     );
                   },
                 );
@@ -154,14 +203,14 @@ class _UnitConversionPageState extends State<UnitConversionPage> {
                 TextFormField(
                   controller: _factorController,
                   decoration: const InputDecoration(
-                    labelText: 'المعامل (كم وحدة أساسية في هذه الوحدة؟)',
-                    helperText: 'مثال: إذا كان الكرتون = 20 حبة، أدخل 20',
+                    labelText: 'معامل التحويل',
+                    helperText: 'كم وحدة أساسية في هذه الوحدة؟ مثال: 1 كرتون = 20 حبة → أدخل 20',
                   ),
                   keyboardType: TextInputType.number,
                   validator: (v) {
                     final parsed = double.tryParse(v ?? '');
                     if (parsed == null) return 'أدخل رقماً صحيحاً';
-                    if (parsed <= 1) return 'المعامل يجب أن يكون أكبر من 1';
+                    if (parsed <= 0) return 'المعامل يجب أن يكون أكبر من صفر';
                     return null;
                   },
                 ),

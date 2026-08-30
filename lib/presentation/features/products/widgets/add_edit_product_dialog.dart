@@ -106,7 +106,8 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
                       controller: _unitController,
                       decoration: const InputDecoration(
                         labelText: 'الوحدة الأساسية للمخزون',
-                        hintText: 'كرتون، كيس، كيلو، حبة...',
+                        hintText: 'كرتون، شدة، صندوق، باكت، كيس، حبة...',
+                        helperText: 'الوحدة التي يُشترى ويُخزّن بها المنتج',
                       ),
                       validator: (value) => value!.isEmpty ? 'يرجى إدخال الوحدة الأساسية' : null,
                     ),

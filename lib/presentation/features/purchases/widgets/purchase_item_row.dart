@@ -201,8 +201,7 @@ class _PurchaseItemRowState extends State<PurchaseItemRow> {
                 const Spacer(),
               ],
             ),
-            if (widget.item.selectedUnit != null &&
-                widget.item.selectedUnit!.unitFactor > Decimal.one)
+            if (widget.item.selectedUnit != null)
               Padding(
                 padding: const EdgeInsets.only(top: 8.0),
                 child: Text(

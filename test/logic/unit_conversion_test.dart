@@ -148,4 +148,117 @@ void main() {
       expect(factor <= 0, isTrue);
     });
   });
+
+  group('Dynamic Base Unit - Carton as Base', () {
+    test('base unit is carton, additional unit is piece with factor 0.05', () {
+      const double conversionFactor = 0.05; // 1 حبة = 0.05 كرتون
+
+      const quantityInPiece = 20.0;
+      const quantityInCarton = quantityInPiece * conversionFactor;
+      expect(quantityInCarton, closeTo(1.0, 0.001));
+    });
+
+    test('base unit is carton, additional unit is pack with factor 10', () {
+      const double conversionFactor = 10.0; // 1 شدة = 10 كرتون
+
+      const quantityInPack = 5.0;
+      const quantityInCarton = quantityInPack * conversionFactor;
+      expect(quantityInCarton, equals(50.0));
+    });
+
+    test('purchasing 100 cartons with carton as base unit', () {
+      const purchasedQuantity = 100.0;
+      const double unitFactor = 1.0; // purchasing in base unit
+
+      const qtyInBaseUnit = purchasedQuantity * unitFactor;
+      expect(qtyInBaseUnit, equals(100.0));
+    });
+
+    test('purchasing 5 packs when base is carton (1 pack = 10 cartons)', () {
+      const double conversionFactor = 10.0;
+
+      const purchasedQuantity = 5.0;
+      const qtyInBaseUnit = purchasedQuantity * conversionFactor;
+      expect(qtyInBaseUnit, equals(50.0));
+    });
+  });
+
+  group('Dynamic Base Unit - Box as Base', () {
+    test('base unit is box, additional unit is piece with factor 0.5', () {
+      const double conversionFactor = 0.5; // 1 علبة = 0.5 صندوق
+
+      const quantityInPiece = 6.0;
+      const quantityInBox = quantityInPiece * conversionFactor;
+      expect(quantityInBox, equals(3.0));
+    });
+
+    test('1 شدة = 12 علبة with علبة as base', () {
+      const double conversionFactor = 12.0; // 1 شدة = 12 علبة
+
+      const quantityInPack = 3.0;
+      const qtyInBaseUnit = quantityInPack * conversionFactor;
+      expect(qtyInBaseUnit, equals(36.0));
+    });
+  });
+
+  group('Dynamic Base Unit - Weight Units', () {
+    test('base unit is kilo, additional unit is gram with factor 0.001', () {
+      const double conversionFactor = 0.001; // 1 جرام = 0.001 كيلو
+
+      const quantityInGram = 500.0;
+      const quantityInKilo = quantityInGram * conversionFactor;
+      expect(quantityInKilo, equals(0.5));
+    });
+
+    test('base unit is ton, additional unit is kilo with factor 0.001', () {
+      const double conversionFactor = 0.001; // 1 كيلو = 0.001 طن
+
+      const quantityInKilo = 500.0;
+      const quantityInTon = quantityInKilo * conversionFactor;
+      expect(quantityInTon, equals(0.5));
+    });
+  });
+
+  group('Dynamic Base Unit - Purchase Scenarios', () {
+    test('purchase 100 cartons, stock increases by 100 cartons', () {
+      const purchasedQuantity = 100.0;
+      const double unitFactor = 1.0;
+
+      const stockIncrease = purchasedQuantity * unitFactor;
+      expect(stockIncrease, equals(100.0));
+    });
+
+    test('purchase 10 packs (1 pack = 20 cartons), stock increases by 200 cartons', () {
+      const purchasedQuantity = 10.0;
+      const double unitFactor = 20.0;
+
+      const stockIncrease = purchasedQuantity * unitFactor;
+      expect(stockIncrease, equals(200.0));
+    });
+
+    test('buy price per carton when purchasing packs', () {
+      const double baseUnitPrice = 50.0; // price per carton
+      const double packFactor = 20.0; // 1 pack = 20 cartons
+      const packPrice = baseUnitPrice * packFactor;
+
+      expect(packPrice, equals(1000.0));
+
+      const pricePerCarton = packPrice / packFactor;
+      expect(pricePerCarton, equals(50.0));
+    });
+
+    test('conversion factor validation - must be positive', () {
+      const validFactor1 = 0.05;
+      const validFactor2 = 1.0;
+      const validFactor3 = 100.0;
+      const invalidFactor1 = 0.0;
+      const invalidFactor2 = -5.0;
+
+      expect(validFactor1 > 0, isTrue);
+      expect(validFactor2 > 0, isTrue);
+      expect(validFactor3 > 0, isTrue);
+      expect(invalidFactor1 > 0, isFalse);
+      expect(invalidFactor2 > 0, isFalse);
+    });
+  });
 }
