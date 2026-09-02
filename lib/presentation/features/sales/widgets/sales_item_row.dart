@@ -11,6 +11,7 @@ class SalesItemRow extends StatefulWidget {
   final VoidCallback onDelete;
   final VoidCallback onChanged;
   final String? customerId;
+  final bool isWholesaleMode;
 
   const SalesItemRow({
     super.key,
@@ -20,6 +21,7 @@ class SalesItemRow extends StatefulWidget {
     required this.onDelete,
     required this.onChanged,
     this.customerId,
+    this.isWholesaleMode = false,
   });
 
   @override
@@ -78,7 +80,10 @@ class _SalesItemRowState extends State<SalesItemRow> {
                         setState(() {
                           widget.item.product = p;
                           widget.item.selectedUnit = p.unit;
-                          widget.item.price = p.sellPrice.toDouble();
+                          widget.item.price = widget.isWholesaleMode
+                              ? p.wholesalePrice.toDouble()
+                              : p.sellPrice.toDouble();
+                          widget.item.unitFactor = 1;
                         });
                         widget.onChanged();
                       },
@@ -137,6 +142,14 @@ class _SalesItemRowState extends State<SalesItemRow> {
                 ),
                 const SizedBox(width: 8),
                 Expanded(
+                  child: _buildUnitDropdown(),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
                   child: MoneyFormField(
                     label: 'السعر',
                     decoration: const InputDecoration(
@@ -154,11 +167,86 @@ class _SalesItemRowState extends State<SalesItemRow> {
                     },
                   ),
                 ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'الإجمالي: ${(widget.item.quantity * widget.item.price).toStringAsFixed(2)}',
+                    textAlign: TextAlign.end,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
               ],
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildUnitDropdown() {
+    if (widget.item.product == null) {
+      return const SizedBox.shrink();
+    }
+
+    return StreamBuilder<List<ProductUnit>>(
+      stream: (widget.db.select(widget.db.productUnits)
+            ..where((t) => t.productId.equals(widget.item.product!.id)))
+          .watch(),
+      builder: (context, snapshot) {
+        final units = snapshot.data ?? [];
+        return DropdownButtonFormField<String>(
+          value: widget.item.selectedUnit.isEmpty
+              ? widget.item.product!.unit
+              : widget.item.selectedUnit,
+          decoration: const InputDecoration(
+            labelText: 'الوحدة',
+            isDense: true,
+            border: OutlineInputBorder(),
+          ),
+          items: [
+            DropdownMenuItem(
+              value: widget.item.product!.unit,
+              child: Text('${widget.item.product!.unit} (الرئيسية)'),
+            ),
+            ...units.map(
+              (u) => DropdownMenuItem(
+                value: u.unitName,
+                child: Text('${u.unitName} (${u.unitFactor})'),
+              ),
+            ),
+          ],
+          onChanged: (value) {
+            if (value == null) return;
+            setState(() {
+              widget.item.selectedUnit = value;
+              // Update price based on selected unit
+              if (value == widget.item.product!.unit) {
+                widget.item.price = widget.isWholesaleMode
+                    ? widget.item.product!.wholesalePrice.toDouble()
+                    : widget.item.product!.sellPrice.toDouble();
+                widget.item.unitFactor = 1;
+              } else {
+                final unit = units.firstWhere(
+                  (u) => u.unitName == value,
+                  orElse: () => units.first,
+                );
+                // Use unit-specific price if available
+                if (widget.isWholesaleMode && unit.wholesalePrice != null) {
+                  widget.item.price = unit.wholesalePrice!.toDouble();
+                } else if (unit.sellPrice != null) {
+                  widget.item.price = unit.sellPrice!.toDouble();
+                } else {
+                  widget.item.price = widget.isWholesaleMode
+                      ? widget.item.product!.wholesalePrice.toDouble()
+                      : widget.item.product!.sellPrice.toDouble();
+                }
+                widget.item.unitFactor = unit.unitFactor.toDouble();
+              }
+            });
+            widget.onChanged();
+          },
+        );
+      },
     );
   }
 }

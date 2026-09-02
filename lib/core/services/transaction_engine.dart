@@ -105,8 +105,6 @@ class TransactionEngine {
         Decimal landedCostPerUnit = item.quantity > Decimal.zero ? (allocatedLandedCost / item.quantity).toDecimal() : Decimal.zero;
         Decimal finalUnitCost = item.price + landedCostPerUnit;
 
-        final product = await (db.select(db.products)..where((p) => p.id.equals(item.productId))).getSingle();
-
         final batchId = const Uuid().v4();
         await db.into(db.productBatches).insert(
               ProductBatchesCompanion.insert(
@@ -140,12 +138,11 @@ class TransactionEngine {
               ),
             );
 
-        Decimal qtyInBaseUnit = item.quantity * item.unitFactor;
+        // Stock is updated by GRN service. Only update buyPrice here.
         await (db.update(db.products)..where((p) => p.id.equals(item.productId)))
             .write(
           ProductsCompanion(
-            stock: Value(product.stock + qtyInBaseUnit),
-            buyPrice: Value((finalUnitCost / item.unitFactor).toDecimal()),
+            buyPrice: Value(finalUnitCost),
           ),
         );
       }
@@ -206,10 +203,20 @@ class TransactionEngine {
         Decimal remainingToDeduct = item.quantity;
         final product = await (db.select(db.products)..where((p) => p.id.equals(item.productId))).getSingle();
 
+        // Find batches matching the sold unit name
         var unitBatchesQuery = db.select(db.productBatches)
           ..where((b) => b.productId.equals(item.productId))
-          ..where((b) => b.storedUnitId.equals(item.unitName))
           ..where((b) => b.quantity.isBiggerThanValue(Decimal.zero.toString()));
+        
+        // Filter by storedUnitId matching the sale's unitName
+        if (item.unitName.isNotEmpty && item.unitName != product.unit) {
+          unitBatchesQuery = unitBatchesQuery..where((b) => b.storedUnitId.equals(item.unitName));
+        } else {
+          // Selling in main unit - find batches stored in main unit or unassigned
+          unitBatchesQuery = unitBatchesQuery..where(
+            (b) => b.storedUnitId.equals(product.unit) | b.storedUnitId.isNull(),
+          );
+        }
         
         if (sale.warehouseId != null && sale.warehouseId!.isNotEmpty) {
           unitBatchesQuery = unitBatchesQuery..where((b) => b.warehouseId.equals(sale.warehouseId!));
@@ -248,8 +255,9 @@ class TransactionEngine {
           remainingToDeduct -= deduct;
         }
 
+        // Stock is tracked in main unit. Deduct the sold quantity directly.
         await (db.update(db.products)..where((p) => p.id.equals(item.productId)))
-            .write(ProductsCompanion(stock: Value(product.stock - (item.quantity * item.unitFactor))));
+            .write(ProductsCompanion(stock: Value(product.stock - item.quantity)));
       }
 
       await (db.update(db.sales)..where((s) => s.id.equals(saleId))).write(
@@ -290,7 +298,7 @@ class TransactionEngine {
           returnCogs += item.quantity * batch.costPrice;
         }
         await (db.update(db.products)..where((p) => p.id.equals(item.productId)))
-            .write(ProductsCompanion(stock: Value(product.stock + (item.quantity * item.unitFactor))));
+            .write(ProductsCompanion(stock: Value(product.stock + item.quantity)));
       }
 
       await _postingEngine.post(

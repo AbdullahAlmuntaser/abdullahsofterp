@@ -13,24 +13,24 @@ class StockDisplayAdapter {
     final product = await (_db.select(_db.products)
           ..where((p) => p.id.equals(batch.productId)))
         .getSingleOrNull();
-    final baseUnit = product?.unit ?? 'حبة';
+    final mainUnit = product?.unit ?? 'وحدة';
 
     final storedQty = batch.quantityInStoredUnit;
     if (storedQty == null || batch.storedUnitId == null || storedQty <= Decimal.zero) {
-      return '${batch.quantity.toStringAsFixed(0)} $baseUnit';
+      return '${batch.quantity.toStringAsFixed(0)} $mainUnit';
     }
 
     final units = productUnits ?? await _getProductUnits(batch.productId);
-    final storedUnit = units.where((u) => u.id == batch.storedUnitId).firstOrNull;
+    final storedUnit = units.where((u) => u.unitName == batch.storedUnitId).firstOrNull;
     if (storedUnit == null) {
-      return '${batch.quantity.toStringAsFixed(0)} $baseUnit';
+      return '${batch.quantity.toStringAsFixed(0)} $mainUnit';
     }
 
     final wholeUnits = Decimal.parse(storedQty.toStringAsFixed(0));
     final remainder = (storedQty - wholeUnits) * storedUnit.unitFactor;
 
     if (remainder > Decimal.zero) {
-      return '${wholeUnits.toStringAsFixed(0)} ${storedUnit.unitName} + ${remainder.toStringAsFixed(0)} $baseUnit';
+      return '${wholeUnits.toStringAsFixed(0)} ${storedUnit.unitName} + ${remainder.toStringAsFixed(0)} $mainUnit';
     }
     return '${wholeUnits.toStringAsFixed(0)} ${storedUnit.unitName}';
   }
@@ -65,6 +65,59 @@ class StockDisplayAdapter {
       return '$wholeUnits ${bestUnit.unitName} + $remaining ${product.unit}';
     }
     return '$wholeUnits ${bestUnit.unitName}';
+  }
+
+  /// Format stock showing main unit and any decomposed individual units
+  Future<String> formatProductStockWithDecomposition(
+    Product product,
+  ) async {
+    if (product.stock <= Decimal.zero) {
+      return '0 ${product.unit}';
+    }
+
+    // Get batches for this product
+    final batches = await (_db.select(_db.productBatches)
+          ..where((b) =>
+              b.productId.equals(product.id) &
+              b.quantity.isBiggerThan(Variable(Decimal.zero.toString()))))
+        .get();
+
+    Decimal mainUnitStock = Decimal.zero;
+    Decimal individualStock = Decimal.zero;
+
+    for (final batch in batches) {
+      if (batch.storedUnitId == product.unit || batch.storedUnitId == null) {
+        if (batch.storedUnitId == product.unit) {
+          mainUnitStock += batch.quantity;
+        } else {
+          individualStock += batch.quantity;
+        }
+      } else {
+        // Other units - convert to main unit
+        final factor = await _getUnitFactor(product.id, batch.storedUnitId!);
+        mainUnitStock += batch.quantity * factor;
+      }
+    }
+
+    List<String> parts = [];
+    if (mainUnitStock > Decimal.zero) {
+      parts.add('${mainUnitStock.toStringAsFixed(0)} ${product.unit}');
+    }
+    if (individualStock > Decimal.zero) {
+      parts.add('${individualStock.toStringAsFixed(0)} حبة');
+    }
+
+    return parts.isEmpty
+        ? '${product.stock.toStringAsFixed(0)} ${product.unit}'
+        : parts.join(' + ');
+  }
+
+  Future<Decimal> _getUnitFactor(String productId, String unitName) async {
+    final unit = await (_db.select(_db.productUnits)
+          ..where((u) =>
+              u.productId.equals(productId) & u.unitName.equals(unitName)))
+        .getSingleOrNull();
+    return unit?.unitFactor ?? Decimal.one;
   }
 
   ProductUnit? _findBestUnit(

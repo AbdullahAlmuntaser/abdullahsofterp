@@ -21,11 +21,13 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _skuController;
   late TextEditingController _nameController;
-  late TextEditingController _unitController; // حقل الوحدة الأساسية
+  late TextEditingController _unitController;
   late TextEditingController _stockController;
+  late TextEditingController _unitsPerMainUnitController;
   late TextEditingController _buyPriceController;
   late TextEditingController _sellPriceController;
   late TextEditingController _wholesalePriceController;
+  late TextEditingController _unitSellPriceController;
   late TextEditingController _barcodeController;
   late TextEditingController _remoteUrlController;
   String? _imagePath;
@@ -37,15 +39,19 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
     super.initState();
     _skuController = TextEditingController(text: widget.product?.sku ?? '');
     _nameController = TextEditingController(text: widget.product?.name ?? '');
-    _unitController = TextEditingController(text: widget.product?.unit ?? 'حبة');
+    _unitController = TextEditingController(text: widget.product?.unit ?? '');
     _stockController =
         TextEditingController(text: widget.product?.stock.toString() ?? '0.0');
+    _unitsPerMainUnitController = TextEditingController(
+        text: widget.product?.unitsPerMainUnit.toString() ?? '1');
     _buyPriceController = TextEditingController(
         text: widget.product?.buyPrice.toString() ?? '0.0');
     _sellPriceController = TextEditingController(
         text: widget.product?.sellPrice.toString() ?? '0.0');
     _wholesalePriceController = TextEditingController(
         text: widget.product?.wholesalePrice.toString() ?? '0.0');
+    _unitSellPriceController = TextEditingController(
+        text: widget.product?.unitSellPrice.toString() ?? '0.0');
     _barcodeController =
         TextEditingController(text: widget.product?.barcode ?? '');
     _remoteUrlController =
@@ -53,6 +59,20 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
     _imagePath = widget.product?.imagePath;
     _selectedCategoryId = widget.product?.categoryId;
     _loadCategories();
+
+    _sellPriceController.addListener(_calculateUnitSellPrice);
+    _unitsPerMainUnitController.addListener(_calculateUnitSellPrice);
+  }
+
+  void _calculateUnitSellPrice() {
+    final sellPrice = double.tryParse(_sellPriceController.text) ?? 0;
+    final unitsPerMain = double.tryParse(_unitsPerMainUnitController.text) ?? 1;
+    if (unitsPerMain > 0 && sellPrice > 0) {
+      final unitPrice = sellPrice / unitsPerMain;
+      _unitSellPriceController.text = unitPrice.toStringAsFixed(2);
+    } else {
+      _unitSellPriceController.text = '0';
+    }
   }
 
   Future<void> _loadCategories() async {
@@ -71,11 +91,15 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
     _nameController.dispose();
     _unitController.dispose();
     _stockController.dispose();
+    _unitsPerMainUnitController.dispose();
     _buyPriceController.dispose();
     _sellPriceController.dispose();
     _wholesalePriceController.dispose();
+    _unitSellPriceController.dispose();
     _barcodeController.dispose();
     _remoteUrlController.dispose();
+    _sellPriceController.removeListener(_calculateUnitSellPrice);
+    _unitsPerMainUnitController.removeListener(_calculateUnitSellPrice);
     super.dispose();
   }
 
@@ -96,7 +120,8 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
               TextFormField(
                 controller: _nameController,
                 decoration: InputDecoration(labelText: l10n.productName),
-                validator: (value) => value!.isEmpty ? l10n.enterProductName : null,
+                validator: (value) =>
+                    value!.isEmpty ? l10n.enterProductName : null,
               ),
               const SizedBox(height: 12),
               Row(
@@ -105,11 +130,12 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
                     child: TextFormField(
                       controller: _unitController,
                       decoration: const InputDecoration(
-                        labelText: 'الوحدة الأساسية للمخزون',
-                        hintText: 'كرتون، شدة، صندوق، باكت، كيس، حبة...',
-                        helperText: 'الوحدة التي يُشترى ويُخزّن بها المنتج',
+                        labelText: 'الوحدة الرئيسية',
+                        hintText: 'كرتون، شدة، صندوق، باكت، كيس...',
+                        helperText: 'اسم الوحدة التي يُشترى ويُخزّن بها المنتج',
                       ),
-                      validator: (value) => value!.isEmpty ? 'يرجى إدخال الوحدة الأساسية' : null,
+                      validator: (value) =>
+                          value!.isEmpty ? 'يرجى إدخال الوحدة الرئيسية' : null,
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -117,8 +143,12 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
                     child: DropdownButtonFormField<String>(
                       value: _selectedCategoryId,
                       decoration: const InputDecoration(labelText: 'التصنيف'),
-                      items: _categories.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))).toList(),
-                      onChanged: (val) => setState(() => _selectedCategoryId = val),
+                      items: _categories
+                          .map((c) => DropdownMenuItem(
+                              value: c.id, child: Text(c.name)))
+                          .toList(),
+                      onChanged: (val) =>
+                          setState(() => _selectedCategoryId = val),
                     ),
                   ),
                 ],
@@ -127,7 +157,8 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
               TextFormField(
                 controller: _skuController,
                 decoration: InputDecoration(labelText: l10n.sku),
-                validator: (value) => value!.isEmpty ? l10n.enterSku : null,
+                validator: (value) =>
+                    value!.isEmpty ? l10n.enterSku : null,
               ),
               const SizedBox(height: 12),
               Row(
@@ -135,12 +166,14 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
                   Expanded(
                     child: TextFormField(
                       controller: _barcodeController,
-                      decoration: const InputDecoration(labelText: 'باركد الوحدة الأساسية'),
+                      decoration: const InputDecoration(
+                          labelText: 'باركود الوحدة الرئيسية'),
                     ),
                   ),
                   IconButton(
                     icon: const Icon(Icons.qr_code),
-                    onPressed: () => _barcodeController.text = BarcodeGenerationService.autoGenerateBarcode(),
+                    onPressed: () => _barcodeController.text =
+                        BarcodeGenerationService.autoGenerateBarcode(),
                   ),
                 ],
               ),
@@ -148,11 +181,23 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
               TextFormField(
                 controller: _stockController,
                 decoration: InputDecoration(
-                  labelText: l10n.stockLabel,
-                  helperText: 'الكمية بالوحدة الأساسية المحددة أعلاه',
+                  labelText: 'العدد (كمية المخزون)',
+                  helperText:
+                      'الكمية بوحدة ${_unitController.text.isEmpty ? 'الوحدة الرئيسية' : _unitController.text}',
                 ),
                 keyboardType: TextInputType.number,
                 readOnly: widget.product != null,
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _unitsPerMainUnitController,
+                decoration: const InputDecoration(
+                  labelText: 'عدد الوحدات/الحبات داخل الوحدة الرئيسية',
+                  hintText: 'مثال: 20 يعني أن الوحدة الواحدة تحتوي على 20 حبة',
+                  helperText: 'معامل التعبئة - يُستخدم عند التفكيك',
+                ),
+                keyboardType: TextInputType.number,
+                onChanged: (_) => _calculateUnitSellPrice(),
               ),
               const SizedBox(height: 12),
               Row(
@@ -160,7 +205,9 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
                   Expanded(
                     child: TextFormField(
                       controller: _buyPriceController,
-                      decoration: const InputDecoration(labelText: 'سعر الشراء (للوحدة الأساسية)'),
+                      decoration: const InputDecoration(
+                        labelText: 'سعر الشراء للوحدة الرئيسية',
+                      ),
                       keyboardType: TextInputType.number,
                     ),
                   ),
@@ -168,8 +215,37 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
                   Expanded(
                     child: TextFormField(
                       controller: _sellPriceController,
-                      decoration: const InputDecoration(labelText: 'سعر البيع (للوحدة الأساسية)'),
+                      decoration: const InputDecoration(
+                        labelText: 'سعر البيع بالتجزئة للوحدة الرئيسية',
+                      ),
                       keyboardType: TextInputType.number,
+                      onChanged: (_) => _calculateUnitSellPrice(),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      controller: _wholesalePriceController,
+                      decoration: const InputDecoration(
+                        labelText: 'سعر البيع بالجملة للوحدة الرئيسية',
+                      ),
+                      keyboardType: TextInputType.number,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: TextFormField(
+                      controller: _unitSellPriceController,
+                      decoration: const InputDecoration(
+                        labelText: 'سعر الوحدة المفردة (محسوب تلقائيًا)',
+                        helperText: 'سعر التجزئة ÷ عدد الوحدات داخل الوحدة',
+                      ),
+                      keyboardType: TextInputType.number,
+                      readOnly: true,
                     ),
                   ),
                 ],
@@ -179,7 +255,8 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.cancel)),
+        TextButton(
+            onPressed: () => Navigator.pop(context), child: Text(l10n.cancel)),
         ElevatedButton(onPressed: _saveProduct, child: Text(l10n.save)),
       ],
     );
@@ -191,15 +268,20 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
         if (_imagePath != null && _imagePath!.isNotEmpty)
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
-            child: Image.file(File(_imagePath!), width: 100, height: 100, fit: BoxFit.cover),
+            child: Image.file(File(_imagePath!),
+                width: 100, height: 100, fit: BoxFit.cover),
           )
         else
           Icon(Icons.image, size: 80, color: Colors.grey[400]),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            TextButton(onPressed: () => _pickImage(ImageSource.gallery), child: const Text('المعرض')),
-            TextButton(onPressed: () => _pickImage(ImageSource.camera), child: const Text('الكاميرا')),
+            TextButton(
+                onPressed: () => _pickImage(ImageSource.gallery),
+                child: const Text('المعرض')),
+            TextButton(
+                onPressed: () => _pickImage(ImageSource.camera),
+                child: const Text('الكاميرا')),
           ],
         ),
       ],
@@ -214,31 +296,49 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
   void _saveProduct() async {
     if (_formKey.currentState!.validate()) {
       final db = Provider.of<AppDatabase>(context, listen: false);
-      final buyPrice = Decimal.tryParse(_buyPriceController.text) ?? Decimal.zero;
-      final sellPrice = Decimal.tryParse(_sellPriceController.text) ?? Decimal.zero;
+      final buyPrice =
+          Decimal.tryParse(_buyPriceController.text) ?? Decimal.zero;
+      final sellPrice =
+          Decimal.tryParse(_sellPriceController.text) ?? Decimal.zero;
+      final wholesalePrice =
+          Decimal.tryParse(_wholesalePriceController.text) ?? Decimal.zero;
+      final unitSellPrice =
+          Decimal.tryParse(_unitSellPriceController.text) ?? Decimal.zero;
       final stock = Decimal.tryParse(_stockController.text) ?? Decimal.zero;
+      final unitsPerMainUnit =
+          Decimal.tryParse(_unitsPerMainUnitController.text) ?? Decimal.one;
 
       try {
         if (widget.product == null) {
           await db.into(db.products).insert(ProductsCompanion.insert(
-            name: _nameController.text,
-            sku: _skuController.text,
-            unit: Value(_unitController.text),
-            stock: Value(stock),
-            buyPrice: Value(buyPrice),
-            sellPrice: Value(sellPrice),
-            barcode: Value(_barcodeController.text.isNotEmpty ? _barcodeController.text : null),
-            categoryId: Value(_selectedCategoryId),
-            imagePath: Value(_imagePath),
-          ));
+                name: _nameController.text,
+                sku: _skuController.text,
+                unit: Value(_unitController.text),
+                stock: Value(stock),
+                buyPrice: Value(buyPrice),
+                sellPrice: Value(sellPrice),
+                wholesalePrice: Value(wholesalePrice),
+                unitSellPrice: Value(unitSellPrice),
+                unitsPerMainUnit: Value(unitsPerMainUnit),
+                barcode: Value(_barcodeController.text.isNotEmpty
+                    ? _barcodeController.text
+                    : null),
+                categoryId: Value(_selectedCategoryId),
+                imagePath: Value(_imagePath),
+              ));
         } else {
-          await (db.update(db.products)..where((p) => p.id.equals(widget.product!.id))).write(
+          await (db.update(db.products)
+                ..where((p) => p.id.equals(widget.product!.id)))
+              .write(
             ProductsCompanion(
               name: Value(_nameController.text),
               sku: Value(_skuController.text),
               unit: Value(_unitController.text),
               buyPrice: Value(buyPrice),
               sellPrice: Value(sellPrice),
+              wholesalePrice: Value(wholesalePrice),
+              unitSellPrice: Value(unitSellPrice),
+              unitsPerMainUnit: Value(unitsPerMainUnit),
               barcode: Value(_barcodeController.text),
               categoryId: Value(_selectedCategoryId),
               imagePath: Value(_imagePath),
@@ -248,7 +348,8 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
         if (!mounted) return;
         Navigator.pop(context);
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('فشل الحفظ: $e')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('فشل الحفظ: $e')));
       }
     }
   }

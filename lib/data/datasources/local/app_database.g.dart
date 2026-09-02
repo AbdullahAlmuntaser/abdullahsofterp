@@ -4081,7 +4081,7 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
       'unit', aliasedName, false,
       type: DriftSqlType.string,
       requiredDuringInsert: false,
-      defaultValue: const Constant('pcs'));
+      defaultValue: const Constant('\u062D\u0622\u0628\u0629'));
   static const VerificationMeta _kiloUnitMeta =
       const VerificationMeta('kiloUnit');
   @override
@@ -4258,6 +4258,25 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
   late final GeneratedColumn<String> defaultUnitId = GeneratedColumn<String>(
       'default_unit_id', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _unitsPerMainUnitMeta =
+      const VerificationMeta('unitsPerMainUnit');
+  @override
+  late final GeneratedColumnWithTypeConverter<Decimal, String>
+      unitsPerMainUnit = GeneratedColumn<String>(
+              'units_per_main_unit', aliasedName, false,
+              type: DriftSqlType.string,
+              requiredDuringInsert: false,
+              defaultValue: Constant(Decimal.one.toString()))
+          .withConverter<Decimal>($ProductsTable.$converterunitsPerMainUnit);
+  static const VerificationMeta _unitSellPriceMeta =
+      const VerificationMeta('unitSellPrice');
+  @override
+  late final GeneratedColumnWithTypeConverter<Decimal, String> unitSellPrice =
+      GeneratedColumn<String>('unit_sell_price', aliasedName, false,
+              type: DriftSqlType.string,
+              requiredDuringInsert: false,
+              defaultValue: Constant(Decimal.zero.toString()))
+          .withConverter<Decimal>($ProductsTable.$converterunitSellPrice);
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -4294,7 +4313,9 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
         remoteUrl,
         thumbnailPath,
         displayUnitId,
-        defaultUnitId
+        defaultUnitId,
+        unitsPerMainUnit,
+        unitSellPrice
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -4447,6 +4468,8 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
           defaultUnitId.isAcceptableOrUnknown(
               data['default_unit_id']!, _defaultUnitIdMeta));
     }
+    context.handle(_unitsPerMainUnitMeta, const VerificationResult.success());
+    context.handle(_unitSellPriceMeta, const VerificationResult.success());
     return context;
   }
 
@@ -4533,6 +4556,12 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
           .read(DriftSqlType.string, data['${effectivePrefix}display_unit_id']),
       defaultUnitId: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}default_unit_id']),
+      unitsPerMainUnit: $ProductsTable.$converterunitsPerMainUnit.fromSql(
+          attachedDatabase.typeMapping.read(DriftSqlType.string,
+              data['${effectivePrefix}units_per_main_unit'])!),
+      unitSellPrice: $ProductsTable.$converterunitSellPrice.fromSql(
+          attachedDatabase.typeMapping.read(
+              DriftSqlType.string, data['${effectivePrefix}unit_sell_price'])!),
     );
   }
 
@@ -4559,6 +4588,10 @@ class $ProductsTable extends Products with TableInfo<$ProductsTable, Product> {
       const DecimalConverter();
   static TypeConverter<Decimal?, String?> $converteradditionalCostn =
       NullAwareTypeConverter.wrap($converteradditionalCost);
+  static TypeConverter<Decimal, String> $converterunitsPerMainUnit =
+      const DecimalConverter();
+  static TypeConverter<Decimal, String> $converterunitSellPrice =
+      const DecimalConverter();
 }
 
 class Product extends DataClass implements Insertable<Product> {
@@ -4597,6 +4630,8 @@ class Product extends DataClass implements Insertable<Product> {
   final String? thumbnailPath;
   final String? displayUnitId;
   final String? defaultUnitId;
+  final Decimal unitsPerMainUnit;
+  final Decimal unitSellPrice;
   const Product(
       {required this.id,
       required this.createdAt,
@@ -4632,7 +4667,9 @@ class Product extends DataClass implements Insertable<Product> {
       this.remoteUrl,
       this.thumbnailPath,
       this.displayUnitId,
-      this.defaultUnitId});
+      this.defaultUnitId,
+      required this.unitsPerMainUnit,
+      required this.unitSellPrice});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -4725,6 +4762,14 @@ class Product extends DataClass implements Insertable<Product> {
     if (!nullToAbsent || defaultUnitId != null) {
       map['default_unit_id'] = Variable<String>(defaultUnitId);
     }
+    {
+      map['units_per_main_unit'] = Variable<String>(
+          $ProductsTable.$converterunitsPerMainUnit.toSql(unitsPerMainUnit));
+    }
+    {
+      map['unit_sell_price'] = Variable<String>(
+          $ProductsTable.$converterunitSellPrice.toSql(unitSellPrice));
+    }
     return map;
   }
 
@@ -4797,6 +4842,8 @@ class Product extends DataClass implements Insertable<Product> {
       defaultUnitId: defaultUnitId == null && nullToAbsent
           ? const Value.absent()
           : Value(defaultUnitId),
+      unitsPerMainUnit: Value(unitsPerMainUnit),
+      unitSellPrice: Value(unitSellPrice),
     );
   }
 
@@ -4839,6 +4886,8 @@ class Product extends DataClass implements Insertable<Product> {
       thumbnailPath: serializer.fromJson<String?>(json['thumbnailPath']),
       displayUnitId: serializer.fromJson<String?>(json['displayUnitId']),
       defaultUnitId: serializer.fromJson<String?>(json['defaultUnitId']),
+      unitsPerMainUnit: serializer.fromJson<Decimal>(json['unitsPerMainUnit']),
+      unitSellPrice: serializer.fromJson<Decimal>(json['unitSellPrice']),
     );
   }
   @override
@@ -4880,6 +4929,8 @@ class Product extends DataClass implements Insertable<Product> {
       'thumbnailPath': serializer.toJson<String?>(thumbnailPath),
       'displayUnitId': serializer.toJson<String?>(displayUnitId),
       'defaultUnitId': serializer.toJson<String?>(defaultUnitId),
+      'unitsPerMainUnit': serializer.toJson<Decimal>(unitsPerMainUnit),
+      'unitSellPrice': serializer.toJson<Decimal>(unitSellPrice),
     };
   }
 
@@ -4918,7 +4969,9 @@ class Product extends DataClass implements Insertable<Product> {
           Value<String?> remoteUrl = const Value.absent(),
           Value<String?> thumbnailPath = const Value.absent(),
           Value<String?> displayUnitId = const Value.absent(),
-          Value<String?> defaultUnitId = const Value.absent()}) =>
+          Value<String?> defaultUnitId = const Value.absent(),
+          Decimal? unitsPerMainUnit,
+          Decimal? unitSellPrice}) =>
       Product(
         id: id ?? this.id,
         createdAt: createdAt ?? this.createdAt,
@@ -4961,6 +5014,8 @@ class Product extends DataClass implements Insertable<Product> {
             displayUnitId.present ? displayUnitId.value : this.displayUnitId,
         defaultUnitId:
             defaultUnitId.present ? defaultUnitId.value : this.defaultUnitId,
+        unitsPerMainUnit: unitsPerMainUnit ?? this.unitsPerMainUnit,
+        unitSellPrice: unitSellPrice ?? this.unitSellPrice,
       );
   Product copyWithCompanion(ProductsCompanion data) {
     return Product(
@@ -5021,6 +5076,12 @@ class Product extends DataClass implements Insertable<Product> {
       defaultUnitId: data.defaultUnitId.present
           ? data.defaultUnitId.value
           : this.defaultUnitId,
+      unitsPerMainUnit: data.unitsPerMainUnit.present
+          ? data.unitsPerMainUnit.value
+          : this.unitsPerMainUnit,
+      unitSellPrice: data.unitSellPrice.present
+          ? data.unitSellPrice.value
+          : this.unitSellPrice,
     );
   }
 
@@ -5061,7 +5122,9 @@ class Product extends DataClass implements Insertable<Product> {
           ..write('remoteUrl: $remoteUrl, ')
           ..write('thumbnailPath: $thumbnailPath, ')
           ..write('displayUnitId: $displayUnitId, ')
-          ..write('defaultUnitId: $defaultUnitId')
+          ..write('defaultUnitId: $defaultUnitId, ')
+          ..write('unitsPerMainUnit: $unitsPerMainUnit, ')
+          ..write('unitSellPrice: $unitSellPrice')
           ..write(')'))
         .toString();
   }
@@ -5102,7 +5165,9 @@ class Product extends DataClass implements Insertable<Product> {
         remoteUrl,
         thumbnailPath,
         displayUnitId,
-        defaultUnitId
+        defaultUnitId,
+        unitsPerMainUnit,
+        unitSellPrice
       ]);
   @override
   bool operator ==(Object other) =>
@@ -5142,7 +5207,9 @@ class Product extends DataClass implements Insertable<Product> {
           other.remoteUrl == this.remoteUrl &&
           other.thumbnailPath == this.thumbnailPath &&
           other.displayUnitId == this.displayUnitId &&
-          other.defaultUnitId == this.defaultUnitId);
+          other.defaultUnitId == this.defaultUnitId &&
+          other.unitsPerMainUnit == this.unitsPerMainUnit &&
+          other.unitSellPrice == this.unitSellPrice);
 }
 
 class ProductsCompanion extends UpdateCompanion<Product> {
@@ -5181,6 +5248,8 @@ class ProductsCompanion extends UpdateCompanion<Product> {
   final Value<String?> thumbnailPath;
   final Value<String?> displayUnitId;
   final Value<String?> defaultUnitId;
+  final Value<Decimal> unitsPerMainUnit;
+  final Value<Decimal> unitSellPrice;
   final Value<int> rowid;
   const ProductsCompanion({
     this.id = const Value.absent(),
@@ -5218,6 +5287,8 @@ class ProductsCompanion extends UpdateCompanion<Product> {
     this.thumbnailPath = const Value.absent(),
     this.displayUnitId = const Value.absent(),
     this.defaultUnitId = const Value.absent(),
+    this.unitsPerMainUnit = const Value.absent(),
+    this.unitSellPrice = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ProductsCompanion.insert({
@@ -5256,6 +5327,8 @@ class ProductsCompanion extends UpdateCompanion<Product> {
     this.thumbnailPath = const Value.absent(),
     this.displayUnitId = const Value.absent(),
     this.defaultUnitId = const Value.absent(),
+    this.unitsPerMainUnit = const Value.absent(),
+    this.unitSellPrice = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : name = Value(name),
         sku = Value(sku);
@@ -5295,6 +5368,8 @@ class ProductsCompanion extends UpdateCompanion<Product> {
     Expression<String>? thumbnailPath,
     Expression<String>? displayUnitId,
     Expression<String>? defaultUnitId,
+    Expression<String>? unitsPerMainUnit,
+    Expression<String>? unitSellPrice,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -5333,6 +5408,8 @@ class ProductsCompanion extends UpdateCompanion<Product> {
       if (thumbnailPath != null) 'thumbnail_path': thumbnailPath,
       if (displayUnitId != null) 'display_unit_id': displayUnitId,
       if (defaultUnitId != null) 'default_unit_id': defaultUnitId,
+      if (unitsPerMainUnit != null) 'units_per_main_unit': unitsPerMainUnit,
+      if (unitSellPrice != null) 'unit_sell_price': unitSellPrice,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -5373,6 +5450,8 @@ class ProductsCompanion extends UpdateCompanion<Product> {
       Value<String?>? thumbnailPath,
       Value<String?>? displayUnitId,
       Value<String?>? defaultUnitId,
+      Value<Decimal>? unitsPerMainUnit,
+      Value<Decimal>? unitSellPrice,
       Value<int>? rowid}) {
     return ProductsCompanion(
       id: id ?? this.id,
@@ -5410,6 +5489,8 @@ class ProductsCompanion extends UpdateCompanion<Product> {
       thumbnailPath: thumbnailPath ?? this.thumbnailPath,
       displayUnitId: displayUnitId ?? this.displayUnitId,
       defaultUnitId: defaultUnitId ?? this.defaultUnitId,
+      unitsPerMainUnit: unitsPerMainUnit ?? this.unitsPerMainUnit,
+      unitSellPrice: unitSellPrice ?? this.unitSellPrice,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -5530,6 +5611,15 @@ class ProductsCompanion extends UpdateCompanion<Product> {
     if (defaultUnitId.present) {
       map['default_unit_id'] = Variable<String>(defaultUnitId.value);
     }
+    if (unitsPerMainUnit.present) {
+      map['units_per_main_unit'] = Variable<String>($ProductsTable
+          .$converterunitsPerMainUnit
+          .toSql(unitsPerMainUnit.value));
+    }
+    if (unitSellPrice.present) {
+      map['unit_sell_price'] = Variable<String>(
+          $ProductsTable.$converterunitSellPrice.toSql(unitSellPrice.value));
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -5574,6 +5664,8 @@ class ProductsCompanion extends UpdateCompanion<Product> {
           ..write('thumbnailPath: $thumbnailPath, ')
           ..write('displayUnitId: $displayUnitId, ')
           ..write('defaultUnitId: $defaultUnitId, ')
+          ..write('unitsPerMainUnit: $unitsPerMainUnit, ')
+          ..write('unitSellPrice: $unitSellPrice, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -10728,7 +10820,7 @@ class $SaleItemsTable extends SaleItems
       'unit_name', aliasedName, false,
       type: DriftSqlType.string,
       requiredDuringInsert: false,
-      defaultValue: const Constant('\u062D\u0628\u0629'));
+      defaultValue: const Constant('\u062D\u0622\u0628\u0629'));
   static const VerificationMeta _unitFactorMeta =
       const VerificationMeta('unitFactor');
   @override
@@ -70459,7 +70551,7 @@ class $ReconciliationDetailsTable extends ReconciliationDetails
   }
 
   @override
-  Set<GeneratedColumn> get $primaryKey => const {};
+  Set<GeneratedColumn> get $primaryKey => {reconciliationId, transactionId};
   @override
   ReconciliationDetail map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
@@ -87386,6 +87478,8 @@ typedef $$ProductsTableCreateCompanionBuilder = ProductsCompanion Function({
   Value<String?> thumbnailPath,
   Value<String?> displayUnitId,
   Value<String?> defaultUnitId,
+  Value<Decimal> unitsPerMainUnit,
+  Value<Decimal> unitSellPrice,
   Value<int> rowid,
 });
 typedef $$ProductsTableUpdateCompanionBuilder = ProductsCompanion Function({
@@ -87424,6 +87518,8 @@ typedef $$ProductsTableUpdateCompanionBuilder = ProductsCompanion Function({
   Value<String?> thumbnailPath,
   Value<String?> displayUnitId,
   Value<String?> defaultUnitId,
+  Value<Decimal> unitsPerMainUnit,
+  Value<Decimal> unitSellPrice,
   Value<int> rowid,
 });
 
@@ -88092,6 +88188,16 @@ class $$ProductsTableFilterComposer
 
   ColumnFilters<String> get defaultUnitId => $composableBuilder(
       column: $table.defaultUnitId, builder: (column) => ColumnFilters(column));
+
+  ColumnWithTypeConverterFilters<Decimal, Decimal, String>
+      get unitsPerMainUnit => $composableBuilder(
+          column: $table.unitsPerMainUnit,
+          builder: (column) => ColumnWithTypeConverterFilters(column));
+
+  ColumnWithTypeConverterFilters<Decimal, Decimal, String> get unitSellPrice =>
+      $composableBuilder(
+          column: $table.unitSellPrice,
+          builder: (column) => ColumnWithTypeConverterFilters(column));
 
   $$BranchesTableFilterComposer get branchId {
     final $$BranchesTableFilterComposer composer = $composerBuilder(
@@ -88905,6 +89011,14 @@ class $$ProductsTableOrderingComposer
       column: $table.defaultUnitId,
       builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get unitsPerMainUnit => $composableBuilder(
+      column: $table.unitsPerMainUnit,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get unitSellPrice => $composableBuilder(
+      column: $table.unitSellPrice,
+      builder: (column) => ColumnOrderings(column));
+
   $$BranchesTableOrderingComposer get branchId {
     final $$BranchesTableOrderingComposer composer = $composerBuilder(
         composer: this,
@@ -89073,6 +89187,14 @@ class $$ProductsTableAnnotationComposer
 
   GeneratedColumn<String> get defaultUnitId => $composableBuilder(
       column: $table.defaultUnitId, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<Decimal, String> get unitsPerMainUnit =>
+      $composableBuilder(
+          column: $table.unitsPerMainUnit, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<Decimal, String> get unitSellPrice =>
+      $composableBuilder(
+          column: $table.unitSellPrice, builder: (column) => column);
 
   $$BranchesTableAnnotationComposer get branchId {
     final $$BranchesTableAnnotationComposer composer = $composerBuilder(
@@ -89873,6 +89995,8 @@ class $$ProductsTableTableManager extends RootTableManager<
             Value<String?> thumbnailPath = const Value.absent(),
             Value<String?> displayUnitId = const Value.absent(),
             Value<String?> defaultUnitId = const Value.absent(),
+            Value<Decimal> unitsPerMainUnit = const Value.absent(),
+            Value<Decimal> unitSellPrice = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               ProductsCompanion(
@@ -89911,6 +90035,8 @@ class $$ProductsTableTableManager extends RootTableManager<
             thumbnailPath: thumbnailPath,
             displayUnitId: displayUnitId,
             defaultUnitId: defaultUnitId,
+            unitsPerMainUnit: unitsPerMainUnit,
+            unitSellPrice: unitSellPrice,
             rowid: rowid,
           ),
           createCompanionCallback: ({
@@ -89949,6 +90075,8 @@ class $$ProductsTableTableManager extends RootTableManager<
             Value<String?> thumbnailPath = const Value.absent(),
             Value<String?> displayUnitId = const Value.absent(),
             Value<String?> defaultUnitId = const Value.absent(),
+            Value<Decimal> unitsPerMainUnit = const Value.absent(),
+            Value<Decimal> unitSellPrice = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               ProductsCompanion.insert(
@@ -89987,6 +90115,8 @@ class $$ProductsTableTableManager extends RootTableManager<
             thumbnailPath: thumbnailPath,
             displayUnitId: displayUnitId,
             defaultUnitId: defaultUnitId,
+            unitsPerMainUnit: unitsPerMainUnit,
+            unitSellPrice: unitSellPrice,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0

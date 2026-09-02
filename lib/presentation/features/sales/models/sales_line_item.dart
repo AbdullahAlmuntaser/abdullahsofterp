@@ -21,4 +21,12 @@ class SalesLineItem {
   });
 
   double get lineTotal => quantity * price;
+
+  /// Get the correct price based on the selected unit
+  double getPriceForUnit(Product product, String unit, {bool isWholesale = false}) {
+    if (isWholesale) {
+      return product.wholesalePrice.toDouble();
+    }
+    return product.sellPrice.toDouble();
+  }
 }

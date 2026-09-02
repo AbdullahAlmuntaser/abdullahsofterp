@@ -189,27 +189,11 @@ class PurchaseProvider with ChangeNotifier {
       throw const BusinessException(message: 'السعر يجب أن يكون أكبر من أو يساوي الصفر.');
     }
 
-    ProductUnit? defaultUnit;
-    if (product.defaultUnitId != null && product.defaultUnitId!.isNotEmpty) {
-      final units = await (db.select(db.productUnits)
-            ..where((t) => t.productId.equals(product.id)))
-          .get();
-      defaultUnit = units.cast<ProductUnit?>().firstWhere(
-            (u) => u?.unitName == product.defaultUnitId,
-            orElse: () => null,
-          );
-    }
-
-    final unitPrice = defaultUnit != null
-        ? product.buyPrice.toDouble() * defaultUnit.unitFactor.toDouble()
-        : product.buyPrice.toDouble();
-
     items.add(
       PurchaseItemData(
         product: product,
-        unitPrice: unitPrice,
+        unitPrice: product.buyPrice.toDouble(),
         taxPercent: product.taxRate.toDouble(),
-        selectedUnit: defaultUnit,
       ),
     );
     notifyListeners();
@@ -261,7 +245,8 @@ class PurchaseProvider with ChangeNotifier {
             )),
             unitId: Value(item.selectedUnit?.unitName),
             unitFactor: Value(
-                Decimal.parse((item.selectedUnit?.unitFactor ?? 1.0).toString())),
+                Decimal.parse((item.selectedUnit?.unitFactor ?? Decimal.one).toString())),
+            quantityInBaseUnit: Value(Decimal.parse(item.quantity.toString())),
             batchNumber: Value(item.batchNumber),
             expiryDate: Value(item.expiryDate),
           ),

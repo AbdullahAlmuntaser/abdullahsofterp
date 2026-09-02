@@ -16,6 +16,7 @@ import 'package:supermarket/presentation/features/returns/create_return_page.dar
 import 'package:supermarket/presentation/features/products/products_page.dart';
 import 'package:supermarket/presentation/features/products/categories_page.dart';
 import 'package:supermarket/presentation/features/products/unit_conversion_page.dart';
+import 'package:supermarket/presentation/features/products/decomposition_page.dart';
 import 'package:supermarket/presentation/features/inventory/stock_transfer_page.dart';
 import 'package:supermarket/presentation/features/inventory/warehouse_management_page.dart';
 import 'package:supermarket/presentation/features/inventory/stock_take_page.dart';
@@ -241,6 +242,9 @@ final GoRouter appRouter = GoRouter(
         builder: (context, state) => UnitConversionPage(
             productId: state.pathParameters['id']!,
             productName: state.extra as String? ?? 'Product')),
+    GoRoute(
+        path: '/products/decomposition',
+        builder: (context, state) => const DecompositionPage()),
     GoRoute(
         path: '/categories',
         builder: (context, state) => const CategoriesPage()),

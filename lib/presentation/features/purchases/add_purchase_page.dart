@@ -601,9 +601,7 @@ class _AddPurchasePageState extends State<AddPurchasePage> {
                   unitId: drift.Value(item.selectedUnit?.unitName),
                   unitFactor: drift.Value(Decimal.parse(
                       (item.selectedUnit?.unitFactor ?? Decimal.one).toString())),
-                  quantityInBaseUnit: drift.Value(Decimal.parse((item.quantity *
-                          (item.selectedUnit?.unitFactor.toDouble() ?? 1.0))
-                      .toString())),
+                  quantityInBaseUnit: drift.Value(Decimal.parse(item.quantity.toString())),
                   price: Decimal.parse(item.subtotal.toString()),
                   discount: drift.Value(
                       Decimal.parse(item.discountAmount.toString())),
@@ -618,15 +616,12 @@ class _AddPurchasePageState extends State<AddPurchasePage> {
                 ))
             .toList();
 
-        // تحديث أسعار المنتج في المستودع/النظام
+        // Update product prices from purchase
         for (var item in _items) {
-          final factor = item.selectedUnit?.unitFactor.toDouble() ?? 1.0;
-          final baseBuyPrice = item.unitPrice / factor;
-
           await (db.update(db.products)
                 ..where((p) => p.id.equals(item.product.id)))
               .write(ProductsCompanion(
-            buyPrice: drift.Value(Decimal.parse(baseBuyPrice.toString())),
+            buyPrice: drift.Value(Decimal.parse(item.unitPrice.toString())),
             sellPrice: drift.Value(Decimal.parse(item.retailPrice.toString())),
             wholesalePrice:
                 drift.Value(Decimal.parse(item.wholesalePrice.toString())),

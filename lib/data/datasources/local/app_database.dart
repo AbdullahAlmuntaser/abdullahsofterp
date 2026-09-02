@@ -37,6 +37,7 @@ import 'package:supermarket/data/migrations/v56_to_v57.dart';
 import 'package:supermarket/data/migrations/v57_to_v58.dart';
 import 'package:supermarket/data/migrations/v58_to_v59.dart';
 import 'package:supermarket/data/migrations/v59_to_v60.dart';
+import 'package:supermarket/data/migrations/v60_to_v61.dart';
 import 'daos/recurring_entry_dao.dart';
 import 'converters/decimal_converter.dart';
 export 'package:decimal/decimal.dart';
@@ -253,7 +254,7 @@ class AppDatabase extends _$AppDatabase {
   static String? encryptionKey;
 
   @override
-  int get schemaVersion => 60;
+  int get schemaVersion => 61;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -305,6 +306,7 @@ class AppDatabase extends _$AppDatabase {
           if (from < 58) { await migrateV57ToV58(this, m); }
           if (from < 59) { await migrateV58ToV59(this, m); }
           if (from < 60) { await migrateV59ToV60(this, m); }
+          if (from < 61) { await migrateV60ToV61(this, m); }
         },
         beforeOpen: (details) async {
           await customStatement('PRAGMA foreign_keys = ON;');

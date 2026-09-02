@@ -71,7 +71,7 @@ class _UnitConversionPageState extends State<UnitConversionPage> {
     final db = context.watch<AppDatabase>();
 
     return Scaffold(
-      appBar: AppBar(title: Text('تحويل الوحدات: ${widget.productName}')),
+      appBar: AppBar(title: Text('وحدات: ${widget.productName}')),
       body: Column(
         children: [
           Expanded(
@@ -105,8 +105,9 @@ class _UnitConversionPageState extends State<UnitConversionPage> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 const Text(
-                                  'الوحدة الأساسية:',
-                                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                                  'الوحدة الرئيسية:',
+                                  style: TextStyle(
+                                      fontSize: 12, color: Colors.grey),
                                 ),
                                 Text(
                                   product.unit,
@@ -117,18 +118,27 @@ class _UnitConversionPageState extends State<UnitConversionPage> {
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  'جميع الكيات والمخزون بوحدة: ${product.unit}',
-                                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                                  'محتوى الوحدة: ${product.unitsPerMainUnit} حبة/وحدة',
+                                  style: const TextStyle(
+                                      fontSize: 12, color: Colors.grey),
+                                ),
+                                Text(
+                                  'المخزون: ${product.stock} ${product.unit}',
+                                  style: const TextStyle(
+                                      fontSize: 12, color: Colors.grey),
                                 ),
                               ],
                             ),
                           ),
-                        if (unitSnapshot.connectionState == ConnectionState.waiting)
-                          const Expanded(child: Center(child: CircularProgressIndicator()))
+                        if (unitSnapshot.connectionState ==
+                            ConnectionState.waiting)
+                          const Expanded(
+                              child: Center(child: CircularProgressIndicator()))
                         else if (conversions.isEmpty)
                           const Expanded(
                             child: Center(
-                              child: Text('لا يوجد وحدات إضافية مضافة بعد.'),
+                              child: Text(
+                                  'لا توجد وحدات إضافية مضافة بعد.\nيمكنك إضافة وحدات للبيع بالقطعة.'),
                             ),
                           )
                         else
@@ -144,15 +154,16 @@ class _UnitConversionPageState extends State<UnitConversionPage> {
                                   ),
                                   child: ListTile(
                                     title: Text(
-                                      '${conv.unitName} (المعامل: ${conv.unitFactor})',
+                                      '${conv.unitName}',
                                     ),
                                     subtitle: Text(
                                       product != null
                                           ? '1 ${conv.unitName} = ${conv.unitFactor} ${product.unit}'
-                                          : '1 ${conv.unitName} = ${conv.unitFactor} وحدة أساسية',
+                                          : '1 ${conv.unitName} = ${conv.unitFactor} وحدة',
                                     ),
                                     trailing: IconButton(
-                                      icon: const Icon(Icons.delete, color: Colors.red),
+                                      icon: const Icon(Icons.delete,
+                                          color: Colors.red),
                                       onPressed: () async {
                                         await (db.delete(
                                           db.productUnits,
@@ -176,7 +187,7 @@ class _UnitConversionPageState extends State<UnitConversionPage> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showAddDialog(),
-        label: const Text('إضافة وحدة تحويل'),
+        label: const Text('إضافة وحدة'),
         icon: const Icon(Icons.add),
       ),
     );
@@ -186,7 +197,7 @@ class _UnitConversionPageState extends State<UnitConversionPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('إضافة وحدة تحويل جديدة'),
+        title: const Text('إضافة وحدة جديدة'),
         content: Form(
           key: _formKey,
           child: SingleChildScrollView(
@@ -196,21 +207,22 @@ class _UnitConversionPageState extends State<UnitConversionPage> {
                 TextFormField(
                   controller: _unitNameController,
                   decoration: const InputDecoration(
-                    labelText: 'اسم الوحدة (مثلاً: كرتون)',
+                    labelText: 'اسم الوحدة',
+                    hintText: 'مثال: كرتون، باكت، كيس...',
                   ),
                   validator: (v) => v == null || v.isEmpty ? 'مطلوب' : null,
                 ),
                 TextFormField(
                   controller: _factorController,
                   decoration: const InputDecoration(
-                    labelText: 'معامل التحويل',
-                    helperText: 'كم وحدة أساسية في هذه الوحدة؟ مثال: 1 كرتون = 20 حبة → أدخل 20',
+                    labelText: 'عدد الحبات داخل الوحدة',
+                    helperText: 'كم حبة في هذه الوحدة؟ مثال: 20 حبة في الكرتون → أدخل 20',
                   ),
                   keyboardType: TextInputType.number,
                   validator: (v) {
                     final parsed = double.tryParse(v ?? '');
                     if (parsed == null) return 'أدخل رقماً صحيحاً';
-                    if (parsed <= 0) return 'المعامل يجب أن يكون أكبر من صفر';
+                    if (parsed <= 0) return 'العدد يجب أن يكون أكبر من صفر';
                     return null;
                   },
                 ),
@@ -223,7 +235,7 @@ class _UnitConversionPageState extends State<UnitConversionPage> {
                 TextFormField(
                   controller: _priceController,
                   decoration: const InputDecoration(
-                    labelText: 'سعر الوحدة (اختياري)',
+                    labelText: 'سعر البيع لهذه الوحدة (اختياري)',
                   ),
                   keyboardType: TextInputType.number,
                 ),

@@ -70,6 +70,12 @@ class Products extends Table with SyncableTable {
   TextColumn get thumbnailPath => text().nullable()();
   TextColumn get displayUnitId => text().nullable()();
   TextColumn get defaultUnitId => text().nullable()();
+  TextColumn get unitsPerMainUnit => text()
+      .map(const DecimalConverter())
+      .withDefault(Constant(Decimal.one.toString()))();
+  TextColumn get unitSellPrice => text()
+      .map(const DecimalConverter())
+      .withDefault(Constant(Decimal.zero.toString()))();
 }
 
 class ProductUnits extends Table with SyncableTable {

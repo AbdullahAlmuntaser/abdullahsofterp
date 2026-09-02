@@ -210,7 +210,7 @@ class _SalesInvoicePageState extends State<SalesInvoicePage> {
       return;
     }
 
-    // 1. Search in main products table
+    // 1. Search in main products table (main unit barcode)
     final products = await (db.select(
       db.products,
     )..where((p) => p.barcode.equals(barcode) | p.sku.equals(barcode)))
@@ -218,7 +218,10 @@ class _SalesInvoicePageState extends State<SalesInvoicePage> {
 
     if (products.isNotEmpty) {
       final product = products.first;
-      _addItemToInvoice(product, 1, product.sellPrice.toDouble(), product.unit);
+      final price = _isWholesaleMode
+          ? product.wholesalePrice.toDouble()
+          : product.sellPrice.toDouble();
+      _addItemToInvoice(product, 1, price, product.unit);
       _barcodeController.clear();
       return;
     }
@@ -235,10 +238,13 @@ class _SalesInvoicePageState extends State<SalesInvoicePage> {
       final row = unitQuery.first;
       final product = row.readTable(db.products);
       final unit = row.readTable(db.productUnits);
+      final price = _isWholesaleMode
+          ? (unit.wholesalePrice ?? product.wholesalePrice).toDouble()
+          : (unit.sellPrice ?? product.sellPrice).toDouble();
       _addItemToInvoice(
         product,
         1,
-        (unit.sellPrice ?? product.sellPrice).toDouble(),
+        price,
         unit.unitName,
         unit.unitFactor.toDouble(),
       );
@@ -661,6 +667,7 @@ class _SalesInvoicePageState extends State<SalesInvoicePage> {
               item: item,
               db: db,
               customerId: _selectedCustomer?.id,
+              isWholesaleMode: _isWholesaleMode,
               onDelete: _isLockedForEditing
                   ? () => AppSnackBar.warning(
                         context,

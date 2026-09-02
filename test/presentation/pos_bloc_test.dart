@@ -64,6 +64,8 @@ void main() {
       alertLimit: Decimal.zero,
       taxRate: Decimal.zero,
       isActive: true,
+      unitsPerMainUnit: Decimal.one,
+      unitSellPrice: Decimal.zero,
     );
 
     final cartItem = CartItem(

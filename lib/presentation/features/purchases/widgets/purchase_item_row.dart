@@ -205,7 +205,7 @@ class _PurchaseItemRowState extends State<PurchaseItemRow> {
               Padding(
                 padding: const EdgeInsets.only(top: 8.0),
                 child: Text(
-                  'إجمالي الكمية بالوحدة الأساسية: ${(widget.item.quantity * widget.item.selectedUnit!.unitFactor.toDouble()).toStringAsFixed(2)} ${widget.item.product.unit}',
+                  'الوحدة: ${widget.item.selectedUnit!.unitName} | السعر للوحدة: ${widget.item.unitPrice.toStringAsFixed(2)}',
                   style: const TextStyle(
                     color: Colors.blue,
                     fontWeight: FontWeight.bold,
@@ -241,13 +241,14 @@ class _PurchaseItemRowState extends State<PurchaseItemRow> {
           ],
           onChanged: (value) {
             setState(() {
-              final newFactor = value?.unitFactor.toDouble() ?? 1.0;
-
-              // تحديث السعر بناءً على الوحدة الجديدة (السعر = السعر الأساسي * عامل التحويل)
-              // يفترض أن السعر الأساسي (buyPrice) هو للوحدة الأساسية
-              widget.item.unitPrice =
-                  widget.item.product.buyPrice.toDouble() * newFactor;
               widget.item.selectedUnit = value;
+              // Use the buy price for the selected unit if available
+              if (value != null && value.buyPrice != null) {
+                widget.item.unitPrice = value.buyPrice!.toDouble();
+              } else {
+                widget.item.unitPrice =
+                    widget.item.product.buyPrice.toDouble();
+              }
             });
             widget.onChanged();
           },
