@@ -7,7 +7,6 @@ import 'package:supermarket/core/services/security_service.dart';
 import 'package:supermarket/core/services/event_bus_service.dart';
 import 'package:supermarket/core/services/posting_engine.dart';
 import 'package:supermarket/core/services/packaging_engine.dart';
-import 'package:supermarket/core/services/inventory/inventory_costing_service.dart';
 import 'package:supermarket/core/services/transaction_engine.dart';
 import 'package:supermarket/core/services/sales/sales_order_service.dart';
 import 'package:supermarket/core/constants/app_enums.dart';
@@ -31,7 +30,6 @@ void main() {
 
   setUp(() async {
     db = AppDatabase(NativeDatabase.memory());
-    final costing = InventoryCostingService(db.stockMovementDao, db);
     final posting = PostingEngine(db);
     final packaging = PackagingEngine(db);
     engine = TransactionEngine(
@@ -39,7 +37,6 @@ void main() {
       EventBusService(),
       posting,
       packaging,
-      costing,
     );
     orderService = SalesOrderService(db, engine);
 

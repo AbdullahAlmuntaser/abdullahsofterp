@@ -6,7 +6,6 @@ import 'package:supermarket/core/services/transaction_engine.dart';
 import 'package:supermarket/core/services/posting_engine.dart';
 import 'package:supermarket/core/services/event_bus_service.dart';
 import 'package:supermarket/core/services/packaging_engine.dart';
-import 'package:supermarket/core/services/inventory/inventory_costing_service.dart';
 import 'package:supermarket/core/constants/app_enums.dart';
 import 'package:uuid/uuid.dart';
 
@@ -306,8 +305,7 @@ void main() {
       final eventBus = EventBusService();
       final postingEngine = PostingEngine(db);
       final packagingEngine = PackagingEngine(db);
-      final costingService = InventoryCostingService(db.stockMovementDao, db);
-      final engine = TransactionEngine(db, eventBus, postingEngine, packagingEngine, costingService);
+      final engine = TransactionEngine(db, eventBus, postingEngine, packagingEngine);
 
       final saleId = const Uuid().v4();
       await db.into(db.sales).insert(SalesCompanion.insert(
@@ -355,8 +353,7 @@ void main() {
       final eventBus = EventBusService();
       final postingEngine = PostingEngine(db);
       final packagingEngine = PackagingEngine(db);
-      final costingService = InventoryCostingService(db.stockMovementDao, db);
-      final engine = TransactionEngine(db, eventBus, postingEngine, packagingEngine, costingService);
+      final engine = TransactionEngine(db, eventBus, postingEngine, packagingEngine);
 
       final purchaseId = const Uuid().v4();
       await db.into(db.purchases).insert(PurchasesCompanion.insert(

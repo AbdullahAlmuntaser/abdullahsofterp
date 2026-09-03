@@ -2,12 +2,10 @@ import 'package:drift/drift.dart' hide isNotNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
-import 'package:supermarket/data/datasources/local/daos/stock_movement_dao.dart';
 import 'package:supermarket/core/services/transaction_engine.dart';
 import 'package:supermarket/core/services/posting_engine.dart';
 import 'package:supermarket/core/services/event_bus_service.dart';
 import 'package:supermarket/core/services/packaging_engine.dart';
-import 'package:supermarket/core/services/inventory/inventory_costing_service.dart';
 import 'package:supermarket/core/services/accounting/financial_report_service.dart';
 import 'package:supermarket/core/services/sales/return_service.dart';
 import 'package:supermarket/core/constants/app_enums.dart';
@@ -87,8 +85,7 @@ void main() {
       final eventBus = EventBusService();
       final postingEngine = PostingEngine(db);
       final packagingEngine = PackagingEngine(db);
-      final costingService = InventoryCostingService(StockMovementDao(db), db);
-      final engine = TransactionEngine(db, eventBus, postingEngine, packagingEngine, costingService);
+      final engine = TransactionEngine(db, eventBus, postingEngine, packagingEngine);
       final reports = FinancialReportService(db);
 
       // 1. Create and post a cash sale
@@ -166,8 +163,7 @@ void main() {
       final eventBus = EventBusService();
       final postingEngine = PostingEngine(db);
       final packagingEngine = PackagingEngine(db);
-      final costingService = InventoryCostingService(StockMovementDao(db), db);
-      final engine = TransactionEngine(db, eventBus, postingEngine, packagingEngine, costingService);
+      final engine = TransactionEngine(db, eventBus, postingEngine, packagingEngine);
       final returnService = ReturnService(db);
 
       // 1. Post a purchase
@@ -272,8 +268,7 @@ void main() {
       final eventBus = EventBusService();
       final postingEngine = PostingEngine(db);
       final packagingEngine = PackagingEngine(db);
-      final costingService = InventoryCostingService(StockMovementDao(db), db);
-      final engine = TransactionEngine(db, eventBus, postingEngine, packagingEngine, costingService);
+      final engine = TransactionEngine(db, eventBus, postingEngine, packagingEngine);
       final reports = FinancialReportService(db);
 
       // Post a cash sale (creates revenue)

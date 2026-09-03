@@ -3,7 +3,6 @@ import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:supermarket/core/events/app_events.dart';
 import 'package:supermarket/core/services/event_bus_service.dart';
 import 'package:supermarket/core/services/audit_service.dart';
-import 'package:supermarket/core/services/inventory/inventory_costing_service.dart';
 import 'package:supermarket/core/services/app_config_service.dart';
 import 'package:supermarket/core/services/packaging_engine.dart';
 import 'package:supermarket/core/constants/app_enums.dart';
@@ -27,8 +26,6 @@ class TransactionEngine {
   // ignore: unused_field
   ApprovalWorkflowService? _approvalService;
   // ignore: unused_field
-  final InventoryCostingService _costingService;
-  // ignore: unused_field
   SerialNumberService? _serialNumberService;
 
   TransactionEngine(
@@ -36,9 +33,8 @@ class TransactionEngine {
     this.eventBus,
     this._postingEngine,
     this.packagingEngine,
-    this._costingService,
   )   : _auditService = AuditService(db),
-        _configService = AppConfigService(db);
+       _configService = AppConfigService(db);
 
   void setBudgetService(BudgetService budgetService) {
     _budgetService = budgetService;
@@ -105,6 +101,38 @@ class TransactionEngine {
         Decimal landedCostPerUnit = item.quantity > Decimal.zero ? (allocatedLandedCost / item.quantity).toDecimal() : Decimal.zero;
         Decimal finalUnitCost = item.price + landedCostPerUnit;
 
+        final product = await (db.select(db.products)..where((p) => p.id.equals(item.productId))).getSingle();
+
+        // Get product units from DB to find base unit and conversion
+        final productUnits = await (db.select(db.productUnits)
+              ..where((u) => u.productId.equals(item.productId)))
+            .get();
+
+        // Find base unit
+        // ignore: unused_local_variable
+        final baseUnit = productUnits.firstWhere(
+          (pu) => pu.isBaseUnit == true,
+          orElse: () => throw BusinessException(message: 'Base unit not found for product ${product.id}'),
+        );
+
+        // Convert purchased quantity to base units
+        // For purchases, use the main unit or the unitId if specified
+        Decimal quantityInBase;
+        if (item.unitId != null && item.unitId!.isNotEmpty && item.unitId != product.unit) {
+          // User specified a different unit ID - convert to base
+          final targetUnit = productUnits.firstWhere(
+            (pu) => pu.unitName == item.unitId,
+          );
+          // Convert: quantity * (targetFactor / baseFactor)
+          // But base unit factor is 1, so: quantity * targetFactor
+          // If 1 Target = 10 Base, and we have 5 Target,
+          // then in Base it's 5 * 10 = 50 Base.
+          quantityInBase = item.quantity * targetUnit.unitFactor;
+                } else {
+          // Using main unit - no conversion needed, it's already in base
+          quantityInBase = item.quantity;
+        }
+
         final batchId = const Uuid().v4();
         await db.into(db.productBatches).insert(
               ProductBatchesCompanion.insert(
@@ -115,11 +143,11 @@ class TransactionEngine {
                     ? item.batchNumber!
                     : 'PUR-${purchase.id.substring(0, 8)}',
                 expiryDate: Value(item.expiryDate),
-                quantity: Value(item.quantity),
-                initialQuantity: Value(item.quantity),
+                quantity: Value(quantityInBase),
+                initialQuantity: Value(quantityInBase),
                 costPrice: Value(finalUnitCost),
-                storedUnitId: Value(item.unitId),
-                quantityInStoredUnit: Value(item.quantity),
+                storedUnitId: Value(item.unitId ?? product.unit),
+                quantityInStoredUnit: Value(quantityInBase),
                 syncStatus: const Value.absent(),
               ),
             );
@@ -132,19 +160,18 @@ class TransactionEngine {
                 productId: item.productId,
                 warehouseId: purchase.warehouseId ?? '',
                 batchId: Value(batchId),
-                quantity: Value(item.quantity),
+                quantity: Value(quantityInBase),
                 type: 'PURCHASE',
                 referenceId: purchaseId,
               ),
             );
 
-        // Stock is updated by GRN service. Only update buyPrice here.
+        // Update product stock in base units
+        final currentProduct = await (db.select(db.products)..where((p) => p.id.equals(item.productId))).getSingle();
         await (db.update(db.products)..where((p) => p.id.equals(item.productId)))
-            .write(
-          ProductsCompanion(
-            buyPrice: Value(finalUnitCost),
-          ),
-        );
+            .write(ProductsCompanion(
+          stock: Value(currentProduct.stock + quantityInBase),
+        ));
       }
 
       await (db.update(db.purchases)..where((p) => p.id.equals(purchaseId)))
@@ -197,17 +224,43 @@ class TransactionEngine {
     await db.transaction(() async {
       final sale = saleCheck;
       final items = await (db.select(db.saleItems)..where((si) => si.saleId.equals(saleId))).get();
-      
+
       Decimal saleCogs = Decimal.zero;
       for (var item in items) {
-        Decimal remainingToDeduct = item.quantity;
         final product = await (db.select(db.products)..where((p) => p.id.equals(item.productId))).getSingle();
+
+        // Get product units from DB
+        final productUnits = await (db.select(db.productUnits)
+              ..where((u) => u.productId.equals(item.productId)))
+            .get();
+
+        // Find base unit
+        // ignore: unused_local_variable
+        final baseUnit = productUnits.firstWhere(
+          (pu) => pu.isBaseUnit == true,
+          orElse: () => throw BusinessException(message: 'Base unit not found for product ${product.id}'),
+        );
+
+        // Convert sold quantity to base units
+        Decimal quantityInBase;
+        if (item.unitName.isNotEmpty && item.unitName != product.unit) {
+          // User specified a different unit - convert to base
+          final targetUnit = productUnits.firstWhere(
+            (pu) => pu.unitName == item.unitName,
+          );
+          // Convert: quantity * (targetFactor / baseFactor)
+          // If 1 Target = 10 Base, then 5 Target = 5 * 10 = 50 Base
+          quantityInBase = item.quantity * targetUnit.unitFactor;
+        } else {
+          // Selling in main unit - no conversion needed
+          quantityInBase = item.quantity;
+        }
 
         // Find batches matching the sold unit name
         var unitBatchesQuery = db.select(db.productBatches)
           ..where((b) => b.productId.equals(item.productId))
           ..where((b) => b.quantity.isBiggerThanValue(Decimal.zero.toString()));
-        
+
         // Filter by storedUnitId matching the sale's unitName
         if (item.unitName.isNotEmpty && item.unitName != product.unit) {
           unitBatchesQuery = unitBatchesQuery..where((b) => b.storedUnitId.equals(item.unitName));
@@ -217,48 +270,59 @@ class TransactionEngine {
             (b) => b.storedUnitId.equals(product.unit) | b.storedUnitId.isNull(),
           );
         }
-        
+
         if (sale.warehouseId != null && sale.warehouseId!.isNotEmpty) {
           unitBatchesQuery = unitBatchesQuery..where((b) => b.warehouseId.equals(sale.warehouseId!));
         }
 
         final unitBatches = await unitBatchesQuery.get();
-        Decimal availableInSameUnit = unitBatches.fold(Decimal.zero, (sum, b) => sum + b.quantity);
 
-        if (availableInSameUnit < remainingToDeduct) {
+        // Check available quantity in base units
+        Decimal availableInBase = Decimal.zero;
+        for (final b in unitBatches) {
+          availableInBase += b.quantity;
+        }
+
+        if (availableInBase < quantityInBase) {
           throw BusinessException(
-            message: 'المخزون غير كافٍ للمنتج: ${product.name} بوحدة ${item.unitName}. '
-            'المتوفر من هذه الوحدة: $availableInSameUnit. '
+            message: 'المخزون غير كافٍ للمنتج: ${product.name}. '
+            'المتوفر من الوحدة ${item.unitName.isNotEmpty ? item.unitName : product.unit}: $availableInBase Base, '
+            'المطلوب: $quantityInBase Base. '
             'يرجى إجراء عملية "تفكيك" إذا كان لديك وحدات كبرى.',
           );
         }
 
+        // Deduct from batches in base units
+        Decimal deductRemaining = quantityInBase;
         for (final currentBatch in unitBatches) {
-          if (remainingToDeduct <= Decimal.zero) break;
-          final deduct = remainingToDeduct > currentBatch.quantity ? currentBatch.quantity : remainingToDeduct;
-          
+          if (deductRemaining <= Decimal.zero) break;
+
+          Decimal batchDeduct = deductRemaining > currentBatch.quantity ? currentBatch.quantity : deductRemaining;
           await (db.update(db.productBatches)..where((b) => b.id.equals(currentBatch.id)))
-              .write(ProductBatchesCompanion(quantity: Value(currentBatch.quantity - deduct)));
-          
+              .write(ProductBatchesCompanion(quantity: Value(currentBatch.quantity - batchDeduct)));
+
           await db.into(db.inventoryTransactions).insert(
                 InventoryTransactionsCompanion.insert(
                   productId: item.productId,
                   warehouseId: currentBatch.warehouseId,
                   batchId: Value(currentBatch.id),
-                  quantity: Value(-deduct),
+                  quantity: Value(-batchDeduct),
                   type: 'SALE',
                   referenceId: saleId,
                 ),
               );
-          
-          saleCogs += deduct * currentBatch.costPrice;
-          remainingToDeduct -= deduct;
+
+          saleCogs += batchDeduct * currentBatch.costPrice;
+          deductRemaining -= batchDeduct;
         }
 
-        // Stock is tracked in main unit. Deduct the sold quantity directly.
+        // Update product stock in base units
+        final currentProduct = await (db.select(db.products)..where((p) => p.id.equals(item.productId))).getSingle();
         await (db.update(db.products)..where((p) => p.id.equals(item.productId)))
-            .write(ProductsCompanion(stock: Value(product.stock - item.quantity)));
-      }
+            .write(ProductsCompanion(
+          stock: Value(currentProduct.stock - quantityInBase),
+        ));
+            }
 
       await (db.update(db.sales)..where((s) => s.id.equals(saleId))).write(
         const SalesCompanion(status: Value(DocumentStatus.posted)),
@@ -277,6 +341,16 @@ class TransactionEngine {
           'date': sale.createdAt,
         },
       );
+
+      await _auditService.log(
+        action: 'POST_SALE',
+        targetEntity: 'Sales',
+        entityId: saleId,
+        userId: userId,
+        details: 'Posted sale invoice $saleId',
+      );
+
+      eventBus.fire(SalePostedEvent(sale, items, userId: userId));
     });
   }
 
@@ -290,15 +364,48 @@ class TransactionEngine {
       Decimal returnCogs = Decimal.zero;
       for (var item in items) {
         final product = await (db.select(db.products)..where((p) => p.id.equals(item.productId))).getSingle();
-        final batchId = item.batchId;
-        if (batchId != null) {
-          final batch = await (db.select(db.productBatches)..where((b) => b.id.equals(batchId))).getSingle();
-          await (db.update(db.productBatches)..where((b) => b.id.equals(batchId)))
-              .write(ProductBatchesCompanion(quantity: Value(batch.quantity + item.quantity)));
-          returnCogs += item.quantity * batch.costPrice;
-        }
+
+        // Get product units from DB
+        final productUnits = await (db.select(db.productUnits)
+              ..where((u) => u.productId.equals(item.productId)))
+            .get();
+
+        // Find base unit
+        // ignore: unused_local_variable
+        final baseUnit = productUnits.firstWhere(
+          (pu) => pu.isBaseUnit == true,
+          orElse: () => throw BusinessException(message: 'Base unit not found for product ${product.id}'),
+        );
+
+/// Convert returned quantity to base units
+        Decimal quantityInBase = Decimal.zero;
+        // Sales return items may not have unitName, use product's main unit
+        // ignore: unused_local_variable
+        final returnUnit = item.unitName ?? product.unit;
+        if (item.unitName != null && item.unitName!.isNotEmpty) {
+          final targetUnit = productUnits.firstWhere(
+            (pu) => pu.unitName == item.unitName,
+          );
+          // Convert: quantity * targetFactor
+          // If 1 Target = 10 Base, and we return 5 Target,
+          // then in Base it's 5 * 10 = 50 Base
+          quantityInBase = item.quantity * targetUnit.unitFactor;
+                }
+
+        // Add back stock to product in base units
         await (db.update(db.products)..where((p) => p.id.equals(item.productId)))
-            .write(ProductsCompanion(stock: Value(product.stock + item.quantity)));
+            .write(ProductsCompanion(stock: Value(product.stock + quantityInBase)));
+
+        // Also add back to batches
+        final batchId = item.batchId;
+        ProductBatch? batch;
+        if (batchId != null) {
+          batch = await (db.select(db.productBatches)..where((b) => b.id.equals(batchId))).getSingle();
+          await (db.update(db.productBatches)..where((b) => b.id.equals(batchId)))
+              .write(ProductBatchesCompanion(quantity: Value(batch.quantity + quantityInBase)));
+                }
+
+        returnCogs += quantityInBase * (batch?.costPrice ?? Decimal.zero);
       }
 
       await _postingEngine.post(
@@ -325,8 +432,32 @@ class TransactionEngine {
 
       for (var item in items) {
         final product = await (db.select(db.products)..where((p) => p.id.equals(item.productId))).getSingle();
+
+        // Get product units from DB
+        final productUnits = await (db.select(db.productUnits)
+              ..where((u) => u.productId.equals(item.productId)))
+            .get();
+
+        // Find base unit
+        // ignore: unused_local_variable
+        final baseUnit = productUnits.firstWhere(
+          (pu) => pu.isBaseUnit == true,
+          orElse: () => throw BusinessException(message: 'Base unit not found for product ${product.id}'),
+        );
+
+        // Convert returned quantity to base units
+        Decimal quantityInBase = Decimal.zero;
+        if (item.unitName != null && item.unitName!.isNotEmpty) {
+          final targetUnit = productUnits.firstWhere(
+            (pu) => pu.unitName == item.unitName,
+          );
+          // When returning, we add stock back
+          // If original purchase was in a different unit, we convert back
+          quantityInBase = item.quantity * targetUnit.unitFactor;
+                }
+
         await (db.update(db.products)..where((p) => p.id.equals(item.productId)))
-            .write(ProductsCompanion(stock: Value(product.stock - item.quantity)));
+            .write(ProductsCompanion(stock: Value(product.stock - quantityInBase)));
       }
 
       await _postingEngine.post(

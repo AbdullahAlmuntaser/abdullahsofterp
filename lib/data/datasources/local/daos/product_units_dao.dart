@@ -19,8 +19,15 @@ class ProductUnitsDao extends DatabaseAccessor<AppDatabase> {
         .get();
   }
 
-  Future<int> addProductUnit(ProductUnitsCompanion unit) =>
-      into(db.productUnits).insert(unit);
+  Future<int> addProductUnit(ProductUnitsCompanion unit) {
+    // If setting as base unit, remove any existing base unit for this product
+    if (unit.isBaseUnit.value) {
+      (delete(db.productUnits)
+            ..where((u) => u.productId.equals(unit.productId.value))
+            ..where((u) => u.isBaseUnit.equals(true))).go();
+    }
+    return into(db.productUnits).insert(unit);
+  }
 
   Future<bool> updateProductUnit(ProductUnitsCompanion unit, String id) {
     return (update(db.productUnits)..where((tbl) => tbl.id.equals(id)))

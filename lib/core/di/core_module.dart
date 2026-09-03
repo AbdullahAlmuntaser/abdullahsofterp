@@ -30,6 +30,7 @@ import 'package:supermarket/core/services/accounting/withholding_tax_service.dar
 import 'package:supermarket/core/services/bom_service.dart';
 import 'package:supermarket/core/services/packaging_engine.dart';
 import 'package:supermarket/core/services/pdf_service.dart';
+import 'package:supermarket/core/services/inventory/unit_conversion_service.dart';
 import 'package:supermarket/core/services/inventory/inventory_costing_service.dart';
 import 'package:supermarket/core/services/accounting/budget_service.dart';
 import 'package:supermarket/data/repositories/i_products_repository.dart';
@@ -96,17 +97,21 @@ void registerCoreModule(GetIt sl) {
   sl.registerLazySingleton<PostingEngine>(
     () => PostingEngine(db, costingService: sl<InventoryCostingService>()),
   );
+  sl.registerLazySingleton<UnitConversionService>(
+    () => UnitConversionService(
+      productsDao: sl<ProductsDao>(),
+      productUnitsDao: sl<ProductUnitsDao>(),
+    ),
+  );
   sl.registerLazySingleton<TransactionEngine>(() {
     final eventBus = sl<EventBusService>();
     final postingEngine = sl<PostingEngine>();
     final packagingEngine = sl<PackagingEngine>();
-    final costingService = sl<InventoryCostingService>();
     final engine = TransactionEngine(
       db,
       eventBus,
       postingEngine,
       packagingEngine,
-      costingService,
     );
     engine.setBudgetService(sl<BudgetService>());
     engine.setApprovalService(sl<ApprovalWorkflowService>());

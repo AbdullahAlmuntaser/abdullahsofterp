@@ -4,7 +4,6 @@ import 'package:supermarket/core/services/transaction_engine.dart';
 import 'package:supermarket/core/services/event_bus_service.dart';
 import 'package:supermarket/core/services/posting_engine.dart';
 import 'package:supermarket/core/services/packaging_engine.dart';
-import 'package:supermarket/core/services/inventory/inventory_costing_service.dart';
 import 'package:supermarket/core/services/accounting/budget_service.dart';
 import 'package:supermarket/core/services/approval_workflow_service.dart';
 import 'package:supermarket/core/services/inventory/serial_number_service.dart';
@@ -17,9 +16,6 @@ class MockEventBusService extends Mock implements EventBusService {}
 class MockPostingEngine extends Mock implements PostingEngine {}
 
 class MockPackagingEngine extends Mock implements PackagingEngine {}
-
-class MockInventoryCostingService extends Mock
-    implements InventoryCostingService {}
 
 class MockBudgetService extends Mock implements BudgetService {}
 
@@ -34,7 +30,6 @@ void main() {
   late MockEventBusService mockEventBus;
   late MockPostingEngine mockPostingEngine;
   late MockPackagingEngine mockPackaging;
-  late MockInventoryCostingService mockCosting;
 
   setUpAll(() {
     registerFallbackValue(MockAppDatabase());
@@ -45,14 +40,12 @@ void main() {
     mockEventBus = MockEventBusService();
     mockPostingEngine = MockPostingEngine();
     mockPackaging = MockPackagingEngine();
-    mockCosting = MockInventoryCostingService();
 
     transactionEngine = TransactionEngine(
       mockDb,
       mockEventBus,
       mockPostingEngine,
       mockPackaging,
-      mockCosting,
     );
   });
 

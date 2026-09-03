@@ -9414,6 +9414,26 @@ class $ProductBatchesTable extends ProductBatches
               type: DriftSqlType.string, requiredDuringInsert: false)
           .withConverter<Decimal?>(
               $ProductBatchesTable.$converterquantityInStoredUnitn);
+  static const VerificationMeta _baseQuantityMeta =
+      const VerificationMeta('baseQuantity');
+  @override
+  late final GeneratedColumnWithTypeConverter<Decimal, String> baseQuantity =
+      GeneratedColumn<String>('base_quantity', aliasedName, false,
+              type: DriftSqlType.string,
+              requiredDuringInsert: false,
+              defaultValue: Constant(Decimal.zero.toString()))
+          .withConverter<Decimal>($ProductBatchesTable.$converterbaseQuantity);
+  static const VerificationMeta _conversionFactorSnapshotMeta =
+      const VerificationMeta('conversionFactorSnapshot');
+  @override
+  late final GeneratedColumnWithTypeConverter<Decimal, String>
+      conversionFactorSnapshot = GeneratedColumn<String>(
+              'conversion_factor_snapshot', aliasedName, false,
+              type: DriftSqlType.string,
+              requiredDuringInsert: false,
+              defaultValue: Constant(Decimal.one.toString()))
+          .withConverter<Decimal>(
+              $ProductBatchesTable.$converterconversionFactorSnapshot);
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -9432,7 +9452,9 @@ class $ProductBatchesTable extends ProductBatches
         costPrice,
         reservedQuantity,
         storedUnitId,
-        quantityInStoredUnit
+        quantityInStoredUnit,
+        baseQuantity,
+        conversionFactorSnapshot
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -9513,6 +9535,9 @@ class $ProductBatchesTable extends ProductBatches
     }
     context.handle(
         _quantityInStoredUnitMeta, const VerificationResult.success());
+    context.handle(_baseQuantityMeta, const VerificationResult.success());
+    context.handle(
+        _conversionFactorSnapshotMeta, const VerificationResult.success());
     return context;
   }
 
@@ -9565,6 +9590,13 @@ class $ProductBatchesTable extends ProductBatches
       quantityInStoredUnit: $ProductBatchesTable.$converterquantityInStoredUnitn
           .fromSql(attachedDatabase.typeMapping.read(DriftSqlType.string,
               data['${effectivePrefix}quantity_in_stored_unit'])),
+      baseQuantity: $ProductBatchesTable.$converterbaseQuantity.fromSql(
+          attachedDatabase.typeMapping.read(
+              DriftSqlType.string, data['${effectivePrefix}base_quantity'])!),
+      conversionFactorSnapshot: $ProductBatchesTable
+          .$converterconversionFactorSnapshot
+          .fromSql(attachedDatabase.typeMapping.read(DriftSqlType.string,
+              data['${effectivePrefix}conversion_factor_snapshot'])!),
     );
   }
 
@@ -9585,6 +9617,10 @@ class $ProductBatchesTable extends ProductBatches
       const DecimalConverter();
   static TypeConverter<Decimal?, String?> $converterquantityInStoredUnitn =
       NullAwareTypeConverter.wrap($converterquantityInStoredUnit);
+  static TypeConverter<Decimal, String> $converterbaseQuantity =
+      const DecimalConverter();
+  static TypeConverter<Decimal, String> $converterconversionFactorSnapshot =
+      const DecimalConverter();
 }
 
 class ProductBatch extends DataClass implements Insertable<ProductBatch> {
@@ -9605,6 +9641,8 @@ class ProductBatch extends DataClass implements Insertable<ProductBatch> {
   final Decimal reservedQuantity;
   final String? storedUnitId;
   final Decimal? quantityInStoredUnit;
+  final Decimal baseQuantity;
+  final Decimal conversionFactorSnapshot;
   const ProductBatch(
       {required this.id,
       required this.createdAt,
@@ -9622,7 +9660,9 @@ class ProductBatch extends DataClass implements Insertable<ProductBatch> {
       required this.costPrice,
       required this.reservedQuantity,
       this.storedUnitId,
-      this.quantityInStoredUnit});
+      this.quantityInStoredUnit,
+      required this.baseQuantity,
+      required this.conversionFactorSnapshot});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -9669,6 +9709,15 @@ class ProductBatch extends DataClass implements Insertable<ProductBatch> {
           .$converterquantityInStoredUnitn
           .toSql(quantityInStoredUnit));
     }
+    {
+      map['base_quantity'] = Variable<String>(
+          $ProductBatchesTable.$converterbaseQuantity.toSql(baseQuantity));
+    }
+    {
+      map['conversion_factor_snapshot'] = Variable<String>($ProductBatchesTable
+          .$converterconversionFactorSnapshot
+          .toSql(conversionFactorSnapshot));
+    }
     return map;
   }
 
@@ -9701,6 +9750,8 @@ class ProductBatch extends DataClass implements Insertable<ProductBatch> {
       quantityInStoredUnit: quantityInStoredUnit == null && nullToAbsent
           ? const Value.absent()
           : Value(quantityInStoredUnit),
+      baseQuantity: Value(baseQuantity),
+      conversionFactorSnapshot: Value(conversionFactorSnapshot),
     );
   }
 
@@ -9726,6 +9777,9 @@ class ProductBatch extends DataClass implements Insertable<ProductBatch> {
       storedUnitId: serializer.fromJson<String?>(json['storedUnitId']),
       quantityInStoredUnit:
           serializer.fromJson<Decimal?>(json['quantityInStoredUnit']),
+      baseQuantity: serializer.fromJson<Decimal>(json['baseQuantity']),
+      conversionFactorSnapshot:
+          serializer.fromJson<Decimal>(json['conversionFactorSnapshot']),
     );
   }
   @override
@@ -9749,6 +9803,9 @@ class ProductBatch extends DataClass implements Insertable<ProductBatch> {
       'reservedQuantity': serializer.toJson<Decimal>(reservedQuantity),
       'storedUnitId': serializer.toJson<String?>(storedUnitId),
       'quantityInStoredUnit': serializer.toJson<Decimal?>(quantityInStoredUnit),
+      'baseQuantity': serializer.toJson<Decimal>(baseQuantity),
+      'conversionFactorSnapshot':
+          serializer.toJson<Decimal>(conversionFactorSnapshot),
     };
   }
 
@@ -9769,7 +9826,9 @@ class ProductBatch extends DataClass implements Insertable<ProductBatch> {
           Decimal? costPrice,
           Decimal? reservedQuantity,
           Value<String?> storedUnitId = const Value.absent(),
-          Value<Decimal?> quantityInStoredUnit = const Value.absent()}) =>
+          Value<Decimal?> quantityInStoredUnit = const Value.absent(),
+          Decimal? baseQuantity,
+          Decimal? conversionFactorSnapshot}) =>
       ProductBatch(
         id: id ?? this.id,
         createdAt: createdAt ?? this.createdAt,
@@ -9791,6 +9850,9 @@ class ProductBatch extends DataClass implements Insertable<ProductBatch> {
         quantityInStoredUnit: quantityInStoredUnit.present
             ? quantityInStoredUnit.value
             : this.quantityInStoredUnit,
+        baseQuantity: baseQuantity ?? this.baseQuantity,
+        conversionFactorSnapshot:
+            conversionFactorSnapshot ?? this.conversionFactorSnapshot,
       );
   ProductBatch copyWithCompanion(ProductBatchesCompanion data) {
     return ProductBatch(
@@ -9823,6 +9885,12 @@ class ProductBatch extends DataClass implements Insertable<ProductBatch> {
       quantityInStoredUnit: data.quantityInStoredUnit.present
           ? data.quantityInStoredUnit.value
           : this.quantityInStoredUnit,
+      baseQuantity: data.baseQuantity.present
+          ? data.baseQuantity.value
+          : this.baseQuantity,
+      conversionFactorSnapshot: data.conversionFactorSnapshot.present
+          ? data.conversionFactorSnapshot.value
+          : this.conversionFactorSnapshot,
     );
   }
 
@@ -9845,7 +9913,9 @@ class ProductBatch extends DataClass implements Insertable<ProductBatch> {
           ..write('costPrice: $costPrice, ')
           ..write('reservedQuantity: $reservedQuantity, ')
           ..write('storedUnitId: $storedUnitId, ')
-          ..write('quantityInStoredUnit: $quantityInStoredUnit')
+          ..write('quantityInStoredUnit: $quantityInStoredUnit, ')
+          ..write('baseQuantity: $baseQuantity, ')
+          ..write('conversionFactorSnapshot: $conversionFactorSnapshot')
           ..write(')'))
         .toString();
   }
@@ -9868,7 +9938,9 @@ class ProductBatch extends DataClass implements Insertable<ProductBatch> {
       costPrice,
       reservedQuantity,
       storedUnitId,
-      quantityInStoredUnit);
+      quantityInStoredUnit,
+      baseQuantity,
+      conversionFactorSnapshot);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -9889,7 +9961,9 @@ class ProductBatch extends DataClass implements Insertable<ProductBatch> {
           other.costPrice == this.costPrice &&
           other.reservedQuantity == this.reservedQuantity &&
           other.storedUnitId == this.storedUnitId &&
-          other.quantityInStoredUnit == this.quantityInStoredUnit);
+          other.quantityInStoredUnit == this.quantityInStoredUnit &&
+          other.baseQuantity == this.baseQuantity &&
+          other.conversionFactorSnapshot == this.conversionFactorSnapshot);
 }
 
 class ProductBatchesCompanion extends UpdateCompanion<ProductBatch> {
@@ -9910,6 +9984,8 @@ class ProductBatchesCompanion extends UpdateCompanion<ProductBatch> {
   final Value<Decimal> reservedQuantity;
   final Value<String?> storedUnitId;
   final Value<Decimal?> quantityInStoredUnit;
+  final Value<Decimal> baseQuantity;
+  final Value<Decimal> conversionFactorSnapshot;
   final Value<int> rowid;
   const ProductBatchesCompanion({
     this.id = const Value.absent(),
@@ -9929,6 +10005,8 @@ class ProductBatchesCompanion extends UpdateCompanion<ProductBatch> {
     this.reservedQuantity = const Value.absent(),
     this.storedUnitId = const Value.absent(),
     this.quantityInStoredUnit = const Value.absent(),
+    this.baseQuantity = const Value.absent(),
+    this.conversionFactorSnapshot = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ProductBatchesCompanion.insert({
@@ -9949,6 +10027,8 @@ class ProductBatchesCompanion extends UpdateCompanion<ProductBatch> {
     this.reservedQuantity = const Value.absent(),
     this.storedUnitId = const Value.absent(),
     this.quantityInStoredUnit = const Value.absent(),
+    this.baseQuantity = const Value.absent(),
+    this.conversionFactorSnapshot = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : productId = Value(productId),
         warehouseId = Value(warehouseId),
@@ -9971,6 +10051,8 @@ class ProductBatchesCompanion extends UpdateCompanion<ProductBatch> {
     Expression<String>? reservedQuantity,
     Expression<String>? storedUnitId,
     Expression<String>? quantityInStoredUnit,
+    Expression<String>? baseQuantity,
+    Expression<String>? conversionFactorSnapshot,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -9992,6 +10074,9 @@ class ProductBatchesCompanion extends UpdateCompanion<ProductBatch> {
       if (storedUnitId != null) 'stored_unit_id': storedUnitId,
       if (quantityInStoredUnit != null)
         'quantity_in_stored_unit': quantityInStoredUnit,
+      if (baseQuantity != null) 'base_quantity': baseQuantity,
+      if (conversionFactorSnapshot != null)
+        'conversion_factor_snapshot': conversionFactorSnapshot,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -10014,6 +10099,8 @@ class ProductBatchesCompanion extends UpdateCompanion<ProductBatch> {
       Value<Decimal>? reservedQuantity,
       Value<String?>? storedUnitId,
       Value<Decimal?>? quantityInStoredUnit,
+      Value<Decimal>? baseQuantity,
+      Value<Decimal>? conversionFactorSnapshot,
       Value<int>? rowid}) {
     return ProductBatchesCompanion(
       id: id ?? this.id,
@@ -10033,6 +10120,9 @@ class ProductBatchesCompanion extends UpdateCompanion<ProductBatch> {
       reservedQuantity: reservedQuantity ?? this.reservedQuantity,
       storedUnitId: storedUnitId ?? this.storedUnitId,
       quantityInStoredUnit: quantityInStoredUnit ?? this.quantityInStoredUnit,
+      baseQuantity: baseQuantity ?? this.baseQuantity,
+      conversionFactorSnapshot:
+          conversionFactorSnapshot ?? this.conversionFactorSnapshot,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -10099,6 +10189,16 @@ class ProductBatchesCompanion extends UpdateCompanion<ProductBatch> {
           .$converterquantityInStoredUnitn
           .toSql(quantityInStoredUnit.value));
     }
+    if (baseQuantity.present) {
+      map['base_quantity'] = Variable<String>($ProductBatchesTable
+          .$converterbaseQuantity
+          .toSql(baseQuantity.value));
+    }
+    if (conversionFactorSnapshot.present) {
+      map['conversion_factor_snapshot'] = Variable<String>($ProductBatchesTable
+          .$converterconversionFactorSnapshot
+          .toSql(conversionFactorSnapshot.value));
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -10125,6 +10225,8 @@ class ProductBatchesCompanion extends UpdateCompanion<ProductBatch> {
           ..write('reservedQuantity: $reservedQuantity, ')
           ..write('storedUnitId: $storedUnitId, ')
           ..write('quantityInStoredUnit: $quantityInStoredUnit, ')
+          ..write('baseQuantity: $baseQuantity, ')
+          ..write('conversionFactorSnapshot: $conversionFactorSnapshot, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -18585,6 +18687,12 @@ class $SalesReturnItemsTable extends SalesReturnItems
               requiredDuringInsert: false,
               defaultValue: Constant(Decimal.one.toString()))
           .withConverter<Decimal>($SalesReturnItemsTable.$converterunitFactor);
+  static const VerificationMeta _unitNameMeta =
+      const VerificationMeta('unitName');
+  @override
+  late final GeneratedColumn<String> unitName = GeneratedColumn<String>(
+      'unit_name', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _batchIdMeta =
       const VerificationMeta('batchId');
   @override
@@ -18608,6 +18716,7 @@ class $SalesReturnItemsTable extends SalesReturnItems
         quantity,
         price,
         unitFactor,
+        unitName,
         batchId
       ];
   @override
@@ -18666,6 +18775,10 @@ class $SalesReturnItemsTable extends SalesReturnItems
     context.handle(_quantityMeta, const VerificationResult.success());
     context.handle(_priceMeta, const VerificationResult.success());
     context.handle(_unitFactorMeta, const VerificationResult.success());
+    if (data.containsKey('unit_name')) {
+      context.handle(_unitNameMeta,
+          unitName.isAcceptableOrUnknown(data['unit_name']!, _unitNameMeta));
+    }
     if (data.containsKey('batch_id')) {
       context.handle(_batchIdMeta,
           batchId.isAcceptableOrUnknown(data['batch_id']!, _batchIdMeta));
@@ -18706,6 +18819,8 @@ class $SalesReturnItemsTable extends SalesReturnItems
       unitFactor: $SalesReturnItemsTable.$converterunitFactor.fromSql(
           attachedDatabase.typeMapping.read(
               DriftSqlType.string, data['${effectivePrefix}unit_factor'])!),
+      unitName: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}unit_name']),
       batchId: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}batch_id']),
     );
@@ -18737,6 +18852,7 @@ class SalesReturnItem extends DataClass implements Insertable<SalesReturnItem> {
   final Decimal quantity;
   final Decimal price;
   final Decimal unitFactor;
+  final String? unitName;
   final String? batchId;
   const SalesReturnItem(
       {required this.id,
@@ -18751,6 +18867,7 @@ class SalesReturnItem extends DataClass implements Insertable<SalesReturnItem> {
       required this.quantity,
       required this.price,
       required this.unitFactor,
+      this.unitName,
       this.batchId});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -18780,6 +18897,9 @@ class SalesReturnItem extends DataClass implements Insertable<SalesReturnItem> {
       map['unit_factor'] = Variable<String>(
           $SalesReturnItemsTable.$converterunitFactor.toSql(unitFactor));
     }
+    if (!nullToAbsent || unitName != null) {
+      map['unit_name'] = Variable<String>(unitName);
+    }
     if (!nullToAbsent || batchId != null) {
       map['batch_id'] = Variable<String>(batchId);
     }
@@ -18804,6 +18924,9 @@ class SalesReturnItem extends DataClass implements Insertable<SalesReturnItem> {
       quantity: Value(quantity),
       price: Value(price),
       unitFactor: Value(unitFactor),
+      unitName: unitName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(unitName),
       batchId: batchId == null && nullToAbsent
           ? const Value.absent()
           : Value(batchId),
@@ -18826,6 +18949,7 @@ class SalesReturnItem extends DataClass implements Insertable<SalesReturnItem> {
       quantity: serializer.fromJson<Decimal>(json['quantity']),
       price: serializer.fromJson<Decimal>(json['price']),
       unitFactor: serializer.fromJson<Decimal>(json['unitFactor']),
+      unitName: serializer.fromJson<String?>(json['unitName']),
       batchId: serializer.fromJson<String?>(json['batchId']),
     );
   }
@@ -18845,6 +18969,7 @@ class SalesReturnItem extends DataClass implements Insertable<SalesReturnItem> {
       'quantity': serializer.toJson<Decimal>(quantity),
       'price': serializer.toJson<Decimal>(price),
       'unitFactor': serializer.toJson<Decimal>(unitFactor),
+      'unitName': serializer.toJson<String?>(unitName),
       'batchId': serializer.toJson<String?>(batchId),
     };
   }
@@ -18862,6 +18987,7 @@ class SalesReturnItem extends DataClass implements Insertable<SalesReturnItem> {
           Decimal? quantity,
           Decimal? price,
           Decimal? unitFactor,
+          Value<String?> unitName = const Value.absent(),
           Value<String?> batchId = const Value.absent()}) =>
       SalesReturnItem(
         id: id ?? this.id,
@@ -18876,6 +19002,7 @@ class SalesReturnItem extends DataClass implements Insertable<SalesReturnItem> {
         quantity: quantity ?? this.quantity,
         price: price ?? this.price,
         unitFactor: unitFactor ?? this.unitFactor,
+        unitName: unitName.present ? unitName.value : this.unitName,
         batchId: batchId.present ? batchId.value : this.batchId,
       );
   SalesReturnItem copyWithCompanion(SalesReturnItemsCompanion data) {
@@ -18896,6 +19023,7 @@ class SalesReturnItem extends DataClass implements Insertable<SalesReturnItem> {
       price: data.price.present ? data.price.value : this.price,
       unitFactor:
           data.unitFactor.present ? data.unitFactor.value : this.unitFactor,
+      unitName: data.unitName.present ? data.unitName.value : this.unitName,
       batchId: data.batchId.present ? data.batchId.value : this.batchId,
     );
   }
@@ -18915,6 +19043,7 @@ class SalesReturnItem extends DataClass implements Insertable<SalesReturnItem> {
           ..write('quantity: $quantity, ')
           ..write('price: $price, ')
           ..write('unitFactor: $unitFactor, ')
+          ..write('unitName: $unitName, ')
           ..write('batchId: $batchId')
           ..write(')'))
         .toString();
@@ -18934,6 +19063,7 @@ class SalesReturnItem extends DataClass implements Insertable<SalesReturnItem> {
       quantity,
       price,
       unitFactor,
+      unitName,
       batchId);
   @override
   bool operator ==(Object other) =>
@@ -18951,6 +19081,7 @@ class SalesReturnItem extends DataClass implements Insertable<SalesReturnItem> {
           other.quantity == this.quantity &&
           other.price == this.price &&
           other.unitFactor == this.unitFactor &&
+          other.unitName == this.unitName &&
           other.batchId == this.batchId);
 }
 
@@ -18967,6 +19098,7 @@ class SalesReturnItemsCompanion extends UpdateCompanion<SalesReturnItem> {
   final Value<Decimal> quantity;
   final Value<Decimal> price;
   final Value<Decimal> unitFactor;
+  final Value<String?> unitName;
   final Value<String?> batchId;
   final Value<int> rowid;
   const SalesReturnItemsCompanion({
@@ -18982,6 +19114,7 @@ class SalesReturnItemsCompanion extends UpdateCompanion<SalesReturnItem> {
     this.quantity = const Value.absent(),
     this.price = const Value.absent(),
     this.unitFactor = const Value.absent(),
+    this.unitName = const Value.absent(),
     this.batchId = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -18998,6 +19131,7 @@ class SalesReturnItemsCompanion extends UpdateCompanion<SalesReturnItem> {
     required Decimal quantity,
     required Decimal price,
     this.unitFactor = const Value.absent(),
+    this.unitName = const Value.absent(),
     this.batchId = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : salesReturnId = Value(salesReturnId),
@@ -19017,6 +19151,7 @@ class SalesReturnItemsCompanion extends UpdateCompanion<SalesReturnItem> {
     Expression<String>? quantity,
     Expression<String>? price,
     Expression<String>? unitFactor,
+    Expression<String>? unitName,
     Expression<String>? batchId,
     Expression<int>? rowid,
   }) {
@@ -19033,6 +19168,7 @@ class SalesReturnItemsCompanion extends UpdateCompanion<SalesReturnItem> {
       if (quantity != null) 'quantity': quantity,
       if (price != null) 'price': price,
       if (unitFactor != null) 'unit_factor': unitFactor,
+      if (unitName != null) 'unit_name': unitName,
       if (batchId != null) 'batch_id': batchId,
       if (rowid != null) 'rowid': rowid,
     });
@@ -19051,6 +19187,7 @@ class SalesReturnItemsCompanion extends UpdateCompanion<SalesReturnItem> {
       Value<Decimal>? quantity,
       Value<Decimal>? price,
       Value<Decimal>? unitFactor,
+      Value<String?>? unitName,
       Value<String?>? batchId,
       Value<int>? rowid}) {
     return SalesReturnItemsCompanion(
@@ -19066,6 +19203,7 @@ class SalesReturnItemsCompanion extends UpdateCompanion<SalesReturnItem> {
       quantity: quantity ?? this.quantity,
       price: price ?? this.price,
       unitFactor: unitFactor ?? this.unitFactor,
+      unitName: unitName ?? this.unitName,
       batchId: batchId ?? this.batchId,
       rowid: rowid ?? this.rowid,
     );
@@ -19113,6 +19251,9 @@ class SalesReturnItemsCompanion extends UpdateCompanion<SalesReturnItem> {
       map['unit_factor'] = Variable<String>(
           $SalesReturnItemsTable.$converterunitFactor.toSql(unitFactor.value));
     }
+    if (unitName.present) {
+      map['unit_name'] = Variable<String>(unitName.value);
+    }
     if (batchId.present) {
       map['batch_id'] = Variable<String>(batchId.value);
     }
@@ -19137,6 +19278,7 @@ class SalesReturnItemsCompanion extends UpdateCompanion<SalesReturnItem> {
           ..write('quantity: $quantity, ')
           ..write('price: $price, ')
           ..write('unitFactor: $unitFactor, ')
+          ..write('unitName: $unitName, ')
           ..write('batchId: $batchId, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -19757,6 +19899,12 @@ class $PurchaseReturnItemsTable extends PurchaseReturnItems
       GeneratedColumn<String>('price', aliasedName, false,
               type: DriftSqlType.string, requiredDuringInsert: true)
           .withConverter<Decimal>($PurchaseReturnItemsTable.$converterprice);
+  static const VerificationMeta _unitNameMeta =
+      const VerificationMeta('unitName');
+  @override
+  late final GeneratedColumn<String> unitName = GeneratedColumn<String>(
+      'unit_name', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -19769,7 +19917,8 @@ class $PurchaseReturnItemsTable extends PurchaseReturnItems
         purchaseReturnId,
         productId,
         quantity,
-        price
+        price,
+        unitName
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -19826,6 +19975,10 @@ class $PurchaseReturnItemsTable extends PurchaseReturnItems
     }
     context.handle(_quantityMeta, const VerificationResult.success());
     context.handle(_priceMeta, const VerificationResult.success());
+    if (data.containsKey('unit_name')) {
+      context.handle(_unitNameMeta,
+          unitName.isAcceptableOrUnknown(data['unit_name']!, _unitNameMeta));
+    }
     return context;
   }
 
@@ -19859,6 +20012,8 @@ class $PurchaseReturnItemsTable extends PurchaseReturnItems
       price: $PurchaseReturnItemsTable.$converterprice.fromSql(attachedDatabase
           .typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}price'])!),
+      unitName: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}unit_name']),
     );
   }
 
@@ -19886,6 +20041,7 @@ class PurchaseReturnItem extends DataClass
   final String productId;
   final Decimal quantity;
   final Decimal price;
+  final String? unitName;
   const PurchaseReturnItem(
       {required this.id,
       required this.createdAt,
@@ -19897,7 +20053,8 @@ class PurchaseReturnItem extends DataClass
       required this.purchaseReturnId,
       required this.productId,
       required this.quantity,
-      required this.price});
+      required this.price,
+      this.unitName});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -19922,6 +20079,9 @@ class PurchaseReturnItem extends DataClass
       map['price'] = Variable<String>(
           $PurchaseReturnItemsTable.$converterprice.toSql(price));
     }
+    if (!nullToAbsent || unitName != null) {
+      map['unit_name'] = Variable<String>(unitName);
+    }
     return map;
   }
 
@@ -19942,6 +20102,9 @@ class PurchaseReturnItem extends DataClass
       productId: Value(productId),
       quantity: Value(quantity),
       price: Value(price),
+      unitName: unitName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(unitName),
     );
   }
 
@@ -19960,6 +20123,7 @@ class PurchaseReturnItem extends DataClass
       productId: serializer.fromJson<String>(json['productId']),
       quantity: serializer.fromJson<Decimal>(json['quantity']),
       price: serializer.fromJson<Decimal>(json['price']),
+      unitName: serializer.fromJson<String?>(json['unitName']),
     );
   }
   @override
@@ -19977,6 +20141,7 @@ class PurchaseReturnItem extends DataClass
       'productId': serializer.toJson<String>(productId),
       'quantity': serializer.toJson<Decimal>(quantity),
       'price': serializer.toJson<Decimal>(price),
+      'unitName': serializer.toJson<String?>(unitName),
     };
   }
 
@@ -19991,7 +20156,8 @@ class PurchaseReturnItem extends DataClass
           String? purchaseReturnId,
           String? productId,
           Decimal? quantity,
-          Decimal? price}) =>
+          Decimal? price,
+          Value<String?> unitName = const Value.absent()}) =>
       PurchaseReturnItem(
         id: id ?? this.id,
         createdAt: createdAt ?? this.createdAt,
@@ -20004,6 +20170,7 @@ class PurchaseReturnItem extends DataClass
         productId: productId ?? this.productId,
         quantity: quantity ?? this.quantity,
         price: price ?? this.price,
+        unitName: unitName.present ? unitName.value : this.unitName,
       );
   PurchaseReturnItem copyWithCompanion(PurchaseReturnItemsCompanion data) {
     return PurchaseReturnItem(
@@ -20021,6 +20188,7 @@ class PurchaseReturnItem extends DataClass
       productId: data.productId.present ? data.productId.value : this.productId,
       quantity: data.quantity.present ? data.quantity.value : this.quantity,
       price: data.price.present ? data.price.value : this.price,
+      unitName: data.unitName.present ? data.unitName.value : this.unitName,
     );
   }
 
@@ -20037,7 +20205,8 @@ class PurchaseReturnItem extends DataClass
           ..write('purchaseReturnId: $purchaseReturnId, ')
           ..write('productId: $productId, ')
           ..write('quantity: $quantity, ')
-          ..write('price: $price')
+          ..write('price: $price, ')
+          ..write('unitName: $unitName')
           ..write(')'))
         .toString();
   }
@@ -20054,7 +20223,8 @@ class PurchaseReturnItem extends DataClass
       purchaseReturnId,
       productId,
       quantity,
-      price);
+      price,
+      unitName);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -20069,7 +20239,8 @@ class PurchaseReturnItem extends DataClass
           other.purchaseReturnId == this.purchaseReturnId &&
           other.productId == this.productId &&
           other.quantity == this.quantity &&
-          other.price == this.price);
+          other.price == this.price &&
+          other.unitName == this.unitName);
 }
 
 class PurchaseReturnItemsCompanion extends UpdateCompanion<PurchaseReturnItem> {
@@ -20084,6 +20255,7 @@ class PurchaseReturnItemsCompanion extends UpdateCompanion<PurchaseReturnItem> {
   final Value<String> productId;
   final Value<Decimal> quantity;
   final Value<Decimal> price;
+  final Value<String?> unitName;
   final Value<int> rowid;
   const PurchaseReturnItemsCompanion({
     this.id = const Value.absent(),
@@ -20097,6 +20269,7 @@ class PurchaseReturnItemsCompanion extends UpdateCompanion<PurchaseReturnItem> {
     this.productId = const Value.absent(),
     this.quantity = const Value.absent(),
     this.price = const Value.absent(),
+    this.unitName = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   PurchaseReturnItemsCompanion.insert({
@@ -20111,6 +20284,7 @@ class PurchaseReturnItemsCompanion extends UpdateCompanion<PurchaseReturnItem> {
     required String productId,
     required Decimal quantity,
     required Decimal price,
+    this.unitName = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : purchaseReturnId = Value(purchaseReturnId),
         productId = Value(productId),
@@ -20128,6 +20302,7 @@ class PurchaseReturnItemsCompanion extends UpdateCompanion<PurchaseReturnItem> {
     Expression<String>? productId,
     Expression<String>? quantity,
     Expression<String>? price,
+    Expression<String>? unitName,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -20142,6 +20317,7 @@ class PurchaseReturnItemsCompanion extends UpdateCompanion<PurchaseReturnItem> {
       if (productId != null) 'product_id': productId,
       if (quantity != null) 'quantity': quantity,
       if (price != null) 'price': price,
+      if (unitName != null) 'unit_name': unitName,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -20158,6 +20334,7 @@ class PurchaseReturnItemsCompanion extends UpdateCompanion<PurchaseReturnItem> {
       Value<String>? productId,
       Value<Decimal>? quantity,
       Value<Decimal>? price,
+      Value<String?>? unitName,
       Value<int>? rowid}) {
     return PurchaseReturnItemsCompanion(
       id: id ?? this.id,
@@ -20171,6 +20348,7 @@ class PurchaseReturnItemsCompanion extends UpdateCompanion<PurchaseReturnItem> {
       productId: productId ?? this.productId,
       quantity: quantity ?? this.quantity,
       price: price ?? this.price,
+      unitName: unitName ?? this.unitName,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -20213,6 +20391,9 @@ class PurchaseReturnItemsCompanion extends UpdateCompanion<PurchaseReturnItem> {
       map['price'] = Variable<String>(
           $PurchaseReturnItemsTable.$converterprice.toSql(price.value));
     }
+    if (unitName.present) {
+      map['unit_name'] = Variable<String>(unitName.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -20233,6 +20414,7 @@ class PurchaseReturnItemsCompanion extends UpdateCompanion<PurchaseReturnItem> {
           ..write('productId: $productId, ')
           ..write('quantity: $quantity, ')
           ..write('price: $price, ')
+          ..write('unitName: $unitName, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -43534,6 +43716,16 @@ class $ProductUnitsTable extends ProductUnits
       defaultConstraints:
           GeneratedColumn.constraintIsAlways('CHECK ("is_default" IN (0, 1))'),
       defaultValue: const Constant(false));
+  static const VerificationMeta _isBaseUnitMeta =
+      const VerificationMeta('isBaseUnit');
+  @override
+  late final GeneratedColumn<bool> isBaseUnit = GeneratedColumn<bool>(
+      'is_base_unit', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("is_base_unit" IN (0, 1))'),
+      defaultValue: const Constant(false));
   @override
   List<GeneratedColumn> get $columns => [
         id,
@@ -43551,7 +43743,8 @@ class $ProductUnitsTable extends ProductUnits
         sellPrice,
         wholesalePrice,
         halfWholesalePrice,
-        isDefault
+        isDefault,
+        isBaseUnit
       ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -43617,6 +43810,12 @@ class $ProductUnitsTable extends ProductUnits
       context.handle(_isDefaultMeta,
           isDefault.isAcceptableOrUnknown(data['is_default']!, _isDefaultMeta));
     }
+    if (data.containsKey('is_base_unit')) {
+      context.handle(
+          _isBaseUnitMeta,
+          isBaseUnit.isAcceptableOrUnknown(
+              data['is_base_unit']!, _isBaseUnitMeta));
+    }
     return context;
   }
 
@@ -43663,6 +43862,8 @@ class $ProductUnitsTable extends ProductUnits
               data['${effectivePrefix}half_wholesale_price'])),
       isDefault: attachedDatabase.typeMapping
           .read(DriftSqlType.bool, data['${effectivePrefix}is_default'])!,
+      isBaseUnit: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_base_unit'])!,
     );
   }
 
@@ -43708,6 +43909,7 @@ class ProductUnit extends DataClass implements Insertable<ProductUnit> {
   final Decimal? wholesalePrice;
   final Decimal? halfWholesalePrice;
   final bool isDefault;
+  final bool isBaseUnit;
   const ProductUnit(
       {required this.id,
       required this.createdAt,
@@ -43724,7 +43926,8 @@ class ProductUnit extends DataClass implements Insertable<ProductUnit> {
       this.sellPrice,
       this.wholesalePrice,
       this.halfWholesalePrice,
-      required this.isDefault});
+      required this.isDefault,
+      required this.isBaseUnit});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -43766,6 +43969,7 @@ class ProductUnit extends DataClass implements Insertable<ProductUnit> {
           .toSql(halfWholesalePrice));
     }
     map['is_default'] = Variable<bool>(isDefault);
+    map['is_base_unit'] = Variable<bool>(isBaseUnit);
     return map;
   }
 
@@ -43801,6 +44005,7 @@ class ProductUnit extends DataClass implements Insertable<ProductUnit> {
           ? const Value.absent()
           : Value(halfWholesalePrice),
       isDefault: Value(isDefault),
+      isBaseUnit: Value(isBaseUnit),
     );
   }
 
@@ -43825,6 +44030,7 @@ class ProductUnit extends DataClass implements Insertable<ProductUnit> {
       halfWholesalePrice:
           serializer.fromJson<Decimal?>(json['halfWholesalePrice']),
       isDefault: serializer.fromJson<bool>(json['isDefault']),
+      isBaseUnit: serializer.fromJson<bool>(json['isBaseUnit']),
     );
   }
   @override
@@ -43847,6 +44053,7 @@ class ProductUnit extends DataClass implements Insertable<ProductUnit> {
       'wholesalePrice': serializer.toJson<Decimal?>(wholesalePrice),
       'halfWholesalePrice': serializer.toJson<Decimal?>(halfWholesalePrice),
       'isDefault': serializer.toJson<bool>(isDefault),
+      'isBaseUnit': serializer.toJson<bool>(isBaseUnit),
     };
   }
 
@@ -43866,7 +44073,8 @@ class ProductUnit extends DataClass implements Insertable<ProductUnit> {
           Value<Decimal?> sellPrice = const Value.absent(),
           Value<Decimal?> wholesalePrice = const Value.absent(),
           Value<Decimal?> halfWholesalePrice = const Value.absent(),
-          bool? isDefault}) =>
+          bool? isDefault,
+          bool? isBaseUnit}) =>
       ProductUnit(
         id: id ?? this.id,
         createdAt: createdAt ?? this.createdAt,
@@ -43887,6 +44095,7 @@ class ProductUnit extends DataClass implements Insertable<ProductUnit> {
             ? halfWholesalePrice.value
             : this.halfWholesalePrice,
         isDefault: isDefault ?? this.isDefault,
+        isBaseUnit: isBaseUnit ?? this.isBaseUnit,
       );
   ProductUnit copyWithCompanion(ProductUnitsCompanion data) {
     return ProductUnit(
@@ -43912,6 +44121,8 @@ class ProductUnit extends DataClass implements Insertable<ProductUnit> {
           ? data.halfWholesalePrice.value
           : this.halfWholesalePrice,
       isDefault: data.isDefault.present ? data.isDefault.value : this.isDefault,
+      isBaseUnit:
+          data.isBaseUnit.present ? data.isBaseUnit.value : this.isBaseUnit,
     );
   }
 
@@ -43933,7 +44144,8 @@ class ProductUnit extends DataClass implements Insertable<ProductUnit> {
           ..write('sellPrice: $sellPrice, ')
           ..write('wholesalePrice: $wholesalePrice, ')
           ..write('halfWholesalePrice: $halfWholesalePrice, ')
-          ..write('isDefault: $isDefault')
+          ..write('isDefault: $isDefault, ')
+          ..write('isBaseUnit: $isBaseUnit')
           ..write(')'))
         .toString();
   }
@@ -43955,7 +44167,8 @@ class ProductUnit extends DataClass implements Insertable<ProductUnit> {
       sellPrice,
       wholesalePrice,
       halfWholesalePrice,
-      isDefault);
+      isDefault,
+      isBaseUnit);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -43975,7 +44188,8 @@ class ProductUnit extends DataClass implements Insertable<ProductUnit> {
           other.sellPrice == this.sellPrice &&
           other.wholesalePrice == this.wholesalePrice &&
           other.halfWholesalePrice == this.halfWholesalePrice &&
-          other.isDefault == this.isDefault);
+          other.isDefault == this.isDefault &&
+          other.isBaseUnit == this.isBaseUnit);
 }
 
 class ProductUnitsCompanion extends UpdateCompanion<ProductUnit> {
@@ -43995,6 +44209,7 @@ class ProductUnitsCompanion extends UpdateCompanion<ProductUnit> {
   final Value<Decimal?> wholesalePrice;
   final Value<Decimal?> halfWholesalePrice;
   final Value<bool> isDefault;
+  final Value<bool> isBaseUnit;
   final Value<int> rowid;
   const ProductUnitsCompanion({
     this.id = const Value.absent(),
@@ -44013,6 +44228,7 @@ class ProductUnitsCompanion extends UpdateCompanion<ProductUnit> {
     this.wholesalePrice = const Value.absent(),
     this.halfWholesalePrice = const Value.absent(),
     this.isDefault = const Value.absent(),
+    this.isBaseUnit = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ProductUnitsCompanion.insert({
@@ -44032,6 +44248,7 @@ class ProductUnitsCompanion extends UpdateCompanion<ProductUnit> {
     this.wholesalePrice = const Value.absent(),
     this.halfWholesalePrice = const Value.absent(),
     this.isDefault = const Value.absent(),
+    this.isBaseUnit = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : productId = Value(productId),
         unitName = Value(unitName);
@@ -44052,6 +44269,7 @@ class ProductUnitsCompanion extends UpdateCompanion<ProductUnit> {
     Expression<String>? wholesalePrice,
     Expression<String>? halfWholesalePrice,
     Expression<bool>? isDefault,
+    Expression<bool>? isBaseUnit,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -44072,6 +44290,7 @@ class ProductUnitsCompanion extends UpdateCompanion<ProductUnit> {
       if (halfWholesalePrice != null)
         'half_wholesale_price': halfWholesalePrice,
       if (isDefault != null) 'is_default': isDefault,
+      if (isBaseUnit != null) 'is_base_unit': isBaseUnit,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -44093,6 +44312,7 @@ class ProductUnitsCompanion extends UpdateCompanion<ProductUnit> {
       Value<Decimal?>? wholesalePrice,
       Value<Decimal?>? halfWholesalePrice,
       Value<bool>? isDefault,
+      Value<bool>? isBaseUnit,
       Value<int>? rowid}) {
     return ProductUnitsCompanion(
       id: id ?? this.id,
@@ -44111,6 +44331,7 @@ class ProductUnitsCompanion extends UpdateCompanion<ProductUnit> {
       wholesalePrice: wholesalePrice ?? this.wholesalePrice,
       halfWholesalePrice: halfWholesalePrice ?? this.halfWholesalePrice,
       isDefault: isDefault ?? this.isDefault,
+      isBaseUnit: isBaseUnit ?? this.isBaseUnit,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -44173,6 +44394,9 @@ class ProductUnitsCompanion extends UpdateCompanion<ProductUnit> {
     if (isDefault.present) {
       map['is_default'] = Variable<bool>(isDefault.value);
     }
+    if (isBaseUnit.present) {
+      map['is_base_unit'] = Variable<bool>(isBaseUnit.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -44198,6 +44422,7 @@ class ProductUnitsCompanion extends UpdateCompanion<ProductUnit> {
           ..write('wholesalePrice: $wholesalePrice, ')
           ..write('halfWholesalePrice: $halfWholesalePrice, ')
           ..write('isDefault: $isDefault, ')
+          ..write('isBaseUnit: $isBaseUnit, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -95653,6 +95878,8 @@ typedef $$ProductBatchesTableCreateCompanionBuilder = ProductBatchesCompanion
   Value<Decimal> reservedQuantity,
   Value<String?> storedUnitId,
   Value<Decimal?> quantityInStoredUnit,
+  Value<Decimal> baseQuantity,
+  Value<Decimal> conversionFactorSnapshot,
   Value<int> rowid,
 });
 typedef $$ProductBatchesTableUpdateCompanionBuilder = ProductBatchesCompanion
@@ -95674,6 +95901,8 @@ typedef $$ProductBatchesTableUpdateCompanionBuilder = ProductBatchesCompanion
   Value<Decimal> reservedQuantity,
   Value<String?> storedUnitId,
   Value<Decimal?> quantityInStoredUnit,
+  Value<Decimal> baseQuantity,
+  Value<Decimal> conversionFactorSnapshot,
   Value<int> rowid,
 });
 
@@ -95948,6 +96177,16 @@ class $$ProductBatchesTableFilterComposer
   ColumnWithTypeConverterFilters<Decimal?, Decimal, String>
       get quantityInStoredUnit => $composableBuilder(
           column: $table.quantityInStoredUnit,
+          builder: (column) => ColumnWithTypeConverterFilters(column));
+
+  ColumnWithTypeConverterFilters<Decimal, Decimal, String> get baseQuantity =>
+      $composableBuilder(
+          column: $table.baseQuantity,
+          builder: (column) => ColumnWithTypeConverterFilters(column));
+
+  ColumnWithTypeConverterFilters<Decimal, Decimal, String>
+      get conversionFactorSnapshot => $composableBuilder(
+          column: $table.conversionFactorSnapshot,
           builder: (column) => ColumnWithTypeConverterFilters(column));
 
   $$BranchesTableFilterComposer get branchId {
@@ -96278,6 +96517,14 @@ class $$ProductBatchesTableOrderingComposer
       column: $table.quantityInStoredUnit,
       builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get baseQuantity => $composableBuilder(
+      column: $table.baseQuantity,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get conversionFactorSnapshot => $composableBuilder(
+      column: $table.conversionFactorSnapshot,
+      builder: (column) => ColumnOrderings(column));
+
   $$BranchesTableOrderingComposer get branchId {
     final $$BranchesTableOrderingComposer composer = $composerBuilder(
         composer: this,
@@ -96392,6 +96639,14 @@ class $$ProductBatchesTableAnnotationComposer
   GeneratedColumnWithTypeConverter<Decimal?, String> get quantityInStoredUnit =>
       $composableBuilder(
           column: $table.quantityInStoredUnit, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<Decimal, String> get baseQuantity =>
+      $composableBuilder(
+          column: $table.baseQuantity, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<Decimal, String>
+      get conversionFactorSnapshot => $composableBuilder(
+          column: $table.conversionFactorSnapshot, builder: (column) => column);
 
   $$BranchesTableAnnotationComposer get branchId {
     final $$BranchesTableAnnotationComposer composer = $composerBuilder(
@@ -96722,6 +96977,8 @@ class $$ProductBatchesTableTableManager extends RootTableManager<
             Value<Decimal> reservedQuantity = const Value.absent(),
             Value<String?> storedUnitId = const Value.absent(),
             Value<Decimal?> quantityInStoredUnit = const Value.absent(),
+            Value<Decimal> baseQuantity = const Value.absent(),
+            Value<Decimal> conversionFactorSnapshot = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               ProductBatchesCompanion(
@@ -96742,6 +96999,8 @@ class $$ProductBatchesTableTableManager extends RootTableManager<
             reservedQuantity: reservedQuantity,
             storedUnitId: storedUnitId,
             quantityInStoredUnit: quantityInStoredUnit,
+            baseQuantity: baseQuantity,
+            conversionFactorSnapshot: conversionFactorSnapshot,
             rowid: rowid,
           ),
           createCompanionCallback: ({
@@ -96762,6 +97021,8 @@ class $$ProductBatchesTableTableManager extends RootTableManager<
             Value<Decimal> reservedQuantity = const Value.absent(),
             Value<String?> storedUnitId = const Value.absent(),
             Value<Decimal?> quantityInStoredUnit = const Value.absent(),
+            Value<Decimal> baseQuantity = const Value.absent(),
+            Value<Decimal> conversionFactorSnapshot = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               ProductBatchesCompanion.insert(
@@ -96782,6 +97043,8 @@ class $$ProductBatchesTableTableManager extends RootTableManager<
             reservedQuantity: reservedQuantity,
             storedUnitId: storedUnitId,
             quantityInStoredUnit: quantityInStoredUnit,
+            baseQuantity: baseQuantity,
+            conversionFactorSnapshot: conversionFactorSnapshot,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
@@ -104913,6 +105176,7 @@ typedef $$SalesReturnItemsTableCreateCompanionBuilder
   required Decimal quantity,
   required Decimal price,
   Value<Decimal> unitFactor,
+  Value<String?> unitName,
   Value<String?> batchId,
   Value<int> rowid,
 });
@@ -104930,6 +105194,7 @@ typedef $$SalesReturnItemsTableUpdateCompanionBuilder
   Value<Decimal> quantity,
   Value<Decimal> price,
   Value<Decimal> unitFactor,
+  Value<String?> unitName,
   Value<String?> batchId,
   Value<int> rowid,
 });
@@ -105037,6 +105302,9 @@ class $$SalesReturnItemsTableFilterComposer
       $composableBuilder(
           column: $table.unitFactor,
           builder: (column) => ColumnWithTypeConverterFilters(column));
+
+  ColumnFilters<String> get unitName => $composableBuilder(
+      column: $table.unitName, builder: (column) => ColumnFilters(column));
 
   $$BranchesTableFilterComposer get branchId {
     final $$BranchesTableFilterComposer composer = $composerBuilder(
@@ -105154,6 +105422,9 @@ class $$SalesReturnItemsTableOrderingComposer
 
   ColumnOrderings<String> get unitFactor => $composableBuilder(
       column: $table.unitFactor, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get unitName => $composableBuilder(
+      column: $table.unitName, builder: (column) => ColumnOrderings(column));
 
   $$BranchesTableOrderingComposer get branchId {
     final $$BranchesTableOrderingComposer composer = $composerBuilder(
@@ -105273,6 +105544,9 @@ class $$SalesReturnItemsTableAnnotationComposer
       $composableBuilder(
           column: $table.unitFactor, builder: (column) => column);
 
+  GeneratedColumn<String> get unitName =>
+      $composableBuilder(column: $table.unitName, builder: (column) => column);
+
   $$BranchesTableAnnotationComposer get branchId {
     final $$BranchesTableAnnotationComposer composer = $composerBuilder(
         composer: this,
@@ -105391,6 +105665,7 @@ class $$SalesReturnItemsTableTableManager extends RootTableManager<
             Value<Decimal> quantity = const Value.absent(),
             Value<Decimal> price = const Value.absent(),
             Value<Decimal> unitFactor = const Value.absent(),
+            Value<String?> unitName = const Value.absent(),
             Value<String?> batchId = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
@@ -105407,6 +105682,7 @@ class $$SalesReturnItemsTableTableManager extends RootTableManager<
             quantity: quantity,
             price: price,
             unitFactor: unitFactor,
+            unitName: unitName,
             batchId: batchId,
             rowid: rowid,
           ),
@@ -105423,6 +105699,7 @@ class $$SalesReturnItemsTableTableManager extends RootTableManager<
             required Decimal quantity,
             required Decimal price,
             Value<Decimal> unitFactor = const Value.absent(),
+            Value<String?> unitName = const Value.absent(),
             Value<String?> batchId = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
@@ -105439,6 +105716,7 @@ class $$SalesReturnItemsTableTableManager extends RootTableManager<
             quantity: quantity,
             price: price,
             unitFactor: unitFactor,
+            unitName: unitName,
             batchId: batchId,
             rowid: rowid,
           ),
@@ -106061,6 +106339,7 @@ typedef $$PurchaseReturnItemsTableCreateCompanionBuilder
   required String productId,
   required Decimal quantity,
   required Decimal price,
+  Value<String?> unitName,
   Value<int> rowid,
 });
 typedef $$PurchaseReturnItemsTableUpdateCompanionBuilder
@@ -106076,6 +106355,7 @@ typedef $$PurchaseReturnItemsTableUpdateCompanionBuilder
   Value<String> productId,
   Value<Decimal> quantity,
   Value<Decimal> price,
+  Value<String?> unitName,
   Value<int> rowid,
 });
 
@@ -106164,6 +106444,9 @@ class $$PurchaseReturnItemsTableFilterComposer
       $composableBuilder(
           column: $table.price,
           builder: (column) => ColumnWithTypeConverterFilters(column));
+
+  ColumnFilters<String> get unitName => $composableBuilder(
+      column: $table.unitName, builder: (column) => ColumnFilters(column));
 
   $$BranchesTableFilterComposer get branchId {
     final $$BranchesTableFilterComposer composer = $composerBuilder(
@@ -106259,6 +106542,9 @@ class $$PurchaseReturnItemsTableOrderingComposer
   ColumnOrderings<String> get price => $composableBuilder(
       column: $table.price, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get unitName => $composableBuilder(
+      column: $table.unitName, builder: (column) => ColumnOrderings(column));
+
   $$BranchesTableOrderingComposer get branchId {
     final $$BranchesTableOrderingComposer composer = $composerBuilder(
         composer: this,
@@ -106352,6 +106638,9 @@ class $$PurchaseReturnItemsTableAnnotationComposer
 
   GeneratedColumnWithTypeConverter<Decimal, String> get price =>
       $composableBuilder(column: $table.price, builder: (column) => column);
+
+  GeneratedColumn<String> get unitName =>
+      $composableBuilder(column: $table.unitName, builder: (column) => column);
 
   $$BranchesTableAnnotationComposer get branchId {
     final $$BranchesTableAnnotationComposer composer = $composerBuilder(
@@ -106452,6 +106741,7 @@ class $$PurchaseReturnItemsTableTableManager extends RootTableManager<
             Value<String> productId = const Value.absent(),
             Value<Decimal> quantity = const Value.absent(),
             Value<Decimal> price = const Value.absent(),
+            Value<String?> unitName = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               PurchaseReturnItemsCompanion(
@@ -106466,6 +106756,7 @@ class $$PurchaseReturnItemsTableTableManager extends RootTableManager<
             productId: productId,
             quantity: quantity,
             price: price,
+            unitName: unitName,
             rowid: rowid,
           ),
           createCompanionCallback: ({
@@ -106480,6 +106771,7 @@ class $$PurchaseReturnItemsTableTableManager extends RootTableManager<
             required String productId,
             required Decimal quantity,
             required Decimal price,
+            Value<String?> unitName = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               PurchaseReturnItemsCompanion.insert(
@@ -106494,6 +106786,7 @@ class $$PurchaseReturnItemsTableTableManager extends RootTableManager<
             productId: productId,
             quantity: quantity,
             price: price,
+            unitName: unitName,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0
@@ -126310,6 +126603,7 @@ typedef $$ProductUnitsTableCreateCompanionBuilder = ProductUnitsCompanion
   Value<Decimal?> wholesalePrice,
   Value<Decimal?> halfWholesalePrice,
   Value<bool> isDefault,
+  Value<bool> isBaseUnit,
   Value<int> rowid,
 });
 typedef $$ProductUnitsTableUpdateCompanionBuilder = ProductUnitsCompanion
@@ -126330,6 +126624,7 @@ typedef $$ProductUnitsTableUpdateCompanionBuilder = ProductUnitsCompanion
   Value<Decimal?> wholesalePrice,
   Value<Decimal?> halfWholesalePrice,
   Value<bool> isDefault,
+  Value<bool> isBaseUnit,
   Value<int> rowid,
 });
 
@@ -126427,6 +126722,9 @@ class $$ProductUnitsTableFilterComposer
   ColumnFilters<bool> get isDefault => $composableBuilder(
       column: $table.isDefault, builder: (column) => ColumnFilters(column));
 
+  ColumnFilters<bool> get isBaseUnit => $composableBuilder(
+      column: $table.isBaseUnit, builder: (column) => ColumnFilters(column));
+
   $$BranchesTableFilterComposer get branchId {
     final $$BranchesTableFilterComposer composer = $composerBuilder(
         composer: this,
@@ -126520,6 +126818,9 @@ class $$ProductUnitsTableOrderingComposer
 
   ColumnOrderings<bool> get isDefault => $composableBuilder(
       column: $table.isDefault, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get isBaseUnit => $composableBuilder(
+      column: $table.isBaseUnit, builder: (column) => ColumnOrderings(column));
 
   $$BranchesTableOrderingComposer get branchId {
     final $$BranchesTableOrderingComposer composer = $composerBuilder(
@@ -126616,6 +126917,9 @@ class $$ProductUnitsTableAnnotationComposer
   GeneratedColumn<bool> get isDefault =>
       $composableBuilder(column: $table.isDefault, builder: (column) => column);
 
+  GeneratedColumn<bool> get isBaseUnit => $composableBuilder(
+      column: $table.isBaseUnit, builder: (column) => column);
+
   $$BranchesTableAnnotationComposer get branchId {
     final $$BranchesTableAnnotationComposer composer = $composerBuilder(
         composer: this,
@@ -126696,6 +127000,7 @@ class $$ProductUnitsTableTableManager extends RootTableManager<
             Value<Decimal?> wholesalePrice = const Value.absent(),
             Value<Decimal?> halfWholesalePrice = const Value.absent(),
             Value<bool> isDefault = const Value.absent(),
+            Value<bool> isBaseUnit = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               ProductUnitsCompanion(
@@ -126715,6 +127020,7 @@ class $$ProductUnitsTableTableManager extends RootTableManager<
             wholesalePrice: wholesalePrice,
             halfWholesalePrice: halfWholesalePrice,
             isDefault: isDefault,
+            isBaseUnit: isBaseUnit,
             rowid: rowid,
           ),
           createCompanionCallback: ({
@@ -126734,6 +127040,7 @@ class $$ProductUnitsTableTableManager extends RootTableManager<
             Value<Decimal?> wholesalePrice = const Value.absent(),
             Value<Decimal?> halfWholesalePrice = const Value.absent(),
             Value<bool> isDefault = const Value.absent(),
+            Value<bool> isBaseUnit = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
               ProductUnitsCompanion.insert(
@@ -126753,6 +127060,7 @@ class $$ProductUnitsTableTableManager extends RootTableManager<
             wholesalePrice: wholesalePrice,
             halfWholesalePrice: halfWholesalePrice,
             isDefault: isDefault,
+            isBaseUnit: isBaseUnit,
             rowid: rowid,
           ),
           withReferenceMapper: (p0) => p0

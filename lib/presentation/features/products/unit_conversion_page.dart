@@ -154,7 +154,7 @@ class _UnitConversionPageState extends State<UnitConversionPage> {
                                   ),
                                   child: ListTile(
                                     title: Text(
-                                      '${conv.unitName}',
+                                      conv.unitName,
                                     ),
                                     subtitle: Text(
                                       product != null

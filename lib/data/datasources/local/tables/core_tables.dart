@@ -98,6 +98,7 @@ class ProductUnits extends Table with SyncableTable {
   TextColumn get halfWholesalePrice =>
       text().map(const DecimalConverter()).nullable()();
   BoolColumn get isDefault => boolean().withDefault(const Constant(false))();
+  BoolColumn get isBaseUnit => boolean().withDefault(const Constant(false))();
 }
 
 class Customers extends Table with SyncableTable {
@@ -361,6 +362,12 @@ class ProductBatches extends Table with SyncableTable {
   TextColumn get quantityInStoredUnit => text()
       .map(const DecimalConverter())
       .nullable()();
+  TextColumn get baseQuantity => text()
+      .map(const DecimalConverter())
+      .withDefault(Constant(Decimal.zero.toString()))();
+  TextColumn get conversionFactorSnapshot => text()
+      .map(const DecimalConverter())
+      .withDefault(Constant(Decimal.one.toString()))();
 
   @override
   List<Set<Column>>? get uniqueKeys => [
@@ -396,6 +403,7 @@ class SalesReturnItems extends Table with SyncableTable {
   TextColumn get unitFactor => text()
       .map(const DecimalConverter())
       .withDefault(Constant(Decimal.one.toString()))();
+  TextColumn get unitName => text().nullable()();
   TextColumn get batchId => text().nullable().references(ProductBatches, #id)();
 }
 
@@ -412,6 +420,7 @@ class PurchaseReturnItems extends Table with SyncableTable {
   TextColumn get productId => text().references(Products, #id)();
   TextColumn get quantity => text().map(const DecimalConverter())();
   TextColumn get price => text().map(const DecimalConverter())();
+  TextColumn get unitName => text().nullable()();
 }
 
 class CustomerPayments extends Table with SyncableTable {
