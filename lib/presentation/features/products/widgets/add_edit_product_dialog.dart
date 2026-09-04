@@ -4,6 +4,10 @@ import 'package:supermarket/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:supermarket/data/datasources/local/app_database.dart';
 import 'package:supermarket/core/services/inventory/barcode_generation_service.dart';
+import 'package:supermarket/core/services/inventory/unit_conversion_service.dart';
+import 'package:supermarket/injection_container.dart';
+import 'package:decimal/decimal.dart';
+import 'package:uuid/uuid.dart';
 
 class AddEditProductDialog extends StatefulWidget {
   final Product? product;
@@ -36,9 +40,13 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
   late TextEditingController _conversionFactorController;
   late TextEditingController _unitNameController;
   late TextEditingController _unitBarcodeController;
+  late TextEditingController _unitBuyPriceController;
+  late TextEditingController _unitSellPriceFieldController;
+  late TextEditingController _unitWholesalePriceController;
   bool _isBaseUnit = false;
-  List<Map<String, dynamic>> _unitsList = [];
+  List<ProductUnit> _unitsList = [];
   bool _isAddingUnit = false;
+  bool _isLoadingUnits = false;
 
   @override
   void initState() {
@@ -67,15 +75,15 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
     _selectedCategoryId = widget.product?.categoryId;
     _loadCategories();
 
-    // Initialize unit fields from existing product
+    // Initialize unit fields
     _parentUnitController = TextEditingController();
     _conversionFactorController = TextEditingController();
     _unitNameController = TextEditingController();
     _unitBarcodeController = TextEditingController();
-    
-    // Product doesn't have isBaseUnit directly on it in the schema usually, 
-    // it's part of the Unit hierarchy.
-    _isBaseUnit = false; 
+    _unitBuyPriceController = TextEditingController();
+    _unitSellPriceFieldController = TextEditingController();
+    _unitWholesalePriceController = TextEditingController();
+    _isBaseUnit = false;
 
     // Load existing units for this product
     _loadExistingUnits();
@@ -84,10 +92,28 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
     _unitsPerMainUnitController.addListener(_calculateUnitSellPrice);
   }
 
-  void _loadExistingUnits() {
-    // In a real implementation, this would load from the database
-    // For now, we'll initialize with empty list
-    _unitsList = [];
+  Future<void> _loadExistingUnits() async {
+    if (widget.product == null) {
+      setState(() => _unitsList = []);
+      return;
+    }
+    setState(() => _isLoadingUnits = true);
+    try {
+      final db = Provider.of<AppDatabase>(context, listen: false);
+      final units = await (db.select(db.productUnits)
+            ..where((u) => u.productId.equals(widget.product!.id)))
+          .get();
+      if (mounted) {
+        setState(() {
+          _unitsList = units;
+          _isLoadingUnits = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoadingUnits = false);
+      }
+    }
   }
 
   Future<void> _loadCategories() async {
@@ -117,6 +143,9 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
     _conversionFactorController.dispose();
     _unitNameController.dispose();
     _unitBarcodeController.dispose();
+    _unitBuyPriceController.dispose();
+    _unitSellPriceFieldController.dispose();
+    _unitWholesalePriceController.dispose();
     _sellPriceController.removeListener(_calculateUnitSellPrice);
     _unitsPerMainUnitController.removeListener(_calculateUnitSellPrice);
     super.dispose();
@@ -132,7 +161,7 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
       ),
       child: _imagePath == null
           ? const Icon(Icons.add_a_photo, size: 50, color: Colors.grey)
-          : Image.network(_imagePath!), // Assuming remote URL or handle local file
+          : Image.network(_imagePath!),
     );
   }
 
@@ -200,7 +229,8 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
                     child: TextFormField(
                       controller: _barcodeController,
                       decoration: const InputDecoration(
-                          labelText: 'باركود الوحدة الرئيسية'),
+                        labelText: 'باركود الوحدة الرئيسية',
+                      ),
                     ),
                   ),
                   IconButton(
@@ -230,8 +260,7 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
                       decoration: const InputDecoration(
                         labelText: 'عدد الحبات/الوحدات داخل الوحدة الرئيسية',
                         hintText: 'مثال: 20 يعني أن الوحدة الواحدة تحتوي على 20 حبة',
-                        helperText:
-                            'معامل التعبئة - يُستخدم عند التفكيك',
+                        helperText: 'معامل التعبئة - يُستخدم عند التفكيك',
                       ),
                       keyboardType: TextInputType.number,
                     ),
@@ -242,8 +271,7 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
                       controller: _unitSellPriceController,
                       decoration: const InputDecoration(
                         labelText: 'سعر الوحدة المفردة',
-                        helperText:
-                            'سعر التجزئة ÷ عدد الوحدات داخل الوحدة',
+                        helperText: 'سعر التجزئة ÷ عدد الوحدات داخل الوحدة',
                       ),
                       keyboardType: TextInputType.number,
                       readOnly: true,
@@ -294,8 +322,7 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
                       controller: _unitSellPriceController,
                       decoration: const InputDecoration(
                         labelText: 'سعر الوحدة المفردة (محسوب تلقائيًا)',
-                        helperText:
-                            'سعر التجزئة ÷ عدد الوحدات داخل الوحدة',
+                        helperText: 'سعر التجزئة ÷ عدد الوحدات داخل الوحدة',
                       ),
                       keyboardType: TextInputType.number,
                       readOnly: true,
@@ -319,8 +346,7 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
                 decoration: const InputDecoration(
                   labelText: 'معامل التحويل',
                   hintText: 'مثلاً: 10 يعني أن وحدة الأم تساوي 10 من هذه الوحدة',
-                  helperText:
-                      '1 كيس = 10 قطم (القيم يجب أن تكون أكبر من 0)',
+                  helperText: '1 كيس = 10 قطم (القيم يجب أن تكون أكبر من 0)',
                 ),
                 keyboardType: TextInputType.number,
                 validator: (value) {
@@ -358,6 +384,48 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
                 ],
               ),
               const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      controller: _unitBuyPriceController,
+                      decoration: const InputDecoration(
+                        labelText: 'سعر شراء الوحدة',
+                      ),
+                      keyboardType: TextInputType.number,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: TextFormField(
+                      controller: _unitSellPriceFieldController,
+                      decoration: const InputDecoration(
+                        labelText: 'سعر بيع تجزئة الوحدة',
+                      ),
+                      keyboardType: TextInputType.number,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _unitWholesalePriceController,
+                decoration: const InputDecoration(
+                  labelText: 'سعر بيع جملة الوحدة',
+                ),
+                keyboardType: TextInputType.number,
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Checkbox(
+                    value: _isBaseUnit,
+                    onChanged: (val) => setState(() => _isBaseUnit = val ?? false),
+                  ),
+                  const Text('جعل هذه الوحدة هي الوحدة الأساسية'),
+                ],
+              ),
+              const SizedBox(height: 8),
               ElevatedButton.icon(
                 onPressed: _isAddingUnit ? null : _addUnit,
                 icon: _isAddingUnit
@@ -392,6 +460,9 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
   }
 
   List<Widget> _buildUnitsListItems() {
+    if (_isLoadingUnits) {
+      return [const Center(child: CircularProgressIndicator())];
+    }
     if (_unitsList.isEmpty) {
       return [
         const Padding(
@@ -404,24 +475,24 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
       final index = entry.key;
       final unit = entry.value;
       return Dismissible(
-        key: Key('unit_$index'),
+        key: Key('unit_${unit.id}'),
         direction: DismissDirection.endToStart,
-        onDismissed: (_) => _removeUnit(index),
+        onDismissed: (_) => _removeUnit(unit),
         background: Container(
           color: Colors.red,
           alignment: Alignment.centerRight,
           child: const Icon(Icons.delete, color: Colors.white),
         ),
         child: ListTile(
-          title: Text('${unit['unitName']} (${unit['unitFactor']})'),
+          title: Text('${unit.unitName} (${unit.unitFactor})'),
           subtitle: Text(
-              'Barcode: ${unit['barcode'] ?? 'لا يوجد'} | baseUnit: ${unit['isBaseUnit'] ? 'نعم' : 'لا'}'),
+              'Barcode: ${unit.barcode ?? 'لا يوجد'} | baseUnit: ${unit.isBaseUnit ? 'نعم' : 'لا'}'),
           trailing: PopupMenuButton<String>(
             onSelected: (value) {
               if (value == 'edit') {
-                _editUnit(index);
+                _editUnit(unit);
               } else if (value == 'delete') {
-                _removeUnit(index);
+                _removeUnit(unit);
               }
             },
             itemBuilder: (_) => [
@@ -440,54 +511,157 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
     }).toList();
   }
 
-  void _addUnit() {
+  Future<void> _addUnit() async {
     if (_unitNameController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('يرجى إدخال اسم الوحدة'))
-      );
+          const SnackBar(content: Text('يرجى إدخال اسم الوحدة')));
       return;
+    }
+
+    // Validate conversion factor
+    final factorStr = _conversionFactorController.text;
+    if (factorStr.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('يرجى إدخال معامل التحويل')));
+      return;
+    }
+    final conversionFactor = Decimal.tryParse(factorStr);
+    if (conversionFactor == null || conversionFactor <= Decimal.zero) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('معامل التحويل يجب أن يكون أكبر من صفر')));
+      return;
+    }
+
+    // Check for circular reference
+    if (widget.product != null) {
+      final existingUnits = await (db.select(db.productUnits)
+            ..where((u) => u.productId.equals(widget.product!.id)))
+          .get();
+      
+      // Check if this unit name already exists
+      final exists = existingUnits.any((u) => u.unitName == _unitNameController.text);
+      if (exists) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('الوحدة "${_unitNameController.text}" موجودة بالفعل')));
+        return;
+      }
+
+      // Check for circular reference: if this unit is already a parent of another unit
+      for (final unit in existingUnits) {
+        if (unit.unitName == _unitNameController.text && unit.unitFactor != Decimal.one) {
+          // This would create a circular reference
+          ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('لا يمكن إنشاء مرجع دائري للوحدات')));
+          return;
+        }
+      }
     }
 
     setState(() => _isAddingUnit = true);
 
-    // Add the unit to the list
-    _unitsList.add({
-      'unitName': _unitNameController.text,
-      'unitFactor': double.tryParse(_conversionFactorController.text) ?? 1.0,
-      'barcode': _unitBarcodeController.text,
-      'isBaseUnit': _isBaseUnit,
-    });
+    try {
+      final db = Provider.of<AppDatabase>(context, listen: false);
+      final unitConversionService = sl<UnitConversionService>();
+      
+      await unitConversionService.addProductUnit(
+        productId: widget.product?.id ?? '',
+        unitName: _unitNameController.text,
+        conversionFactor: conversionFactor,
+        barcode: _unitBarcodeController.text.isEmpty ? null : _unitBarcodeController.text,
+        buyPrice: _unitBuyPriceController.text.isEmpty ? null : Decimal.tryParse(_unitBuyPriceController.text),
+        sellPrice: _unitSellPriceFieldController.text.isEmpty ? null : Decimal.tryParse(_unitSellPriceFieldController.text),
+        wholesalePrice: _unitWholesalePriceController.text.isEmpty ? null : Decimal.tryParse(_unitWholesalePriceController.text),
+      );
 
-    // Clear fields
-    _unitNameController.clear();
-    _conversionFactorController.clear();
-    _unitBarcodeController.clear();
-    _isBaseUnit = false;
-    setState(() => _isAddingUnit = false);
+      // Clear fields
+      _unitNameController.clear();
+      _conversionFactorController.clear();
+      _unitBarcodeController.clear();
+      _unitBuyPriceController.clear();
+      _unitSellPriceFieldController.clear();
+      _unitWholesalePriceController.clear();
+      _isBaseUnit = false;
+
+      // Reload units
+      await _loadExistingUnits();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('تمت إضافة الوحدة بنجاح')));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('فشل إضافة الوحدة: $e')));
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isAddingUnit = false);
+      }
+    }
   }
 
-  void _removeUnit(int index) {
-    setState(() {
-      _unitsList.removeAt(index);
-    });
+  Future<void> _removeUnit(ProductUnit unit) async {
+    try {
+      final db = Provider.of<AppDatabase>(context, listen: false);
+      await (db.delete(db.productUnits)..where((u) => u.id.equals(unit.id))).go();
+      await _loadExistingUnits();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('تم حذف الوحدة')));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('فشل حذف الوحدة: $e')));
+      }
+    }
   }
 
-  void _editUnit(int index) {
-    // In a real implementation, show a dialog to edit the unit
-    ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('تحرير الوحدة - سيتم تطويره لاحقاً')));
+  void _editUnit(ProductUnit unit) {
+    // Show edit dialog
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('تعديل الوحدة: ${unit.unitName}'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextFormField(
+              initialValue: unit.unitFactor.toString(),
+              decoration: const InputDecoration(labelText: 'معامل التحويل'),
+              keyboardType: TextInputType.number,
+              onChanged: (val) async {
+                final factor = Decimal.tryParse(val);
+                if (factor != null && factor > Decimal.zero) {
+                  final db = Provider.of<AppDatabase>(context, listen: false);
+                  await (db.update(db.productUnits)..where((u) => u.id.equals(unit.id)))
+                      .write(ProductUnitsCompanion(unitFactor: Value(factor)));
+                  await _loadExistingUnits();
+                  if (mounted) Navigator.pop(ctx);
+                }
+              },
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('إلغاء')),
+        ],
+      ),
+    );
   }
 
   void _selectParentUnit() {
-    // Show a dialog to select parent unit from product's units
+    // For now, just show a message - this would need a more complex UI
+    // to select from existing units
     ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('اختيار وحدة الآب - سيتم تطويره لاحقاً')));
+        const SnackBar(content: Text('اختر وحدة من القائمة أدناه')));
   }
 
   void _calculateUnitSellPrice() {
-    final sellPrice = double.tryParse(_sellPriceController.text) ?? 0;
-    final unitsPerMain = double.tryParse(_unitsPerMainUnitController.text) ?? 1;
-    if (unitsPerMain > 0 && sellPrice > 0) {
+    final sellPrice = Decimal.tryParse(_sellPriceController.text) ?? Decimal.zero;
+    final unitsPerMain = Decimal.tryParse(_unitsPerMainUnitController.text) ?? Decimal.one;
+    if (unitsPerMain > Decimal.zero && sellPrice > Decimal.zero) {
       final unitPrice = sellPrice / unitsPerMain;
       _unitSellPriceController.text = unitPrice.toStringAsFixed(2);
     } else {
@@ -498,21 +672,19 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
   Future<void> _saveProduct() async {
     if (_formKey.currentState!.validate()) {
       final db = Provider.of<AppDatabase>(context, listen: false);
-      final buyPrice =
-          Decimal.tryParse(_buyPriceController.text) ?? Decimal.zero;
-      final sellPrice =
-          Decimal.tryParse(_sellPriceController.text) ?? Decimal.zero;
-      final wholesalePrice =
-          Decimal.tryParse(_wholesalePriceController.text) ?? Decimal.zero;
-      final unitSellPrice =
-          Decimal.tryParse(_unitSellPriceController.text) ?? Decimal.zero;
+      final buyPrice = Decimal.tryParse(_buyPriceController.text) ?? Decimal.zero;
+      final sellPrice = Decimal.tryParse(_sellPriceController.text) ?? Decimal.zero;
+      final wholesalePrice = Decimal.tryParse(_wholesalePriceController.text) ?? Decimal.zero;
+      final unitSellPrice = Decimal.tryParse(_unitSellPriceController.text) ?? Decimal.zero;
       final stock = Decimal.tryParse(_stockController.text) ?? Decimal.zero;
-      final unitsPerMainUnit =
-          Decimal.tryParse(_unitsPerMainUnitController.text) ?? Decimal.one;
+      final unitsPerMainUnit = Decimal.tryParse(_unitsPerMainUnitController.text) ?? Decimal.one;
 
       try {
         if (widget.product == null) {
+          // Create new product
+          final productId = const Uuid().v4();
           await db.into(db.products).insert(ProductsCompanion.insert(
+                id: Value(productId),
                 name: _nameController.text,
                 sku: _skuController.text,
                 unit: Value(_baseUnitController.text),
@@ -528,7 +700,31 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
                 categoryId: Value(_selectedCategoryId),
                 imagePath: Value(_imagePath),
               ));
+
+          // Set the base unit as the product's main unit
+          await db.into(db.productUnits).insert(ProductUnitsCompanion.insert(
+                productId: productId,
+                unitName: _baseUnitController.text,
+                unitFactor: const Value(Decimal.one),
+                isBaseUnit: const Value(true),
+                isDefault: const Value(true),
+              ));
+
+          // Add any units that were added in the dialog
+          for (final unit in _unitsList) {
+            await db.into(db.productUnits).insert(ProductUnitsCompanion.insert(
+                  productId: productId,
+                  unitName: unit.unitName,
+                  unitFactor: Value(unit.unitFactor),
+                  barcode: Value(unit.barcode),
+                  buyPrice: Value(unit.buyPrice ?? Decimal.zero),
+                  sellPrice: Value(unit.sellPrice ?? Decimal.zero),
+                  wholesalePrice: Value(unit.wholesalePrice ?? Decimal.zero),
+                  isDefault: const Value(false),
+                ));
+          }
         } else {
+          // Update existing product
           await (db.update(db.products)
                 ..where((p) => p.id.equals(widget.product!.id)))
               .write(
@@ -541,12 +737,29 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
               wholesalePrice: Value(wholesalePrice),
               unitSellPrice: Value(unitSellPrice),
               unitsPerMainUnit: Value(unitsPerMainUnit),
-              barcode: Value(_barcodeController.text),
+              barcode: Value(_barcodeController.text.isNotEmpty
+                  ? _barcodeController.text
+                  : null),
               categoryId: Value(_selectedCategoryId),
               imagePath: Value(_imagePath),
             ),
           );
+
+          // Update base unit if changed
+          final existingUnits = await (db.select(db.productUnits)
+                ..where((u) => u.productId.equals(widget.product!.id)))
+              .get();
+          final baseUnit = existingUnits.firstWhere(
+            (u) => u.isBaseUnit,
+            orElse: () => existingUnits.first,
+          );
+          
+          if (baseUnit.unitName != _baseUnitController.text) {
+            await (db.update(db.productUnits)..where((u) => u.id.equals(baseUnit.id)))
+                .write(ProductUnitsCompanion(unitName: Value(_baseUnitController.text)));
+          }
         }
+
         if (!mounted) return;
         Navigator.pop(context);
       } catch (e) {
@@ -555,4 +768,4 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
       }
     }
   }
-}
+}�

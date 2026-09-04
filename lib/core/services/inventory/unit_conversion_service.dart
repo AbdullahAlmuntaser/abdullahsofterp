@@ -30,9 +30,46 @@ class UnitConversionService {
     final product = await productsDao.getProductById(productId);
     if (product == null) throw const BusinessException(message: 'Product not found');
 
-    // Get units for this product - in real implementation, caller provides these
-    throw UnimplementedError(
-        'convertFromBaseUnit requires unit data from DB. Use TransactionEngine which has DB access.');
+    // If converting to base unit, return as-is
+    if (unitName == product.unit) return baseQuantity;
+
+    // Get units for this product
+    final productUnits = await productUnitsDao.getUnitsForProduct(productId);
+    final targetUnit = productUnits.firstWhere(
+      (u) => u.unitName == unitName,
+      orElse: () => throw BusinessException(message: 'Unit "$unitName" not found for product'),
+    );
+
+    // Convert: baseQuantity / targetUnit.unitFactor
+    // If 1 كيس = 10 قطم, and we have 50 قطم (base), then in كيس it's 50/10 = 5 كيس
+    return baseQuantity / targetUnit.unitFactor;
+  }
+
+  /// Convert a quantity from a unit to base unit
+  /// [quantity] is the quantity in the source unit
+  /// [unitName] is the name of the source unit
+  Future<Decimal> convertToBaseUnit({
+    required String productId,
+    required Decimal quantity,
+    required String unitName,
+  }) async {
+    if (quantity == Decimal.zero) return Decimal.zero;
+    final product = await productsDao.getProductById(productId);
+    if (product == null) throw const BusinessException(message: 'Product not found');
+
+    // If already in base unit, return as-is
+    if (unitName == product.unit) return quantity;
+
+    // Get units for this product
+    final productUnits = await productUnitsDao.getUnitsForProduct(productId);
+    final sourceUnit = productUnits.firstWhere(
+      (u) => u.unitName == unitName,
+      orElse: () => throw BusinessException(message: 'Unit "$unitName" not found for product'),
+    );
+
+    // Convert: quantity * sourceUnit.unitFactor
+    // If 1 كيس = 10 قطم, and we have 5 كيس, then in قطم it's 5 * 10 = 50 قطم
+    return quantity * sourceUnit.unitFactor;
   }
 
   /// Get all available units for a product including base unit
@@ -152,6 +189,71 @@ class UnitConversionService {
     // Note: Setting base unit requires DB access - caller should handle this
     throw UnimplementedError(
         'setBaseUnit requires DB access. Use TransactionEngine which has DB access.');
+  }
+
+  /// Validate that adding a new unit won't create a circular reference
+  Future<void> validateNoCircularReference({
+    required String productId,
+    required String newUnitName,
+    required Decimal newUnitFactor,
+  }) async {
+    final productUnits = await productUnitsDao.getUnitsForProduct(productId);
+    
+    // Check if new unit name already exists
+    final exists = productUnits.any((u) => u.unitName == newUnitName);
+    if (exists) {
+      throw BusinessException(message: 'الوحدة "$newUnitName" موجودة بالفعل');
+    }
+
+    // Check for circular reference: if newUnitFactor equals an existing unit's factor
+    // and that unit's name matches the product's base unit, it could create confusion
+    // For simplicity, we just check that the new unit name is not the same as any existing unit
+    for (final unit in productUnits) {
+      if (unit.unitName == newUnitName) {
+        throw BusinessException(message: 'لا يمكن إنشاء مرجع دائري: الوحدة "$newUnitName" موجودة بالفعل');
+      }
+    }
+  }
+
+  /// Get the price for a specific unit and sale type
+  Future<Decimal> getPriceForUnit({
+    required String productId,
+    required String unitName,
+    required String saleType, // 'retail', 'wholesale', 'special'
+  }) async {
+    final product = await productsDao.getProductById(productId);
+    if (product == null) throw const BusinessException(message: 'Product not found');
+
+    // If using base unit, return product's default price
+    if (unitName == product.unit) {
+      switch (saleType) {
+        case 'wholesale':
+          return product.wholesalePrice;
+        case 'special':
+          // Special price could be a custom price, for now use sell price
+          return product.sellPrice;
+        case 'retail':
+        default:
+          return product.sellPrice;
+      }
+    }
+
+    // Get unit-specific price
+    final productUnits = await productUnitsDao.getUnitsForProduct(productId);
+    final unit = productUnits.firstWhere(
+      (u) => u.unitName == unitName,
+      orElse: () => throw BusinessException(message: 'Unit "$unitName" not found'),
+    );
+
+    switch (saleType) {
+      case 'wholesale':
+        return unit.wholesalePrice ?? product.wholesalePrice;
+      case 'special':
+        return unit.sellPrice ?? product.sellPrice;
+      case 'retail':
+      default:
+        return unit.sellPrice ?? product.sellPrice;
+    }
   }
 
   /// Format a base quantity into human-readable format with multiple units
